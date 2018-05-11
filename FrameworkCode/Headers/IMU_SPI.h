@@ -29,8 +29,15 @@
 #include "inc/hw_timer.h"
 #include "inc/hw_nvic.h"
 
+bool InitIMU(uint8_t Priority);
+bool PostIMU(ES_Event_t ThisEvent);
+ES_Event_t RunIMU(ES_Event_t ThisEvent);
+uint16_t get_accel_x( void );
+uint16_t get_accel_y( void );
+uint16_t get_accel_z( void );
+uint16_t get_gyro_x( void );
+uint16_t get_gyro_y( void );
+uint16_t get_gyro_z( void );
 
-void InitSPI( uint8_t Priority );
-void SPI_Write( uint8_t byteOut );
-uint8_t SPI_Read( void );
+
 #endif
