@@ -432,6 +432,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\TemplateFSM.c</FilePath>
             </File>
+            <File>
+              <FileName>Init_UART.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\Init_UART.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
