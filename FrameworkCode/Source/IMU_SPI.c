@@ -8,18 +8,18 @@
  Author
 	E. Krimsky, ME218C
 ****************************************************************************/
+#define IMU_DEBUG   // Unccoment to stop printing 
 
 #include "IMU_SPI.h"
-#include "MPU9250_RegisterMap.h"
 
-#define TEST
-#define PDIV 5      // TODO: SSI clock divisor 
-#define SCR 10      // TODO: Set this 
+// Set up SPI for 0.5 MHz
+#define PDIV 2      // SSI clock divisor 
+#define SCR 40      // SSI Clock Prescaler  
 #define TICKS_PER_MS 40000
 
 //  Masks for reading and writing SPI to IMU
 
-const int IMU_UPDATE_TIME = 100;    // Update at 10 Hz (twice the controller freq )
+const int IMU_UPDATE_TIME = 10;    
 
 static uint16_t byteIn; 		    // 2 byte transfers
 
@@ -51,11 +51,11 @@ const uint8_t num_reads = GYR_Z_LOW - ACC_X_HIGH + 1;
 
 uint8_t address_array[num_reads]; 
 
-
+uint8_t MyPriority; 
 
 static SPI_Write_State_t CurrentState; 
 
-CurrentState = ACC_X_HIGH;          // State 0 
+
 
 // Local copies of IMU data 
 
@@ -90,7 +90,9 @@ static void IMU_SPI_Init( void );
 ****************************************************************************/
 bool InitIMU(uint8_t Priority)
 {
-        // Fill up adress array with values 
+    CurrentState = ACC_X_HIGH;          // State 0 
+        
+    // Fill up adress array with values 
     address_array[0] = MPU9250_ACCEL_XOUT_H;
     address_array[1] = MPU9250_ACCEL_XOUT_L;
 
@@ -109,8 +111,6 @@ bool InitIMU(uint8_t Priority)
     address_array[10] = MPU9250_GYRO_ZOUT_H;
     address_array[11] = MPU9250_GYRO_ZOUT_L;
 
-
-
     IMU_SPI_Init();     // Initialize SPI 
     uint16_t sendByte;
 
@@ -121,7 +121,7 @@ bool InitIMU(uint8_t Priority)
     // for the time specified by the “Start-Up Time 
     // for Register Read/Write” in Section 6.3.
     uint16_t config_bytes = BIT4HI; 
-    uint8_t config_reg = USER_CTRL;
+    uint8_t config_reg = MPU9250_USER_CTRL;
     sendByte = BIT15HI;            // MSB high for read
     sendByte |= (config_reg << 8);
     sendByte |= config_bytes; 
@@ -131,16 +131,13 @@ bool InitIMU(uint8_t Priority)
     // Do this write then wait -- 
 
     // NEED TO DELAY 
-
-
-
     // page 53 
     // This register disables I2C bus interface. I2C bus interface 
     // is enabled in default. To disable I2C bus interface,
     // write “00011011” to I2CDIS register. Then I2C bus interface is disabled.
 
     // Not sure if this part matters 
-
+    
     // do the I2C disable 
     //sendByte = BIT15HI; 
     //uint16_t disable_I2C = 0x1B;  
@@ -150,9 +147,8 @@ bool InitIMU(uint8_t Priority)
     //HWREG(SSI0_BASE+SSI_O_IM) |= BIT3HI;    // Enable TXIM
     //HWREG(SSI0_BASE+SSI_O_DR) = sendByte;   // write a new byte to the FIFO
 
+    // SYSCTL_DELAY if need blocking delay for SPI setup 
 
-
-    ES_Event_t ThisEvent;
 
     MyPriority = Priority;
 
@@ -227,7 +223,13 @@ ES_Event_t RunIMU(ES_Event_t ThisEvent)
         }
         else
         {
-            CurrentState = 0;                  // Set back to first state 
+            CurrentState = ACC_X_HIGH;                  // Set back to first state 
+            
+            #ifdef IMU_DEBUG
+            printf("\r\nX_ACC: %d Y_ACC: %d Z_ACC: %d\n", (int) accel_x, (int) accel_y, (int) accel_z); 
+            printf("\rX_GYRO: %d Y_GYRO: %d Z_GYRO: %d\n\n", (int) gyro_x, (int) gyro_y, (int) gyro_z); 
+            #endif 
+            
         }
 
 
@@ -410,7 +412,7 @@ static void IMU_SPI_Init( void )
     HWREG(SSI0_BASE+SSI_O_CC) &= (0xffffffff << 4); // Clear the 4 LSBs
 
     // 13. Configure the clock pre-scaler
-
+    // p. 976
     // bits 8:32 are read only so we should be able to write directly the 
     // 8 LSBs
     HWREG(SSI0_BASE+SSI_O_CPSR) = (HWREG(SSI0_BASE+SSI_O_CPSR) & 
@@ -454,7 +456,7 @@ static void IMU_SPI_Init( void )
 
     // Erez added: enable interrupts globally
     __enable_irq();
-    SPI_InitPeriodic();
+
 }
 
 uint16_t get_accel_x( void )
@@ -488,82 +490,3 @@ uint16_t get_gyro_z( void )
 {
     return gyro_z;
 }
-
-/****************************************************************************
-
-                            TEST HARNESS 
-
-*****************************************************************************/
-
-#ifdef TEST
-
-
-
-
-
-
-int main (void)
-{
-    ES_Return_t ErrorType;
-
-    // Set the clock to run at 40MhZ using the PLL and 16MHz external crystal
-    SysCtlClockSet(SYSCTL_SYSDIV_5 | SYSCTL_USE_PLL | SYSCTL_OSC_MAIN
-    | SYSCTL_XTAL_16MHZ);
-    TERMIO_Init();
-    clrScrn();
-
-    // When doing testing, it is useful to announce just which program
-    // is running.
-    puts("\rStarting Test Harness for IMU_SPI \r");
-    printf( "the 2nd Generation Events & Services Framework V2.4\r\n");
-    printf( "%s %s\n", __TIME__, __DATE__);
-    printf( "\n\r\n");
-    printf( "Press any key to post key-stroke events to Service 0\n\r");
-    printf( "Press 'd' to test event deferral \n\r");
-    printf( "Press 'r' to test event recall \n\r");
-
-    // reprogram the ports that are set as alternate functions or
-    // locked coming out of reset. (PA2-5, PB2-3, PD7, PF0)
-    // After this call these ports are set
-    // as GPIO inputs and can be freely re-programmed to change config.
-    // or assign to alternate any functions available on those pins
-    PortFunctionInit();
-
-    // Your hardware initialization function calls go here
-
-    // now initialize the Events and Services Framework and start it running
-    ErrorType = ES_Initialize(ES_Timer_RATE_1mS);
-    if (ErrorType == Success)
-    {
-        ErrorType = ES_Run();
-    }
-    //if we got to here, there was an error
-    switch (ErrorType)
-    {
-        case FailedPost:
-            {
-            printf("Failed on attempt to Post\n");
-            }
-            break;
-        case FailedPointer:
-            {
-            printf("Failed on NULL pointer\n");
-            }
-            break;
-        case FailedInit:
-            {
-            printf("Failed Initialization\n");
-            }
-            break;
-        default:
-            {
-            printf("Other Failure\n");
-            }
-            break;
-    }
-    for ( ; ;)
-    {
-        ;
-    }
-}
-#endif

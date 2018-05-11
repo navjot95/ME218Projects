@@ -432,6 +432,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\TemplateFSM.c</FilePath>
             </File>
+            <File>
+              <FileName>IMU_SPI.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\IMU_SPI.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -541,6 +546,16 @@
               <FileName>ES_ShortTimer.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\ES_ShortTimer.h</FilePath>
+            </File>
+            <File>
+              <FileName>IMU_SPI.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\IMU_SPI.h</FilePath>
+            </File>
+            <File>
+              <FileName>MPU9250_RegisterMap.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\MPU9250_RegisterMap.h</FilePath>
             </File>
           </Files>
         </Group>

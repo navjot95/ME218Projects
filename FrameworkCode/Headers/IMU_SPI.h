@@ -1,5 +1,5 @@
-#ifndef SPI_H
-#define SPI_H
+#ifndef IMU_SPI_H
+#define IMU_SPI_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -29,6 +29,8 @@
 #include "inc/hw_timer.h"
 #include "inc/hw_nvic.h"
 
+#include "MPU9250_RegisterMap.h"
+
 bool InitIMU(uint8_t Priority);
 bool PostIMU(ES_Event_t ThisEvent);
 ES_Event_t RunIMU(ES_Event_t ThisEvent);
@@ -38,6 +40,5 @@ uint16_t get_accel_z( void );
 uint16_t get_gyro_x( void );
 uint16_t get_gyro_y( void );
 uint16_t get_gyro_z( void );
-
 
 #endif
