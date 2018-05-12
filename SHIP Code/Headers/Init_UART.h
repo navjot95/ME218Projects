@@ -17,6 +17,6 @@
 
 // Public Function Prototypes
 void Init_UART_PIC(void);
-
+void Init_UART_XBee(void);
 
 #endif /* Init_UART_H */
