@@ -120,22 +120,22 @@ void Init_UART_XBee(void)
 
 
   // Disable UART by clearing the UARTEN bit in the UART_CTL register
-  HWREG(UART1_BASE + UART_O_CTL) &= ~UART_CTL_UARTEN;
+  HWREG(UART5_BASE + UART_O_CTL) &= ~UART_CTL_UARTEN;
   
   // Set to 9600 Baud (pg 896)
   // BRD = BRDI + BRDF = UARTSysClk/(ClkDiv * BaudRate) = 260 + 0.41667
   // IBRD: 260 = 0x104
   // FBRD: int(BRDF * 64 + 0.5) = 27 = 0x1B
-  HWREG(UART1_BASE + UART_O_IBRD) = 0x104;
-  HWREG(UART1_BASE + UART_O_FBRD) = 0x1B;
+  HWREG(UART5_BASE + UART_O_IBRD) = 0x104;
+  HWREG(UART5_BASE + UART_O_FBRD) = 0x1B;
   
   // Write the desired serial parameters to the UART_LCRH register
   // We want 8 bits
-  HWREG(UART1_BASE + UART_O_LCRH) |= UART_LCRH_WLEN_8;
+  HWREG(UART5_BASE + UART_O_LCRH) |= UART_LCRH_WLEN_8;
   
   // Set Recieve, Transmit, and End of Transmission bits
   // Enable UART
-  HWREG(UART1_BASE + UART_O_CTL) |= (UART_CTL_RXE| UART_CTL_TXE | 
+  HWREG(UART5_BASE + UART_O_CTL) |= (UART_CTL_RXE| UART_CTL_TXE | 
         UART_CTL_EOT | UART_CTL_UARTEN);
 
 }
