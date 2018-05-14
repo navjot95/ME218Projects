@@ -67,7 +67,7 @@ static AnsibleMainState_t CurrentState;
 
 
 //Module Level Variables 
-bool pair; 
+static bool pair_var; 
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -168,12 +168,12 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
       if (ThisEvent.EventType == ES_INIT)    
       {
         //set bool paired to false 
-//         bool pair = false; 
+         pair_var = false; 
         //Set next state to WaitingforPair
         NextState = WaitingForPair;
       }
     }
-    break; //break out of state 
+    break; //break out of InitAnsible
 
     case WaitingForPair:        // If current state is state one
     {
@@ -190,7 +190,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
           NextState = WaitingForPairResp;  //Decide what the next state will be
         }
     }
-    break; //break out of state 
+    break; //break out of WaitingForPair 
     
     case WaitingForPairResp:        // If current state is state one
     {
@@ -202,12 +202,12 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
           {
              ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset timer
              //Self transition and send packet (0x01) again to the SHIP
-             //NextState = CurrentState; to self transition 
+             NextState = WaitingForPairResp; 
           }
           if (ThisEvent.EventParam == PAIR_TIMEOUT_TIMER)
           {
             ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); 
-            //set currentstate to WaitingForPair
+            //set nextstaate to WaitingForPair
             NextState = WaitingForPair; 
           }
         }
@@ -215,10 +215,12 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
         case ES_CONNECTIONEST:  //if this event is a timeout 
         {  
          //local variable paired = true
+          pair_var = true; 
           //Start Pairing Timer (1sec)
           ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); //reset timer
           //Start Attempt Timer (200ms)
           ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset timer 
+          
           NextState = CommunicatingSHIP;  //Decide what the next state will be
         }
         break; 
@@ -234,10 +236,11 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
         {  
          //send 0x01 packet
          //start 200ms timer
-           ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset timer 
+           ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset 200 timer 
          //start 1s timer
            ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); //reset timer
          //Paired = false 
+          pair_var = false; 
         // now put the machine into the actual initial state
           NextState = WaitingForPairResp;  //Decide what the next state will be
         }
@@ -248,12 +251,14 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
           {
             //send CNTRL packet
             //reset PAIR_ATTEMPT_TIMER
+            ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset 200 timer
             NextState = CommunicatingSHIP;  //Decide what the next state will be
           }
            if (ThisEvent.EventParam == PAIR_TIMEOUT_TIMER)
           {
           //local bool paired = false
-           NextState = WaitingForPair;  //Decide what the next state will be
+            pair_var = false; 
+           NextState = WaitingForPair;  //NextState
           }
         }
         break;  
@@ -355,5 +360,5 @@ static void UARTHardwareInit(void){
   //Enable Interrupts Globally 
   __enable_irq();
 
-  //
+  //Enable IN KEIL 
   }
