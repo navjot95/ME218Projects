@@ -547,6 +547,11 @@
               <FileType>5</FileType>
               <FilePath>.\Headers\ES_ShortTimer.h</FilePath>
             </File>
+            <File>
+              <FileName>AnsibleMain.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\AnsibleMain.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

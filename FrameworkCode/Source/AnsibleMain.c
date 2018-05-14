@@ -52,6 +52,8 @@ first pass      s koppaka
 #define BitsPerNibble 4
 #define UART2_RX_PIN GPIO_PIN_6
 #define UART2_TX_PIN GPIO_PIN_7
+#define ATTEMPT_TIME 200 //200ms
+#define PAIRING_TIME 1000 //1 sec time 
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -61,7 +63,11 @@ first pass      s koppaka
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
-static TemplateState_t CurrentState;
+static AnsibleMainState_t CurrentState;
+
+
+//Module Level Variables 
+bool pair; 
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -69,7 +75,7 @@ static uint8_t MyPriority;
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
  Function
-     InitTemplateFSM
+     InitAnsibleMain
 
  Parameters
      uint8_t : the priorty of this service
@@ -83,7 +89,8 @@ static uint8_t MyPriority;
  Notes
 
  Author
-     J. Edward Carryer, 10/23/11, 18:55
+     first pass sk
+     
 ****************************************************************************/
 bool InitAnsibleMain(uint8_t Priority)
 {
@@ -94,7 +101,7 @@ bool InitAnsibleMain(uint8_t Priority)
   UARTHardwareInit(); //Initialize HW for UART 
   
   // put us into the Initial PseudoState
-  CurrentState = InitPState;
+  CurrentState = InitAnsible;
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -109,7 +116,7 @@ bool InitAnsibleMain(uint8_t Priority)
 
 /****************************************************************************
  Function
-     PostTemplateFSM
+     PostAnsible 
 
  Parameters
      EF_Event ThisEvent , the event to post to the queue
@@ -122,9 +129,9 @@ bool InitAnsibleMain(uint8_t Priority)
  Notes
 
  Author
-     J. Edward Carryer, 10/23/11, 19:25
+    first pass sk
 ****************************************************************************/
-bool PostTemplateFSM(ES_Event_t ThisEvent)
+bool PostAnsibleMain(ES_Event_t ThisEvent)
 {
   return ES_PostToService(MyPriority, ThisEvent);
 }
@@ -144,50 +151,118 @@ bool PostTemplateFSM(ES_Event_t ThisEvent)
  Notes
    uses nested switch/case to implement the machine.
  Author
-   J. Edward Carryer, 01/15/12, 15:23
+   first pass sk 
 ****************************************************************************/
-ES_Event_t RunTemplateFSM(ES_Event_t ThisEvent)
+ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
+  //Create a NextState Variable
+  static AnsibleMainState_t NextState; 
+  NextState = CurrentState;
 
   switch (CurrentState)
   {
-    case InitPState:        // If current state is initial Psedudo State
+    case InitAnsible:        // If current state is WaitingForPairing
     {
-      if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
+      if (ThisEvent.EventType == ES_INIT)    
       {
-        // this is where you would put any actions associated with the
-        // transition from the initial pseudo-state into the actual
-        // initial state
-
-        // now put the machine into the actual initial state
-        CurrentState = UnlockWaiting;
+        //set bool paired to false 
+//         bool pair = false; 
+        //Set next state to WaitingforPair
+        NextState = WaitingForPair;
       }
     }
-    break;
+    break; //break out of state 
 
-    case UnlockWaiting:        // If current state is state one
+    case WaitingForPair:        // If current state is state one
+    {
+        if(ThisEvent.EventType == ES_PAIRBUTTONPRESSED)  // only respond if the button is pressed to pair to a specific team 
+        {  
+        //set ship address
+        //send packet to SHIP (0x01)
+        //Start attempt time to 200ms to keep trying at a rate of 5 Hz 
+          ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); 
+          
+        //Start Pairing Timer to 1sec 
+          ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); 
+          
+          NextState = WaitingForPairResp;  //Decide what the next state will be
+        }
+    }
+    break; //break out of state 
+    
+    case WaitingForPairResp:        // If current state is state one
     {
       switch (ThisEvent.EventType)
       {
-        case ES_LOCK:  //If event is event one
-
-        {   // Execute action function for state one : event one
-          CurrentState = Locked;  //Decide what the next state will be
+        case ES_TIMEOUT:  //if this event is a timeout 
+        {  
+          if (ThisEvent.EventParam == PAIR_ATTEMPT_TIMER)
+          {
+             ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset timer
+             //Self transition and send packet (0x01) again to the SHIP
+             //NextState = CurrentState; to self transition 
+          }
+          if (ThisEvent.EventParam == PAIR_TIMEOUT_TIMER)
+          {
+            ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); 
+            //set currentstate to WaitingForPair
+            NextState = WaitingForPair; 
+          }
         }
         break;
-
-        // repeat cases as required for relevant events
-        default:
-          ;
-      }  // end switch on CurrentEvent
+        case ES_CONNECTIONEST:  //if this event is a timeout 
+        {  
+         //local variable paired = true
+          //Start Pairing Timer (1sec)
+          ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); //reset timer
+          //Start Attempt Timer (200ms)
+          ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset timer 
+          NextState = CommunicatingSHIP;  //Decide what the next state will be
+        }
+        break; 
+      }
     }
-    break;
-    // repeat state pattern as required for other states
-    default:
-      ;
+    break; //break out for state
+    
+    case CommunicatingSHIP:        // If current state is state one
+    {
+      switch (ThisEvent.EventType)
+      {
+        case ES_PAIRBUTTONPRESSED:  //if connection established event is posted
+        {  
+         //send 0x01 packet
+         //start 200ms timer
+           ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset timer 
+         //start 1s timer
+           ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); //reset timer
+         //Paired = false 
+        // now put the machine into the actual initial state
+          NextState = WaitingForPairResp;  //Decide what the next state will be
+        }
+        break; 
+        case ES_TIMEOUT:  //if connection established event is posted
+        {  
+          if (ThisEvent.EventParam == PAIR_ATTEMPT_TIMER)
+          {
+            //send CNTRL packet
+            //reset PAIR_ATTEMPT_TIMER
+            NextState = CommunicatingSHIP;  //Decide what the next state will be
+          }
+           if (ThisEvent.EventParam == PAIR_TIMEOUT_TIMER)
+          {
+          //local bool paired = false
+           NextState = WaitingForPair;  //Decide what the next state will be
+          }
+        }
+        break;  
+      }
+    }
+      break; //break out of switch 
+      
   }                                   // end switch on Current State
+  CurrentState = NextState; 
   return ReturnEvent;
 }
 
@@ -208,7 +283,7 @@ ES_Event_t RunTemplateFSM(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-TemplateState_t QueryTemplateFSM(void)
+AnsibleMainState_t QueryTemplateFSM(void)
 {
   return CurrentState;
 }
@@ -246,11 +321,10 @@ static void UARTHardwareInit(void){
    HWREG(GPIO_PORTD_BASE+GPIO_O_AFSEL) |= (UART2_TX_PIN|UART2_RX_PIN); 
     
   //Configure the PMCn fields in the GPPIOPCTL (p.689) register to assign the UART pins
-    HWREG(GPIO_PORTD_BASE+GPIO_O_PCTL) = (HWREG(GPIO_PORTD_BASE+GPIO_O_PCTL) & 0xfffffff0)+(1); //Write 1 to select U2RX as alternative function 
-    HWREG(GPIO_PORTD_BASE+GPIO_O_PCTL) = (HWREG(GPIO_PORTD_BASE+GPIO_O_PCTL) & 0xffffff0f)+(1<<(1* BitsPerNibble)) ; //Write 1 to select U2TX as alt fun
+    HWREG(GPIO_PORTD_BASE+GPIO_O_PCTL) = (HWREG(GPIO_PORTD_BASE+GPIO_O_PCTL) & 0xf00fffff)+(1<<(6*BitsPerNibble))+(1<<(7*BitsPerNibble)); //Write 1 to select U2RX as alternative function and to select U2TX as alt fun 
 
   //Disable the UART by clearning the UARTEN bits in the UARTCTL register
-    //UART Data Registers are cleared by default (RXE and TXE are already enabled) **
+    HWREG(UART2_BASE+UART_O_CTL) &= ~(UART_CTL_UARTEN); 
   
   //Write the inter portion of the URTIBRD register (setting baud rate) 
     HWREG(UART2_BASE+UART_O_IBRD) = HWREG(UART2_BASE+UART_O_IBRD) + 0x15;  //writing 21 in hex
@@ -259,12 +333,27 @@ static void UARTHardwareInit(void){
     HWREG(UART2_BASE+UART_O_FBRD) = HWREG(UART2_BASE+UART_O_FBRD) + 0x2D;  //writing 21 in hex; //writing 45 in hex 
 
   //Write the desired serial parameters to the UARTLCRH registers to set word length to 8
-     HWREG (UART2_BASE + UART_O_LCRH) = HWREG(UART2_BASE + UART_O_LCRH) + (UART_LCRH_WLEN_8); 
+     HWREG (UART2_BASE + UART_O_LCRH) = (UART_LCRH_WLEN_8); 
 
   //Configure the UART operation using the UARTCTL register 
-     //UART Data Registers are cleared by default (RXE and TXE are already enabled) **
-  
+   //UART Data Registers should be cleared by default (RXE and TXE are already enabled) **
+     HWREG(UART2_BASE + UART_O_CTL) |= (UART_CTL_TXE); 
+     HWREG(UART2_BASE + UART_O_CTL) |= (UART_CTL_RXE); 
+
   //Enable the UART by setting the UARTEN bit in the UARTCTL register 
-    HWREG(UART2_BASE + UART_O_IM) |= (UART_CTL_UARTEN); 
+    HWREG(UART2_BASE + UART_O_CTL) |= (UART_CTL_UARTEN); 
         
+  //Enable UART RX Interrupt (p.924)
+    HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_RXIM); 
+  
+  //Enable UART TX Interrupt
+   HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_TXIM); 
+  
+  //Enable NVIC (p.104) UART2 is Interrtupt Number 33, so it is EN1, BIT1 HI (p.141)
+    HWREG(NVIC_EN1) |= BIT1HI;
+  
+  //Enable Interrupts Globally 
+  __enable_irq();
+
+  //
   }

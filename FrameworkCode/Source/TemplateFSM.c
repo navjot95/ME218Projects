@@ -119,6 +119,7 @@ ES_Event_t RunTemplateFSM(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
+  
 
   switch (CurrentState)
   {
