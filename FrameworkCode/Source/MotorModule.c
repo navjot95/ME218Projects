@@ -90,9 +90,8 @@ void InitFanPumpPWM()
    
   }
     
-  //disable the PWM while initializing
+  //disable the PWM0 (PB6 and PB7) while initializing
   HWREG(PWM0_BASE+PWM_O_0_CTL) = 0; 
-    
   //program generators to go to 1 at rising compare A, 0 on falling compare A
   HWREG(PWM0_BASE+PWM_O_0_GENA) = (PWM_0_GENA_ACTCMPAU_ONE | PWM_0_GENA_ACTCMPAD_ZERO);
   //program generators to go to 1 at rising compare B, 0 on falling compare B
@@ -106,28 +105,43 @@ void InitFanPumpPWM()
   //enable PWM outputs 
   HWREG(PWM0_BASE+PWM_O_ENABLE) |= (PWM_ENABLE_PWM0EN | PWM_ENABLE_PWM1EN); 
   
+  //Disable PWM0 (PB4 and PB5) while initializing
+  HWREG(PWM0_BASE + PWM_O_1_CTL) = 0;
+  // program generators to go to 1 at rising compare A/B, 0 on falling compare A/B
+  HWREG(PWM0_BASE+PWM_O_1_GENA) = (PWM_0_GENA_ACTCMPAU_ONE | PWM_0_GENA_ACTCMPAD_ZERO);
+  HWREG(PWM0_BASE+PWM_O_1_GENB) = (PWM_0_GENB_ACTCMPBU_ONE | PWM_0_GENB_ACTCMPBD_ZERO);
+  //Set half the period (load = period/4/32 - adjusting for difference in clock to PWM and timers)
+  HWREG(PWM0_BASE + PWM_O_1_LOAD) = PWM_5KHZ; // 5kHz at 125
+  //Set value at which pin changes state (50% duty cycle)
+  HWREG(PWM0_BASE + PWM_O_1_CMPA) = HWREG(PWM0_BASE+PWM_O_0_LOAD) >> 1;
+  HWREG(PWM0_BASE + PWM_O_1_CMPB) = HWREG(PWM0_BASE+PWM_O_0_LOAD) >> 1;
+  //Enable PWM output 
+  HWREG(PWM0_BASE + PWM_O_ENABLE) |= (PWM_ENABLE_PWM2EN);
   
-  //select alternatue function on PWM pins
-  HWREG(GPIO_PORTB_BASE + GPIO_O_AFSEL) |= (BIT7HI | BIT6HI); //corresponds to PB6 and PB7
-  //map PWM to PB6 and PB7
-  HWREG(GPIO_PORTB_BASE + GPIO_O_PCTL) = (HWREG(GPIO_PORTB_BASE + GPIO_O_PCTL) & 0x00ffffff) + (4<<(7*BitsPerNibble)) + (4<<(6*BitsPerNibble)); 
-  //enable Pin 6 and 7 on Port B for digital I/O
-  HWREG(GPIO_PORTB_BASE + GPIO_O_DEN) |= (BIT7HI | BIT6HI); 
-  //make pin 6 on Port B into output
-  HWREG(GPIO_PORTB_BASE + GPIO_O_DIR) |= (BIT7HI | BIT6HI); 
   
+  //select alternatue function on PWM pins for PB6, PB7, PB4, PB5
+  HWREG(GPIO_PORTB_BASE + GPIO_O_AFSEL) |= (BIT7HI | BIT6HI | BIT4HI | BIT5HI); //corresponds to PB6 and PB7
+  //map PWM to PB6, PB7, PB4, PB5
+  HWREG(GPIO_PORTB_BASE + GPIO_O_PCTL) = (HWREG(GPIO_PORTB_BASE + GPIO_O_PCTL) & 0x00ffffff) + (4<<(7*BitsPerNibble)) + (4<<(6*BitsPerNibble)) + (4<<(4*BitsPerNibble)) + (4<<(5*BitsPerNibble)); 
+  //enable Pin 4, 5, 6 and 7 on Port B for digital I/O
+  HWREG(GPIO_PORTB_BASE + GPIO_O_DEN) |= (BIT7HI | BIT6HI | BIT4HI | BIT5HI); 
+  //make pin 4, 5, 6  and 7 on Port B into output
+  HWREG(GPIO_PORTB_BASE + GPIO_O_DIR) |= (BIT7HI | BIT6HI | BIT4HI | BIT5HI); 
   //Set up/down count mode, enable PWM generator and make both generator updates locally synchronized to zero count
   HWREG(PWM0_BASE + PWM_O_0_CTL) = (PWM_0_CTL_MODE | PWM_0_CTL_ENABLE | PWM_0_CTL_GENAUPD_LS | PWM_0_CTL_GENBUPD_LS); 
+  HWREG(PWM0_BASE + PWM_O_1_CTL) = (PWM_1_CTL_MODE | PWM_1_CTL_ENABLE | PWM_1_CTL_GENAUPD_LS | PWM_1_CTL_GENBUPD_LS); 
   
+  StopFanMotors(); 
+  SetPumpSpeed(0); 
 }
 
 void MoveForward(uint32_t ForwardSpeed){
-  MoveMotors(ForwardSpeed,ForwardSpeed); 
+  MoveFanMotors(ForwardSpeed,ForwardSpeed); 
 }
 
 
-void StopMotors(void){
-    MoveMotors(0,0); 
+void StopFanMotors(void){
+    MoveFanMotors(0,0); 
 }
 
 
@@ -180,8 +194,32 @@ void MoveFanMotors(uint32_t LeftSpeed, uint32_t RightSpeed){
 
 }
 
-void setPumpSpeed(uint32_t pumpDuty){
-    
+void SetPumpSpeed(uint32_t pumpDuty){
+     //make sure input is between 0 and 100, corresponding to duty
+  if(pumpDuty <= MIN_DUTY_VAL) //negative u means have gone over desired value 
+    pumpDuty = MIN_DUTY_VAL; 
+  else if(pumpDuty > MAX_DUTY_VAL)
+    pumpDuty = MAX_DUTY_VAL; 
+      
+      
+  //convert duty cycle (0-100) to pwm comparator value (0-MAX_PWM_RAW_VALUE) 
+  uint32_t compVal = (((pumpDuty) * (MAX_PWM_RAW_VALUE)) / (MAX_DUTY_VAL));    
+      
+  //comVal inversely proportional to duty cycle, so subtract from max value 
+  compVal = MAX_PWM_RAW_VALUE - compVal;       
+  
+  //update pwm duty cycle for left fan 
+  if(compVal >= (MAX_PWM_RAW_VALUE)){ 
+     HWREG(PWM0_BASE + PWM_O_1_GENA) = PWM_1_GENA_ACTZERO_ZERO;
+  }
+  else if(compVal <= 0) {
+    HWREG(PWM0_BASE + PWM_O_1_GENA) = PWM_1_GENA_ACTZERO_ONE;
+  }
+  else {
+    //set to normal action first
+    HWREG(PWM0_BASE + PWM_O_1_GENA) = (PWM_1_GENA_ACTCMPAU_ONE | PWM_1_GENA_ACTCMPAD_ZERO); 
+    HWREG(PWM0_BASE + PWM_O_1_CMPA) = compVal;
+  } 
 }
 
 /***************************************************************************

@@ -62,6 +62,7 @@ int main(void)
   // Your hardware initialization function calls go here
   InitFanPumpPWM(); 
 
+
   // now initialize the Events and Services Framework and start it running
   ErrorType = ES_Initialize(ES_Timer_RATE_1mS);
   if (ErrorType == Success)

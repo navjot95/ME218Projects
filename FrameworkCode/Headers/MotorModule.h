@@ -25,8 +25,9 @@
 
 void InitFanPumpPWM(void); 
 void MoveForward(uint32_t ForwardDuty); 
-void StopFans(void); 
+void StopFanMotors(void); 
 void MoveFanMotors(uint32_t LeftSpeed, uint32_t RightSpeed); 
+void SetPumpSpeed(uint32_t pumpDuty); 
 
 
 #endif //MOTOR_MODULE

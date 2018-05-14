@@ -170,7 +170,8 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
   static char DeferredChar = '1';
 
-   MoveFanMotors(10,90); 
+   MoveFanMotors(0,90); 
+   SetPumpSpeed(10); 
     
   switch (ThisEvent.EventType)
   {
