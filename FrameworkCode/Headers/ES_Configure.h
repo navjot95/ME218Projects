@@ -262,6 +262,9 @@ typedef enum
   ES_STATUSRECEIVED,
   ES_PAIRBUTTONPRESSED,
   ES_CONNECTIONEST,
+  ES_TX_COMPLETE,
+  ES_BEGIN_TX,
+  
   
   ES_NEW_KEY,               /* signals a new key received from terminal */
   ES_LOCK,

@@ -13,7 +13,7 @@
  History
  When           Who     What/Why
  -------------- ---     --------
-first pass      s koppaka 
+first pass   Sai Koppaka 5/13/18
 ****************************************************************************/
 /*----------------------------- Include Files -----------------------------*/
 /* include header files for this state machine as well as any machines at the
@@ -67,7 +67,7 @@ static AnsibleMainState_t CurrentState;
 
 
 //Module Level Variables 
-static bool pair_var; 
+static bool pair_var = false; 
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -89,7 +89,7 @@ static uint8_t MyPriority;
  Notes
 
  Author
-     first pass sk
+   Sai Koppaka 5/13/18
      
 ****************************************************************************/
 bool InitAnsibleMain(uint8_t Priority)
@@ -129,7 +129,7 @@ bool InitAnsibleMain(uint8_t Priority)
  Notes
 
  Author
-    first pass sk
+     Sai Koppaka 5/13/18
 ****************************************************************************/
 bool PostAnsibleMain(ES_Event_t ThisEvent)
 {
@@ -151,7 +151,7 @@ bool PostAnsibleMain(ES_Event_t ThisEvent)
  Notes
    uses nested switch/case to implement the machine.
  Author
-   first pass sk 
+     Sai Koppaka 5/13/18 
 ****************************************************************************/
 ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
 {

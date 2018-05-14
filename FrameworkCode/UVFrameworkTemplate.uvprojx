@@ -437,6 +437,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\AnsibleMain.c</FilePath>
             </File>
+            <File>
+              <FileName>AnsibleTransmit.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\AnsibleTransmit.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -551,6 +556,11 @@
               <FileName>AnsibleMain.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\AnsibleMain.h</FilePath>
+            </File>
+            <File>
+              <FileName>AnsibleTransmit.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\AnsibleTransmit.h</FilePath>
             </File>
           </Files>
         </Group>
