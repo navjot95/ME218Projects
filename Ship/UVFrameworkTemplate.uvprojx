@@ -432,6 +432,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\TemplateFSM.c</FilePath>
             </File>
+            <File>
+              <FileName>MotorModule.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\MotorModule.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -541,6 +546,11 @@
               <FileName>ES_ShortTimer.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\ES_ShortTimer.h</FilePath>
+            </File>
+            <File>
+              <FileName>MotorModule.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\MotorModule.h</FilePath>
             </File>
           </Files>
         </Group>
