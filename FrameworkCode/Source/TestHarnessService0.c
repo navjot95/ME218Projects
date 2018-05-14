@@ -40,6 +40,7 @@
 #include "ES_Framework.h"
 #include "ES_DeferRecall.h"
 #include "ES_ShortTimer.h"
+#include "MotorModule.h" 
 
 /*----------------------------- Module Defines ----------------------------*/
 // these times assume a 1.000mS/tick timing
@@ -110,6 +111,7 @@ bool InitTestHarnessService0(uint8_t Priority)
   HWREG(GPIO_PORTB_BASE + GPIO_O_DIR) |= (BIT2HI);
   // start with the lines low
   HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT2LO;
+      
 
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
@@ -168,6 +170,8 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
   static char DeferredChar = '1';
 
+   MoveFanMotors(10,90); 
+    
   switch (ThisEvent.EventType)
   {
     case ES_INIT:
