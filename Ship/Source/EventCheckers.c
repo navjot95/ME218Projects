@@ -119,7 +119,7 @@ bool Check4Keystroke(void)
     }
     else     // otherwise post to Service 0 for processing
     {
-      PostTestHarnessService0(ThisEvent);
+      //PostTestHarnessService0(ThisEvent);
     }
     return true;
   }

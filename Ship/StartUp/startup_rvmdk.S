@@ -81,6 +81,7 @@ __heap_limit
         EXTERN  SysTickIntHandler
         EXTERN  ShortTimerAHandler
         EXTERN  ShortTimerBHandler
+		EXTERN	SHIP_ISR_test
 ;        EXTERN  UARTStdioIntHandler
 
 ;******************************************************************************
@@ -112,7 +113,7 @@ __Vectors
         DCD     IntDefaultHandler           ; GPIO Port D
         DCD     IntDefaultHandler           ; GPIO Port E
         DCD     IntDefaultHandler         	; UART0 Rx and Tx
-        DCD     IntDefaultHandler           ; UART1 Rx and Tx
+        DCD     SHIP_ISR_test           ; UART1 Rx and Tx
         DCD     IntDefaultHandler           ; SSI0 Rx and Tx
         DCD     IntDefaultHandler           ; I2C0 Master and Slave
         DCD     IntDefaultHandler           ; PWM Fault
@@ -200,7 +201,7 @@ __Vectors
         DCD     0                           ; Reserved
         DCD     ShortTimerAHandler           ; Timer 5 subtimer A
         DCD     ShortTimerBHandler           ; Timer 5 subtimer B
-        DCD     IntDefaultHandler           ; Wide Timer 0 subtimer A
+        DCD     IntDefaultHandler               ; Wide Timer 0 subtimer A
         DCD     IntDefaultHandler           ; Wide Timer 0 subtimer B
         DCD     IntDefaultHandler           ; Wide Timer 1 subtimer A
         DCD     IntDefaultHandler           ; Wide Timer 1 subtimer B
