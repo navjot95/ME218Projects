@@ -191,7 +191,6 @@ void MoveFanMotors(uint32_t LeftSpeed, uint32_t RightSpeed){
     HWREG(PWM0_BASE + PWM_O_0_GENB) = (PWM_0_GENB_ACTCMPBU_ONE | PWM_0_GENB_ACTCMPBD_ZERO); 
     HWREG(PWM0_BASE + PWM_O_0_CMPB) = compValR;
   }
-
 }
 
 

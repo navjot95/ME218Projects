@@ -29,19 +29,27 @@
 #include "MotorModule.h" 
 
 /*----------------------------- Module Defines ----------------------------*/
+#define ONE_SEC 1000
+#define BLUE_TEAM 1
+#define RED_TEAM 0
+#define PAIR_ATTEMPT_SHIP_TIMER 0
+#define PAIR_ATTEMPT_TIME 200
+#define PAIR_TIMEOUT_SHIP_TIMER 1
+#define PAIR_TIMEOUT_TIME ONE_SEC
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
 */
+bool getHomeTeamColor(void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
 static shipState_t CurrentState;
-
-// with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
+static uint32_t lastAnsAddr = 0; 
+static bool homeTeamColor; 
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -62,7 +70,7 @@ static uint8_t MyPriority;
  Author
      J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
-bool InitTemplateFSM(uint8_t Priority)
+bool InitCommunicationSM(uint8_t Priority)
 {
   ES_Event_t ThisEvent;
 
@@ -70,8 +78,8 @@ bool InitTemplateFSM(uint8_t Priority)
   // put us into the Initial PseudoState
   CurrentState = Waiting2Pair;
   
-  //initialize all hw necessairy for the SHIP  
-  InitFanPumpPWM(); 
+  //initialize all hw necessairy for the SHIP 
+  homeTeamColor = getHomeTeamColor(); 
   
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
@@ -131,41 +139,82 @@ ES_Event_t RunCommunicationSM(ES_Event_t ThisEvent)
 
   switch (CurrentState)
   {
-    case InitPState:        // If current state is initial Psedudo State
+    case Waiting2Pair:        // If current state is initial Psedudo State
     {
-      if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
-      {
-        // this is where you would put any actions associated with the
-        // transition from the initial pseudo-state into the actual
-        // initial state
-
-        // now put the machine into the actual initial state
-        CurrentState = UnlockWaiting;
+      if(ThisEvent.EventType == /*received 0x01 event*/){
+        //guard: if fueled, then only the home team can connect 
+        if(isTankFueled() && (getCurrAnsColor() == homeTeamColor)){
+          //start pairing timer (1sec)
+          ES_Timer_InitTimer(PAIR_TIMEOUT_SHIP_TIMER, PAIR_TIMEOUT_TIME);
+          //start attempt timer (200ms)
+          ES_Timer_InitTimer(PAIR_ATTEMPT_SHIP_TIMER, PAIR_ATTEMPT_TIME);          
+          //send Pair_Ack Packet (0x02) 
+          sendPairAck(); 
+          CurrentState = Trying2Pair; 
+        }
+        else if(!isTankFueled() && (lastAnsAddr != getCurrAnsAddr())){
+          //start pairing timer (1sec)
+          ES_Timer_InitTimer(PAIR_TIMEOUT_SHIP_TIMER, PAIR_TIMEOUT_TIME);
+          //start attempt timer (200ms) 
+          ES_Timer_InitTimer(PAIR_ATTEMPT_SHIP_TIMER, PAIR_ATTEMPT_TIME);
+          //send Pair_Ack Packet (0x02)
+          sendPairAck(); 
+          CurrentState = Trying2Pair; 
+        }
       }
     }
     break;
 
-    case UnlockWaiting:        // If current state is state one
+    case Trying2Pair:  //make 4 more attempts at sending 0x02 packet in case first one not read 
     {
-      switch (ThisEvent.EventType)
-      {
-        case ES_LOCK:  //If event is event one
-
-        {   // Execute action function for state one : event one
-          CurrentState = Locked;  //Decide what the next state will be
+      if(ThisEvent.EventType == ES_TIMEOUT){
+        if(ThisEvent.EventParam == PAIR_ATTEMPT_SHIP_TIMER){
+          //200 ms timer has timeout, just resend 0x02 packet and restart 200ms timer 
+          ES_Timer_InitTimer(PAIR_ATTEMPT_SHIP_TIMER, PAIR_ATTEMPT_TIME);
+          sendPairAck();
         }
-        break;
-
-        // repeat cases as required for relevant events
-        default:
-          ;
-      }  // end switch on CurrentEvent
+        if(ThisEvent.EventParam == PAIR_TIMEOUT_SHIP_TIMER){
+          CurrentState = Waiting2Pair; 
+        }
+        
+      }
+      else if(ThisEvent.EventType == /*Control packet 0x03 received*/){
+        sendStatusPacket(); //0x04
+        //restart 1 sec pairing timeout timer
+        ES_Timer_InitTimer(PAIR_TIMEOUT_SHIP_TIMER, PAIR_TIMEOUT_TIME);
+        executeControlPacketCommands(); 
+        
+        CurrentState = Communicating; 
+      }
     }
     break;
-    // repeat state pattern as required for other states
-    default:
-      ;
-  }                                   // end switch on Current State
+    
+    case Communicating:  //regular paired state
+    {
+      if(ThisEvent.EventType == /*Control packet 0x03 received*/){
+        sendStatusPacket(); //0x04
+        //restart 1 sec pairing timeout timer
+        ES_Timer_InitTimer(PAIR_TIMEOUT_SHIP_TIMER, PAIR_TIMEOUT_TIME);
+        executeControlPacketCommands();         
+      }
+      else if(ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == PAIR_TIMEOUT_SHIP_TIMER){
+        //one sec pairing timer has timed out 
+        StopFanMotors(); 
+        CurrentState = Waiting2Pair; 
+      } 
+      else if(ThisEvent.EventType == /*Out of fuel event*/){
+        StopFanMotors();
+        lastAnsAddr = getCurrAnsAddr(); 
+        CurrentState = Waiting2Pair; 
+      }
+      else if(ThisEvent.EventType == /*Refueled Event*/ && (getCurrAnsColor() != homeTeamColor)){
+        StopFanMotors(); 
+        CurrentState = Waiting2Pair; 
+      }      
+    }
+    break;
+        
+  }                                  
   return ReturnEvent;
 }
 
@@ -198,4 +247,12 @@ shipState_t QueryCommunicationSM(void)
 /***************************************************************************
  private functions
  ***************************************************************************/
+
+bool getHomeTeamColor(void){
+  uint8_t CurrentButtonState = (HWREG(GPIO_PORTA_BASE+ ALL_BITS) & BIT2HI);
+  if(CurrentButtonState)
+    return true; 
+  else
+    return false; 
+}
 

@@ -437,6 +437,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\MotorModule.c</FilePath>
             </File>
+            <File>
+              <FileName>CommunicationSM.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\CommunicationSM.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -551,6 +556,11 @@
               <FileName>MotorModule.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\MotorModule.h</FilePath>
+            </File>
+            <File>
+              <FileName>CommunicationSM.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\CommunicationSM.h</FilePath>
             </File>
           </Files>
         </Group>
