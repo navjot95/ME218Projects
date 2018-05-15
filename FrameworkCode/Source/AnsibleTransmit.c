@@ -54,13 +54,15 @@
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
 */
-static void BuildTXPacket(void);  
+static uint16_t BuildTXPacket(void);  
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
 static AnsibleTXState_t CurrentState;
 static bool Ready2TX = false; 
+static uint16_t BytesRemaining = 0; 
+static uint16_t index = 0; 
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -100,8 +102,6 @@ bool InitAnsibleTX(uint8_t Priority)
   
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
-  
-  printf("\n \r finished init"); 
   
   if (ES_PostToService(MyPriority, ThisEvent) == true)
   {
@@ -162,7 +162,6 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
   {
     case InitTX:        // If current state is initial Psedudo State
     {
-      printf("\n \r entered transmit"); 
       if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
         //Set the initial state 
@@ -170,7 +169,6 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
           
         //enable timer 
         ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
-        printf("\n \r timer enabled"); 
       }
     }
     break;
@@ -182,19 +180,27 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
         case ES_TIMEOUT: //ES_BEGIN_TX:  //If event is event one
         {  
           CurrentState = Transmitting;  //Set next state to transmitting
-          if((HWREG(UART2_BASE+UART_O_FR)) & ((UART_FR_TXFE)))//If TXFE is set (empty)
-          {
-            printf("\n \r fifo is empty"); 
-            
-            //reset timer
+          
+           //reset timer
             ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
             printf( "\n \r timer has been reset"); 
             
+            //set BytesRemaining = Length of XBee Packet (Preamble (Start + Length + API_ID) + DATA + CHKSUM) 
+            
+            //set index = 0 
+            
             //Build the packet to send
               BuildTXPacket();  
-            
+
+          if((HWREG(UART2_BASE+UART_O_FR)) & ((UART_FR_TXFE)))//If TXFE is set (empty)
+          {
+            printf("\n \r fifo is empty"); 
+
             //Write the new data to the UARTDR (first byte)
-              //HWREG(UART2_BASE+UART_O_DR) =   
+              HWREG(UART2_BASE+UART_O_DR) = BuildTXPacket();  
+            
+    //Write the new data to the UARTDR (first byte)
+    
             
             //Enable TXIM (Note: also enabled in AnsibleMain)
             HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_TXIM); 
@@ -233,7 +239,7 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
 
 /****************************************************************************
  Function
-     QueryTemplateSM
+     AnsibleMainSM
 
  Parameters
      None
@@ -266,7 +272,7 @@ void AnsibleTXISR (void)
   {
     printf("\n \r bit set");
     //Write the new data to register (UARTDR)
-      HWREG(UART2_BASE+UART_O_DR) = 0xAF; 
+      HWREG(UART2_BASE+UART_O_DR) = 0xAA; 
     //Set TXIC in UARTICR (clear int)
       HWREG(UART2_BASE + UART_O_ICR) |= UART_ICR_TXIC; 
     //If this was the last byte in message block
@@ -318,10 +324,10 @@ void UARTHardwareInit(void){
     HWREG(UART2_BASE+UART_O_CTL) &= ~(UART_CTL_UARTEN); 
   
   //Write the inter portion of the URTIBRD register (setting baud rate) 
-    HWREG(UART2_BASE+UART_O_IBRD) = HWREG(UART2_BASE+UART_O_IBRD) + 0x15;  //writing 21 in hex
+    HWREG(UART2_BASE+UART_O_IBRD) = HWREG(UART2_BASE+UART_O_IBRD) + 0x104;  //writing 21 in hex
   
   //Write the fractional portion of the BRD to the UARTIBRD register
-    HWREG(UART2_BASE+UART_O_FBRD) = HWREG(UART2_BASE+UART_O_FBRD) + 0x2D;  //writing 21 in hex; //writing 45 in hex 
+    HWREG(UART2_BASE+UART_O_FBRD) = HWREG(UART2_BASE+UART_O_FBRD) + 0x1B;  //writing 21 in hex; //writing 45 in hex 
 
   //Write the desired serial parameters to the UARTLCRH registers to set word length to 8
      HWREG (UART2_BASE + UART_O_LCRH) = (UART_LCRH_WLEN_8); 
@@ -350,11 +356,13 @@ void UARTHardwareInit(void){
   }
 
   
-static void BuildTXPacket(void)
+static uint16_t BuildTXPacket(void)
 {
+  uint8_t dataout; 
   //Building a packet to send
     printf("\n \r startting packet build"); 
-  //Write the new data to the UARTDR (first byte)
-   HWREG(UART2_BASE+UART_O_DR) = 0xAF; 
+  
+   dataout = 0xAF; 
+   return dataout; 
   
 }
