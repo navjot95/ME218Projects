@@ -15,7 +15,8 @@
 // typedefs for the states
 typedef enum
 {
-  Waiting2Pair, Trying2Pair,
+  Waiting2Pair, 
+  Trying2Pair,
   Communicating
 }shipState_t;
 

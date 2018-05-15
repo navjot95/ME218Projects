@@ -32,16 +32,14 @@
 #define ONE_SEC 1000
 #define BLUE_TEAM 1
 #define RED_TEAM 0
-#define PAIR_ATTEMPT_SHIP_TIMER 0
 #define PAIR_ATTEMPT_TIME 200
-#define PAIR_TIMEOUT_SHIP_TIMER 1
 #define PAIR_TIMEOUT_TIME ONE_SEC
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
 */
-bool getHomeTeamColor(void);
+static bool getHomeTeamColor(void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
@@ -141,7 +139,7 @@ ES_Event_t RunCommunicationSM(ES_Event_t ThisEvent)
   {
     case Waiting2Pair:        // If current state is initial Psedudo State
     {
-      if(ThisEvent.EventType == /*received 0x01 event*/){
+      if(ThisEvent.EventType == ES_PAIR_REQUEST){  /*received 0x01 packet*/
         //guard: if fueled, then only the home team can connect 
         if(isTankFueled() && (getCurrAnsColor() == homeTeamColor)){
           //start pairing timer (1sec)
@@ -178,7 +176,7 @@ ES_Event_t RunCommunicationSM(ES_Event_t ThisEvent)
         }
         
       }
-      else if(ThisEvent.EventType == /*Control packet 0x03 received*/){
+      else if(ThisEvent.EventType == ES_CONTROL_PACKET){  /*Control packet 0x03 received*/
         sendStatusPacket(); //0x04
         //restart 1 sec pairing timeout timer
         ES_Timer_InitTimer(PAIR_TIMEOUT_SHIP_TIMER, PAIR_TIMEOUT_TIME);
@@ -191,7 +189,7 @@ ES_Event_t RunCommunicationSM(ES_Event_t ThisEvent)
     
     case Communicating:  //regular paired state
     {
-      if(ThisEvent.EventType == /*Control packet 0x03 received*/){
+      if(ThisEvent.EventType == ES_CONTROL_PACKET){  /*Control packet 0x03 received*/
         sendStatusPacket(); //0x04
         //restart 1 sec pairing timeout timer
         ES_Timer_InitTimer(PAIR_TIMEOUT_SHIP_TIMER, PAIR_TIMEOUT_TIME);
@@ -202,12 +200,12 @@ ES_Event_t RunCommunicationSM(ES_Event_t ThisEvent)
         StopFanMotors(); 
         CurrentState = Waiting2Pair; 
       } 
-      else if(ThisEvent.EventType == /*Out of fuel event*/){
+      else if(ThisEvent.EventType == ES_OUT_OF_FUEL){  /*Out of fuel event*/
         StopFanMotors();
         lastAnsAddr = getCurrAnsAddr(); 
         CurrentState = Waiting2Pair; 
       }
-      else if(ThisEvent.EventType == /*Refueled Event*/ && (getCurrAnsColor() != homeTeamColor)){
+      else if(ThisEvent.EventType == ES_REFUELED && (getCurrAnsColor() != homeTeamColor)){  /*Refueled Event*/
         StopFanMotors(); 
         CurrentState = Waiting2Pair; 
       }      

@@ -91,12 +91,13 @@ bool InitTestHarnessService0(uint8_t Priority)
    in here you write your initialization code
    *******************************************/
   // initialize deferral queue for testing Deferal function
-  ES_InitDeferralQueueWith(DeferralQueue, ARRAY_SIZE(DeferralQueue));
+ // ES_InitDeferralQueueWith(DeferralQueue, ARRAY_SIZE(DeferralQueue));
   // initialize LED drive for testing/debug output
-  InitLED();
+  //InitLED();
   // initialize the Short timer system for channel A
-  ES_ShortTimerInit(MyPriority, SHORT_TIMER_UNUSED);
+  //ES_ShortTimerInit(MyPriority, SHORT_TIMER_UNUSED);
 
+  /*
   // set up I/O lines for debugging
   // enable the clock to Port B
   HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R1;
@@ -110,7 +111,8 @@ bool InitTestHarnessService0(uint8_t Priority)
   HWREG(GPIO_PORTB_BASE + GPIO_O_DIR) |= (BIT2HI);
   // start with the lines low
   HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT2LO;
-
+    */
+    
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   if (ES_PostToService(MyPriority, ThisEvent) == true)
@@ -172,54 +174,40 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
   {
     case ES_INIT:
     {
-      ES_Timer_InitTimer(SERVICE0_TIMER, HALF_SEC);
+      //ES_Timer_InitTimer(SERVICE0_TIMER, HALF_SEC);
       puts("Service 00:");
       printf("\rES_INIT received in Service %d\r\n", MyPriority);
     }
     break;
     case ES_TIMEOUT:   // re-start timer & announce
     {
-      ES_Timer_InitTimer(SERVICE0_TIMER, FIVE_SEC);
-      printf("ES_TIMEOUT received from Timer %d in Service %d\r\n",
-          ThisEvent.EventParam, MyPriority);
-      BlinkLED();
+      //ES_Timer_InitTimer(SERVICE0_TIMER, FIVE_SEC);
+      printf("ES_TIMEOUT received from Timer %d in Service %d\r\n", ThisEvent.EventParam, MyPriority);
+      //BlinkLED();
     }
     break;
     case ES_SHORT_TIMEOUT:   // lower the line & announce
     {
-      HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT2LO;
+      //HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT2LO;
       puts("ES_SHORT_TIMEOUT received");
     }
     break;
     case ES_NEW_KEY:   // announce
     {
-      printf("ES_NEW_KEY received with -> %c <- in Service 0\r\n",
-          (char)ThisEvent.EventParam);
+      printf("ES_NEW_KEY received with -> %c <- in Service 0\r\n", (char)ThisEvent.EventParam);
+      
       if ('d' == ThisEvent.EventParam)
       {
-        ThisEvent.EventParam = DeferredChar++;   //
-        if (ES_DeferEvent(DeferralQueue, ThisEvent))
-        {
-          puts("ES_NEW_KEY deferred in Service 0\r");
-        }
+        
+        
       }
       if ('r' == ThisEvent.EventParam)
       {
-        ThisEvent.EventParam = 'Q';   // This one gets posted normally
-        ES_PostToService(MyPriority, ThisEvent);
-        // but we slide the deferred events under it so it(they) should come out first
-        if (true == ES_RecallEvents(MyPriority, DeferralQueue))
-        {
-          puts("ES_NEW_KEY(s) recalled in Service 0\r");
-          DeferredChar = '1';
-        }
+        
       }
       if ('p' == ThisEvent.EventParam)
       {
-        ES_ShortTimerStart(TIMER_A, 10);
-        // raise the line to show we started
-        HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT2HI;
-        //puts("Pulsed!\r");
+        
       }
     }
     break;

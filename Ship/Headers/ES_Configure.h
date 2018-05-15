@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 1
+#define NUM_SERVICES 2
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -41,11 +41,11 @@
 // services are added in numeric sequence (1,2,3,...) with increasing
 // priorities
 // the header file with the public function prototypes
-#define SERV_0_HEADER "CommunicationSM.h"
+#define SERV_0_HEADER "TestHarnessService0.h"
 // the name of the Init function
-#define SERV_0_INIT InitCommunicationSM
+#define SERV_0_INIT InitTestHarnessService0
 // the name of the run function
-#define SERV_0_RUN RunCommunicationSM
+#define SERV_0_RUN RunTestHarnessService0
 // How big should this services Queue be?
 #define SERV_0_QUEUE_SIZE 5
 
@@ -57,11 +57,11 @@
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public function prototypes
-#define SERV_1_HEADER "TestHarnessService1.h"
+#define SERV_1_HEADER "CommunicationSM.h"
 // the name of the Init function
-#define SERV_1_INIT InitTestHarnessService1
+#define SERV_1_INIT InitCommunicationSM
 // the name of the run function
-#define SERV_1_RUN RunTestHarnessService1
+#define SERV_1_RUN RunCommunicationSM
 // How big should this services Queue be?
 #define SERV_1_QUEUE_SIZE 3
 #endif
@@ -261,14 +261,18 @@ typedef enum
   /* User-defined events start here */
   ES_NEW_KEY,               /* signals a new key received from terminal */
   ES_LOCK,
-  ES_UNLOCK
+  ES_UNLOCK, 
+  ES_PAIR_REQUEST,           /* when 0x01 packet is received */
+  ES_CONTROL_PACKET,         /* when 0x03 packet is received */ 
+  ES_OUT_OF_FUEL,           
+  ES_REFUELED
 }ES_EventType_t;
 
 /****************************************************************************/
 // These are the definitions for the Distribution lists. Each definition
 // should be a comma separated list of post functions to indicate which
 // services are on that distribution list.
-#define NUM_DIST_LISTS 1
+#define NUM_DIST_LISTS 0
 #if NUM_DIST_LISTS > 0
 #define DIST_LIST0 PostTestHarnessService0, PostTestHarnessService0
 #endif
@@ -305,8 +309,8 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC postCommunicationSM 
-#define TIMER1_RESP_FUNC TIMER_UNUSED
+#define TIMER0_RESP_FUNC postCommunicationSM  //200 sec timer
+#define TIMER1_RESP_FUNC postCommunicationSM  //1 sec timer
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
 #define TIMER4_RESP_FUNC TIMER_UNUSED
@@ -330,6 +334,11 @@ typedef enum
 // These symbolic names should be changed to be relevant to your application
 
 #define SERVICE0_TIMER 15
+
+//Pairing timers 
+#define PAIR_ATTEMPT_SHIP_TIMER 0
+#define PAIR_TIMEOUT_SHIP_TIMER 1
+
 
 /**************************************************************************/
 // uncomment this ine to get some basic framework operation debugging on
