@@ -433,11 +433,6 @@
               <FilePath>.\Source\TemplateFSM.c</FilePath>
             </File>
             <File>
-              <FileName>AnsibleMain.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\AnsibleMain.c</FilePath>
-            </File>
-            <File>
               <FileName>AnsibleTransmit.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\AnsibleTransmit.c</FilePath>
@@ -551,11 +546,6 @@
               <FileName>ES_ShortTimer.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\ES_ShortTimer.h</FilePath>
-            </File>
-            <File>
-              <FileName>AnsibleMain.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Headers\AnsibleMain.h</FilePath>
             </File>
             <File>
               <FileName>AnsibleTransmit.h</FileName>

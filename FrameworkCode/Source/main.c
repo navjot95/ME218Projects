@@ -40,6 +40,7 @@ int main(void)
   TERMIO_Init();
   clrScrn();
 
+
   // When doing testing, it is useful to announce just which program
   // is running.
   puts("\rStarting Test Harness for \r");

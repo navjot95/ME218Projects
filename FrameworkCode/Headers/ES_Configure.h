@@ -41,11 +41,11 @@
 // services are added in numeric sequence (1,2,3,...) with increasing
 // priorities
 // the header file with the public function prototypes
-#define SERV_0_HEADER "AnsibleMain.h"
+#define SERV_0_HEADER "AnsibleTransmit.h"
 // the name of the Init function
-#define SERV_0_INIT InitAnsibleMain
+#define SERV_0_INIT InitAnsibleTX
 // the name of the run function
-#define SERV_0_RUN RunAnsibleMainSM
+#define SERV_0_RUN RunAnsibleTXSM
 // How big should this services Queue be?
 #define SERV_0_QUEUE_SIZE 5
 
@@ -263,6 +263,7 @@ typedef enum
   ES_PAIRBUTTONPRESSED,
   ES_CONNECTIONEST,
   ES_TX_COMPLETE,
+  TX_ATTEMPT_TIMER,
   ES_BEGIN_TX,
   
   
@@ -277,10 +278,10 @@ typedef enum
 // services are on that distribution list.
 #define NUM_DIST_LISTS 1
 #if NUM_DIST_LISTS > 0
-#define DIST_LIST0 PostTemplateFSM,PostTemplateFSM
+#define DIST_LIST0 PostAnsibleTX
 #endif
 #if NUM_DIST_LISTS > 1
-#define DIST_LIST1 PostTemplateFSM,PostTemplateFSM
+#define DIST_LIST1 PostTemplateFSM
 #endif
 #if NUM_DIST_LISTS > 2
 #define DIST_LIST2 PostTemplateFSM
@@ -313,9 +314,9 @@ typedef enum
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
 #define TIMER0_RESP_FUNC TIMER_UNUSED  //Imu timer
-#define TIMER1_RESP_FUNC PostAnsibleMain //200ms 
-#define TIMER2_RESP_FUNC PostAnsibleMain //1sec 
-#define TIMER3_RESP_FUNC TIMER_UNUSED
+#define TIMER1_RESP_FUNC TIMER_UNUSED //PostAnsibleMain //200ms 
+#define TIMER2_RESP_FUNC TIMER_UNUSED//PostAnsibleMain //1sec 
+#define TIMER3_RESP_FUNC PostAnsibleTX
 #define TIMER4_RESP_FUNC TIMER_UNUSED
 #define TIMER5_RESP_FUNC TIMER_UNUSED
 #define TIMER6_RESP_FUNC TIMER_UNUSED
@@ -337,9 +338,9 @@ typedef enum
 // These symbolic names should be changed to be relevant to your application
 
 #define SERVICE0_TIMER 15
-#define PAIR_ATTEMPT_TIMER 1
-#define PAIR_TIMEOUT_TIMER 2
-
+//#define PAIR_ATTEMPT_TIMER 1
+//#define PAIR_TIMEOUT_TIMER 2
+#define TX_ATTEMPT_TIMER 3
 /**************************************************************************/
 // uncomment this ine to get some basic framework operation debugging on
 // PF1 & PF2

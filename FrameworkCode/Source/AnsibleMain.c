@@ -50,8 +50,8 @@ first pass   Sai Koppaka 5/13/18
 
 /*----------------------------- Module Defines ----------------------------*/
 #define BitsPerNibble 4
-#define UART2_RX_PIN GPIO_PIN_6
-#define UART2_TX_PIN GPIO_PIN_7
+#define UART2_RX_PIN GPIO_PIN_6 //Port D6
+#define UART2_TX_PIN GPIO_PIN_7 //Port D7
 #define ATTEMPT_TIME 200 //200ms
 #define PAIRING_TIME 1000 //1 sec time 
 
@@ -288,7 +288,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-AnsibleMainState_t QueryTemplateFSM(void)
+AnsibleMainState_t QueryAnsible(void)
 {
   return CurrentState;
 }
@@ -302,7 +302,7 @@ AnsibleMainState_t QueryTemplateFSM(void)
 /***************************************************************************
  public functions
  ***************************************************************************/
-static void UARTHardwareInit(void){
+/*static void UARTHardwareInit(void){
 //Setting up the registers for UART-XBee communications
   
   //Enable the clock to the UART module using the RCGCUART (run time gating clock control) register
@@ -361,4 +361,4 @@ static void UARTHardwareInit(void){
   __enable_irq();
 
   //Enable IN KEIL 
-  }
+  }*/
