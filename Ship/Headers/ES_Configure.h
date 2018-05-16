@@ -41,11 +41,11 @@
 // services are added in numeric sequence (1,2,3,...) with increasing
 // priorities
 // the header file with the public function prototypes
-#define SERV_0_HEADER "SHIP_RX_test.h"
+#define SERV_0_HEADER "SHIP_RX.h"
 // the name of the Init function
-#define SERV_0_INIT InitSHIP_RX_test
+#define SERV_0_INIT InitSHIP_RX
 // the name of the run function
-#define SERV_0_RUN RunSHIP_RX_test
+#define SERV_0_RUN RunSHIP_RX
 // How big should this services Queue be?
 #define SERV_0_QUEUE_SIZE 5
 
@@ -260,6 +260,8 @@ typedef enum
   ES_SHORT_TIMEOUT,         /* signals that a short timer has expired */
   /* User-defined events start here */
   BYTE_RECEIVED,
+  ES_TX_FAIL,
+  PACKET_RECEIVED,
   ES_NEW_KEY,               /* signals a new key received from terminal */
   ES_LOCK,
   ES_UNLOCK
@@ -271,7 +273,7 @@ typedef enum
 // services are on that distribution list.
 #define NUM_DIST_LISTS 1
 #if NUM_DIST_LISTS > 0
-#define DIST_LIST0 PostSHIP_RX_test
+#define DIST_LIST0 PostSHIP_RX
 #endif
 #if NUM_DIST_LISTS > 1
 #define DIST_LIST1 PostTestHarnessService1, PostTestHarnessService1
@@ -306,7 +308,7 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC PostSHIP_RX_test
+#define TIMER0_RESP_FUNC PostSHIP_RX
 #define TIMER1_RESP_FUNC TIMER_UNUSED
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
