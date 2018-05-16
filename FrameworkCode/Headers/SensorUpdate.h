@@ -28,9 +28,17 @@
 
 
 
+// Framework methods 
+bool InitSensorUpdate( uint8_t Priority );
+bool PostSensorUpdate( ES_Event_t ThisEvent);
+ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent);
 
-bool InitMotor( uint8_t Priority );
-bool PostMotor( ES_Event_t ThisEvent);
-ES_Event_t RunMotor( ES_Event_t ThisEvent);
+// Getter methods 
+uint8_t getBoatNumber( void );
+uint8_t getThrottle( void );
+uint8_t getPumpSpeed( void ); 
+
+
+void Encoder_IOC_Response( void ); 
 
 #endif
