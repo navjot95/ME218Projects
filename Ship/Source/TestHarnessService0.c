@@ -41,6 +41,8 @@
 #include "ES_DeferRecall.h"
 #include "ES_ShortTimer.h"
 
+#include "CommunicationSM.h" 
+
 /*----------------------------- Module Defines ----------------------------*/
 // these times assume a 1.000mS/tick timing
 #define ONE_SEC 1000
@@ -54,14 +56,14 @@
    relevant to the behavior of this service
 */
 
-static void InitLED(void);
-static void BlinkLED(void);
+//static void InitLED(void);
+//static void BlinkLED(void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // with the introduction of Gen2, we need a module level Priority variable
 static uint8_t MyPriority;
 // add a deferral queue for up to 3 pending deferrals +1 to allow for ovehead
-static ES_Event_t DeferralQueue[3 + 1];
+//static ES_Event_t DeferralQueue[3 + 1];
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -168,15 +170,15 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
-  static char DeferredChar = '1';
 
   switch (ThisEvent.EventType)
   {
     case ES_INIT:
     {
       //ES_Timer_InitTimer(SERVICE0_TIMER, HALF_SEC);
-      puts("Service 00:");
-      printf("\rES_INIT received in Service %d\r\n", MyPriority);
+      puts("\nTest Harness Service 00:\n\r");
+      printf("Press the following keys to generate events: \n\r"); 
+      printf(" p - ES_PAIR_REQUEST\n\r c - ES_CONTROL_PACKET\n\r o - ES_OUT_OF_FUEL\n\r r - ES_REFUELED\n\r"); 
     }
     break;
     case ES_TIMEOUT:   // re-start timer & announce
@@ -194,21 +196,29 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
     break;
     case ES_NEW_KEY:   // announce
     {
-      printf("ES_NEW_KEY received with -> %c <- in Service 0\r\n", (char)ThisEvent.EventParam);
+      ES_Event_t NewEvent; 
       
-      if ('d' == ThisEvent.EventParam)
+      if ('p' == ThisEvent.EventParam)
       {
-        
-        
+          printf("Pair requent event posted\n\r\n"); 
+          NewEvent.EventType = ES_PAIR_REQUEST;                
+      }
+      if ('c' == ThisEvent.EventParam)
+      {
+          printf("Control packet event posted\n\r\n"); 
+          NewEvent.EventType = ES_CONTROL_PACKET; 
+      }
+      if ('o' == ThisEvent.EventParam)
+      {
+          printf("Out of fuel event posted\n\r\n"); 
+          NewEvent.EventType = ES_OUT_OF_FUEL; 
       }
       if ('r' == ThisEvent.EventParam)
       {
-        
+          printf("Refueled event posted\n\r\n"); 
+          NewEvent.EventType = ES_REFUELED; 
       }
-      if ('p' == ThisEvent.EventParam)
-      {
-        
-      }
+      PostCommunicationSM(NewEvent); 
     }
     break;
     default:
@@ -222,34 +232,34 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
  private functions
  ***************************************************************************/
 
-static void InitLED(void)
-{
-  // enable the clock to Port F
-        HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R5;
-  // kill a few cycles to let the peripheral clock get going
-  while ((HWREG(SYSCTL_PRGPIO) & BIT5HI) != BIT5HI)
-  {}
-  // Enable pins for digital I/O
-        HWREG(GPIO_PORTF_BASE + GPIO_O_DEN) |= (BIT3HI);
+//static void InitLED(void)
+//{
+//  // enable the clock to Port F
+//        HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R5;
+//  // kill a few cycles to let the peripheral clock get going
+//  while ((HWREG(SYSCTL_PRGPIO) & BIT5HI) != BIT5HI)
+//  {}
+//  // Enable pins for digital I/O
+//        HWREG(GPIO_PORTF_BASE + GPIO_O_DEN) |= (BIT3HI);
 
-  // make pin 3 on Port F into outputs
-        HWREG(GPIO_PORTF_BASE + GPIO_O_DIR) |= (BIT3HI);
-}
+//  // make pin 3 on Port F into outputs
+//        HWREG(GPIO_PORTF_BASE + GPIO_O_DIR) |= (BIT3HI);
+//}
 
-static void BlinkLED(void)
-{
-  static uint8_t LEDvalue = 8;
+//static void BlinkLED(void)
+//{
+//  static uint8_t LEDvalue = 8;
 
-  // toggle state of LED
-        HWREG(GPIO_PORTF_BASE + (GPIO_O_DATA + ALL_BITS)) ^= LEDvalue;
+//  // toggle state of LED
+//        HWREG(GPIO_PORTF_BASE + (GPIO_O_DATA + ALL_BITS)) ^= LEDvalue;
 
-  //GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, LEDvalue);
-  // Cycle through Red, Green and Blue LEDs
-//	if (LEDvalue == 8)
-//		{LEDvalue = 2;}
-//	else
-//		{LEDvalue = LEDvalue*2;}
-}
+//  //GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1|GPIO_PIN_2|GPIO_PIN_3, LEDvalue);
+//  // Cycle through Red, Green and Blue LEDs
+////	if (LEDvalue == 8)
+////		{LEDvalue = 2;}
+////	else
+////		{LEDvalue = LEDvalue*2;}
+//}
 
 /*------------------------------- Footnotes -------------------------------*/
 /*------------------------------ End of file ------------------------------*/

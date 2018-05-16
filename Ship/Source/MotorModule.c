@@ -74,7 +74,7 @@
 ****************************************************************************/
 void InitFanPumpPWM()
 {
-  printf("Setting up PWM hw for fans and pump\n\r"); 
+  printf("Setting up PWM hw for fans and pump\n\r\n"); 
     
   //enable clock to PWM module (PWM0)  
   HWREG(SYSCTL_RCGCPWM) |= SYSCTL_RCGCPWM_R0; 
@@ -157,7 +157,6 @@ void MoveFanMotors(uint32_t LeftSpeed, uint32_t RightSpeed){
   else if(RightSpeed > MAX_DUTY_VAL)
     RightSpeed = MAX_DUTY_VAL;    
    
-  printf("max raw val: %d\n\r", HWREG(PWM0_BASE+PWM_O_0_LOAD)); 
   //convert duty cycle (0-100) to pwm comparator value (0-MAX_PWM_RAW_VALUE) 
   uint32_t compValL = (((LeftSpeed) * (MAX_PWM_RAW_VALUE)) / (MAX_DUTY_VAL));    
   uint32_t compValR = (((RightSpeed) * (MAX_PWM_RAW_VALUE)) / (MAX_DUTY_VAL)); 

@@ -41,6 +41,15 @@
 */
 static bool getHomeTeamColor(void);
 
+/*FOR TESTING ONLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY*/
+static bool isTankFueled(void); 
+static bool getCurrAnsColor(void);
+static void sendPairAck(void); 
+static uint32_t getCurrAnsAddr(void); 
+static void sendStatusPacket(void); 
+static void executeControlPacketCommands(void); 
+
+
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
@@ -75,6 +84,7 @@ bool InitCommunicationSM(uint8_t Priority)
   MyPriority = Priority;
   // put us into the Initial PseudoState
   CurrentState = Waiting2Pair;
+  printf("In Waiting2Pair now\n\r");
   
   //initialize all hw necessairy for the SHIP 
   homeTeamColor = getHomeTeamColor(); 
@@ -137,7 +147,7 @@ ES_Event_t RunCommunicationSM(ES_Event_t ThisEvent)
 
   switch (CurrentState)
   {
-    case Waiting2Pair:        // If current state is initial Psedudo State
+    case Waiting2Pair:      
     {
       if(ThisEvent.EventType == ES_PAIR_REQUEST){  /*received 0x01 packet*/
         //guard: if fueled, then only the home team can connect 
@@ -149,6 +159,7 @@ ES_Event_t RunCommunicationSM(ES_Event_t ThisEvent)
           //send Pair_Ack Packet (0x02) 
           sendPairAck(); 
           CurrentState = Trying2Pair; 
+          printf("In Trying2Pair now\n\r"); 
         }
         else if(!isTankFueled() && (lastAnsAddr != getCurrAnsAddr())){
           //start pairing timer (1sec)
@@ -158,6 +169,7 @@ ES_Event_t RunCommunicationSM(ES_Event_t ThisEvent)
           //send Pair_Ack Packet (0x02)
           sendPairAck(); 
           CurrentState = Trying2Pair; 
+          printf("In Trying2Pair now\n\r"); 
         }
       }
     }
@@ -173,6 +185,7 @@ ES_Event_t RunCommunicationSM(ES_Event_t ThisEvent)
         }
         if(ThisEvent.EventParam == PAIR_TIMEOUT_SHIP_TIMER){
           CurrentState = Waiting2Pair; 
+          printf("In Waiting2Pair now\n\r"); 
         }
         
       }
@@ -182,7 +195,8 @@ ES_Event_t RunCommunicationSM(ES_Event_t ThisEvent)
         ES_Timer_InitTimer(PAIR_TIMEOUT_SHIP_TIMER, PAIR_TIMEOUT_TIME);
         executeControlPacketCommands(); 
         
-        CurrentState = Communicating; 
+        CurrentState = Communicating;
+        printf("In Communicating now\n\r"); 
       }
     }
     break;
@@ -198,16 +212,20 @@ ES_Event_t RunCommunicationSM(ES_Event_t ThisEvent)
       else if(ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == PAIR_TIMEOUT_SHIP_TIMER){
         //one sec pairing timer has timed out 
         StopFanMotors(); 
-        CurrentState = Waiting2Pair; 
+        CurrentState = Waiting2Pair;
+        printf("In Waiting2Pair now\n\r");
       } 
       else if(ThisEvent.EventType == ES_OUT_OF_FUEL){  /*Out of fuel event*/
         StopFanMotors();
         lastAnsAddr = getCurrAnsAddr(); 
         CurrentState = Waiting2Pair; 
+        printf("In Waiting2Pair now\n\r");
       }
       else if(ThisEvent.EventType == ES_REFUELED && (getCurrAnsColor() != homeTeamColor)){  /*Refueled Event*/
         StopFanMotors(); 
         CurrentState = Waiting2Pair; 
+        printf("Opposite team kicked out\n\r"); 
+        printf("In Waiting2Pair now\n\r");
       }      
     }
     break;
@@ -248,9 +266,39 @@ shipState_t QueryCommunicationSM(void)
 
 bool getHomeTeamColor(void){
   uint8_t CurrentButtonState = (HWREG(GPIO_PORTA_BASE+ ALL_BITS) & BIT2HI);
-  if(CurrentButtonState)
-    return true; 
-  else
-    return false; 
+  
+    return false; //FOR DEBUGGING PURPOSE ONLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+    
+//  if(CurrentButtonState)
+//    return true; 
+//  else
+//    return false; 
 }
+
+//FOR DEBUGGING PURPOSE ONLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+static bool isTankFueled(void){
+    return false; 
+} 
+
+//FOR DEBUGGING PURPOSE ONLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+static bool getCurrAnsColor(void){
+    return true; 
+}
+//FOR DEBUGGING PURPOSE ONLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+static void sendPairAck(void){
+    printf("Ack packet send\n\r"); 
+}
+//FOR DEBUGGING PURPOSE ONLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+static uint32_t getCurrAnsAddr(void){
+    return 2186; 
+}
+//FOR DEBUGGING PURPOSE ONLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+static void sendStatusPacket(void){
+    printf("Status packet sent\n\r"); 
+}
+//FOR DEBUGGING PURPOSE ONLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+static void executeControlPacketCommands(void){
+    printf("Control commands executed\n\r"); 
+}
+
 

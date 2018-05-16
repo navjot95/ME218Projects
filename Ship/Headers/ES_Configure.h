@@ -262,6 +262,7 @@ typedef enum
   ES_NEW_KEY,               /* signals a new key received from terminal */
   ES_LOCK,
   ES_UNLOCK, 
+  /*New events for the SHIP*/
   ES_PAIR_REQUEST,           /* when 0x01 packet is received */
   ES_CONTROL_PACKET,         /* when 0x03 packet is received */ 
   ES_OUT_OF_FUEL,           
@@ -309,8 +310,8 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC postCommunicationSM  //200 sec timer
-#define TIMER1_RESP_FUNC postCommunicationSM  //1 sec timer
+#define TIMER0_RESP_FUNC PostCommunicationSM  //200 sec timer
+#define TIMER1_RESP_FUNC PostCommunicationSM  //1 sec timer
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
 #define TIMER4_RESP_FUNC TIMER_UNUSED
@@ -343,6 +344,6 @@ typedef enum
 /**************************************************************************/
 // uncomment this ine to get some basic framework operation debugging on
 // PF1 & PF2
-#define _INCLUDE_BASIC_FRAMEWORK_DEBUG_
+//#define _INCLUDE_BASIC_FRAMEWORK_DEBUG_
 
 #endif /* ES_CONFIGURE_H */

@@ -49,13 +49,11 @@ int main(void)
 
   // When doing testing, it is useful to announce just which program
   // is running.
-  puts("\rStarting Test Harness for \r");
-  printf( "the 2nd Generation Events & Services Framework V2.4\r\n");
+  
+  printf( "2nd Generation Events & Services Framework V2.4\r\n");
   printf( "%s %s\n", __TIME__, __DATE__);
   printf( "\n\r\n");
-  printf( "Press any key to post key-stroke events to Service 0\n\r");
-  printf( "Press 'd' to test event deferral \n\r");
-  printf( "Press 'r' to test event recall \n\r");
+  
 
   // reprogram the ports that are set as alternate functions or
   // locked coming out of reset. (PA2-5, PB2-3, PD7, PF0)
