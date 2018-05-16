@@ -264,9 +264,11 @@ typedef enum
   ES_UNLOCK, 
   /*New events for the SHIP*/
   ES_PAIR_REQUEST,           /* when 0x01 packet is received */
+  ES_SEND_PAIR_ACK,          /* when 0x02 packet needs to be sent */ 
   ES_CONTROL_PACKET,         /* when 0x03 packet is received */ 
+  ES_SEND_STATUS,            /* when status packet needs to be sent */ 
   ES_OUT_OF_FUEL,           
-  ES_REFUELED
+  ES_REFUELED, 
 }ES_EventType_t;
 
 /****************************************************************************/
