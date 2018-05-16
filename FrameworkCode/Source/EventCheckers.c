@@ -113,7 +113,7 @@ bool Check4Keystroke(void)
     ThisEvent.EventParam  = GetNewKey();
     // test distribution list functionality by sending the 'L' key out via
     // a distribution list.
-    if (ThisEvent.EventParam == 'L')
+    if (ThisEvent.EventParam == 'p')
     {
       ES_PostList00(ThisEvent);
     }

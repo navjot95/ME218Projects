@@ -50,19 +50,45 @@
 #define UART2_RX_PIN GPIO_PIN_6 //Port D6
 #define UART2_TX_PIN GPIO_PIN_7 //Port D7
 
+
+//Defines for XBee
+#define Start_Delimiter 0x7E
+#define API_Identifier 0x01
+#define Options 0x00 //ack enabled 
+#define Preamble_Length_TX 8 //API_ID(1 byte), Frame_ID(1byte), dest_address (2 bytes), options(1byte) 
+
+//Defines for Class Packets 
+#define REQ_2_PAIR 0x01
+#define CTRL 0x03 
+#define PAIR_ACK 0x02
+#define STATUS 0x04
+
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
 */
-static uint16_t BuildTXPacket(void);  
+static void BuildTXPacket(uint8_t PacketType); 
+static uint8_t CheckSum(void); 
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
 static AnsibleTXState_t CurrentState;
+static PacketType_t  PacketType; 
+
 static bool Ready2TX = false; 
 static uint16_t BytesRemaining = 0; 
 static uint16_t index = 0; 
+static uint16_t TXPacket_Length; 
+//static uint8_t Preamble_Length = 5;  //API_ID(1 byte), Frame_ID(1byte), dest_address (2 bytes), options(1byte) 
+static uint8_t Data_Length = 2;  //number of bytes (**arbitrarily set") 
+static uint8_t CHK_SUM = 1; //initialize check sum to 0xFF
+static uint8_t DestAddressLSB;
+static uint8_t DestAddressMSB; 
+
+
+//Arrays
+uint8_t Message_Packet[100]; //***setting initial large value of array*** needs change
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -92,16 +118,16 @@ bool InitAnsibleTX(uint8_t Priority)
 
   MyPriority = Priority;
   // put us into the Initial state
-  CurrentState = InitTX;  
+    CurrentState = InitTX;  
 
    //Initialize UART HW
     UARTHardwareInit();  
   
   //Disable UART TX Interrupt so that default is RX 
-   HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_TXIM); 
+    HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_TXIM); 
   
   // post the initial transition event
-  ThisEvent.EventType = ES_INIT;
+    ThisEvent.EventType = ES_INIT;
   
   if (ES_PostToService(MyPriority, ThisEvent) == true)
   {
@@ -166,7 +192,11 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
       {
         //Set the initial state 
         CurrentState = WaitingToTX;
-          
+        
+        //Get SHIPTeamSelect, Initialized to SHIP Ansible 
+         DestAddressMSB = 0x86; 
+         DestAddressLSB = 0x20; 
+        
         //enable timer 
         ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
       }
@@ -185,28 +215,41 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
             ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
             printf( "\n \r timer has been reset"); 
             
-            //set BytesRemaining = Length of XBee Packet (Preamble (Start + Length + API_ID) + DATA + CHKSUM) 
-            
+            //Set local variable TXPacket_Length
+             TXPacket_Length =  Preamble_Length_TX + Data_Length + CHK_SUM;  
+ 
+           //Initialize BytesRemaining = Length of XBee Packet (Preamble (Start + Length + API_ID) + DATA + CHKSUM) 
+              BytesRemaining = TXPacket_Length;  
             //set index = 0 
+              index = 0; 
             
             //Build the packet to send
-              BuildTXPacket();  
+              BuildTXPacket(BUILD_CTRL);  
 
           if((HWREG(UART2_BASE+UART_O_FR)) & ((UART_FR_TXFE)))//If TXFE is set (empty)
           {
             printf("\n \r fifo is empty"); 
 
             //Write the new data to the UARTDR (first byte)
-              HWREG(UART2_BASE+UART_O_DR) = BuildTXPacket();  
-            
-    //Write the new data to the UARTDR (first byte)
-    
-            
-            //Enable TXIM (Note: also enabled in AnsibleMain)
-            HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_TXIM); 
-            
+              HWREG(UART2_BASE+UART_O_DR) =  Message_Packet[index];  
+            //decremet Bytes Remaining 
+              BytesRemaining--;
+            //Increment index 
+               index++; 
+             if((HWREG(UART2_BASE+UART_O_FR)) & ((UART_FR_TXFE))) //if the TXFE is set (still empty)
+             {
+               //Write the second byte to the UART DR 
+               HWREG(UART2_BASE+UART_O_DR) = Message_Packet[index];  
+               BytesRemaining--; 
+               index++; 
+             }
+            //Enable TXIM (Note: also enabled in UARTInit)
+               HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_TXIM); 
+             
+            //Enable Interrupts globally  (also enabled in UARTinit) 
+               __enable_irq();
             //return Success 
-            Ready2TX = true;
+              Ready2TX = true;
           }
           else
           {
@@ -260,7 +303,7 @@ AnsibleTXState_t QueryAnsibleTransmit(void)
 }
 
 /***************************************************************************
- private functions
+ public functions
  ***************************************************************************/
 
 void AnsibleTXISR (void)
@@ -270,13 +313,24 @@ void AnsibleTXISR (void)
   //If TXMIS Is Set 
   if ((HWREG(UART2_BASE + UART_O_MIS)) & (UART_MIS_TXMIS)) //if bit is set, then an interrupt has occured
   {
-    printf("\n \r bit set");
+      printf("\n \r bit set");
     //Write the new data to register (UARTDR)
-      HWREG(UART2_BASE+UART_O_DR) = 0xAA; 
+      HWREG(UART2_BASE+UART_O_DR) = Message_Packet[index]; 
+    //decrement BytesRemaining 
+      BytesRemaining--; 
+    //increment index
+      index++;
+    if (BytesRemaining == 0)
+    {
+    
+    HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_TXIM); //disable interrupt on TX by clearing TXIM 
+   //Post the ES_TX_COMPLETE (note: TX complete does not mean that that the Packet has been sent) 
+    ES_Event_t ReturnEvent; 
+    ReturnEvent.EventType = ES_TX_COMPLETE; 
+    PostAnsibleTX (ReturnEvent); 
+    }
     //Set TXIC in UARTICR (clear int)
-      HWREG(UART2_BASE + UART_O_ICR) |= UART_ICR_TXIC; 
-    //If this was the last byte in message block
-        //Disable TXIM 
+     HWREG(UART2_BASE + UART_O_ICR) |= UART_ICR_TXIC;  //clear TX interrupt
   }
   else
   {
@@ -284,12 +338,6 @@ void AnsibleTXISR (void)
     //you are done (not an TX interrupt)
   }
   
-  //Post the ES_TX_COMPLETE
-   ES_Event_t ReturnEvent; 
-   ReturnEvent.EventType = ES_TX_COMPLETE; 
-   PostAnsibleTX (ReturnEvent); 
-  
-  //HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_TXIM);
 }
 
 ///PUBLIC FUNCTIONS//
@@ -356,13 +404,116 @@ void UARTHardwareInit(void){
   }
 
   
-static uint16_t BuildTXPacket(void)
-{
-  uint8_t dataout; 
-  //Building a packet to send
-    printf("\n \r startting packet build"); 
+ /***************************************************************************
+ private functions
+ ***************************************************************************/
   
-   dataout = 0xAF; 
-   return dataout; 
+  static void BuildPreamble (void)
+  {
+      Message_Packet[0] = Start_Delimiter;  //0x7E
+      Message_Packet[1] = 0x00; //Data_Length = Preamble_Length + SizeofArray MSB
+      Message_Packet[2] = 0x02; //Data_Length = Preamble_Length + SizeofArray LSB 
+      Message_Packet[3] = API_Identifier;  //API_ID
+      Message_Packet[4] = 0x01;  //Frame_ID (**arbitrary for the moment)
+      Message_Packet[5] = DestAddressMSB;   //Destination Address MSB
+      Message_Packet[6] = DestAddressLSB;   //Destination Address LSB
+      Message_Packet[7] = Options;  //Options Byte 
+      printf("\n \r sent the preamble bytes"); 
+  }
+  
+  
+static void BuildTXPacket(uint8_t PacketType)
+{
+  switch(PacketType)
+  { 
+          
+    case BUILD_REQ_2_PAIR: 
+    {
+      //build the preamble 
+       BuildPreamble(); 
+      //set index to length of preamble
+      index = Preamble_Length_TX; 
+      //Add RF Data packet corresponding to REQ_2_PAIR
+      Message_Packet[index] = REQ_2_PAIR; 
+      //increment index
+      index++; 
+      //calculate CheckSum (); 
+      //store CheckSum as the next byte of Message_Packet
+      Message_Packet[index] = CheckSum(); 
+      printf("\n \r CheckSum=%d", CheckSum());
+      printf(" \n \r sent pair request packet"); 
+    }
+    break;
+    
+    case BUILD_CTRL: 
+    {
+      //Build Preamble 
+      BuildPreamble();
+      //set index to length of preamble
+       index = Preamble_Length_TX; 
+      //Add RF Data packet corresponding to REQ_2_PAIR
+      Message_Packet[index] = CTRL; 
+      //increment index
+      index++; 
+      //calculate CheckSum (); 
+      //store CheckSum as the next byte of Message_Packet
+      Message_Packet[index] = CheckSum(); 
+      printf("\n \r CheckSum=%d", CheckSum());
+      printf(" \n \r sent control packet"); 
+      
+      
+    }
+    break; 
+
+    case BUILD_STATUS: 
+    {
+      //BuildPreamble
+      BuildPreamble(); 
+      //set index to length of preamble
+      index = Preamble_Length_TX; 
+      //Add RF Data packet corresponding to REQ_2_PAIR
+      Message_Packet[index] = STATUS; 
+      //increment index
+      index++; 
+      //calculate CheckSum (); 
+      //store CheckSum as the next byte of Message_Packet
+      Message_Packet[index] = CheckSum(); 
+      printf("\n \r CheckSum=%d", CheckSum());
+      printf(" \n \r sent build status packet"); 
+      
+    }
+    break; 
+  
+  }
+  return;
+}
+static uint8_t CheckSum(void)
+{
+  uint16_t summation = 0; 
+  uint8_t FrameDataStart = 3; //check sum is the 0xFF - (Sum of FrameData)
+  uint8_t computed_chksum = 0; 
+  
+  for(index= FrameDataStart; index<(TXPacket_Length-1); index++)
+  {
+    summation += Message_Packet[index];
+  }
+  
+  computed_chksum =(0xFF-summation); 
+  
+  return computed_chksum; 
   
 }
+
+
+//uint8_t setpackettype (ES_Event_t ThisEvent)
+//{
+//    uint8_t packet_type; 
+
+//    if ((ThisEvent.EventType == ES_NEW_KEY) && (ThisEvent.EventParam == 'p'))
+//  {
+//    PacketType = BUILD_REQ_2_PAIR; 
+//    
+//  }
+//  return packet_type; 
+
+//}

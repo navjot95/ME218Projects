@@ -16,9 +16,11 @@
 // Public Function Prototypes
 void UARTHardwareInit(void);
 void AnsibleTXISR (void);
+uint8_t setpackettype (ES_Event_t ThisEvent); 
 
 //State definition for use with the query function 
 typedef enum{InitTX, WaitingToTX, Transmitting} AnsibleTXState_t; 
+typedef enum{BUILD_PREAMBLE,BUILD_REQ_2_PAIR,BUILD_CTRL,BUILD_STATUS} PacketType_t; 
 
 bool InitAnsibleTX(uint8_t Priority);
 bool PostAnsibleTX(ES_Event_t ThisEvent);
