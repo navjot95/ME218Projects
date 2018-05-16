@@ -437,6 +437,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\MotorModule.c</FilePath>
             </File>
+            <File>
+              <FileName>ScreenService.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\ScreenService.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
