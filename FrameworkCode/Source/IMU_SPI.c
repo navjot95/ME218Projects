@@ -13,9 +13,17 @@
 #include "IMU_SPI.h"
 
 // Set up SPI for 0.5 MHz
-#define PDIV 2      // SSI clock divisor 
-#define SCR 40      // SSI Clock Prescaler  
+#define PDIV 4      // SSI clock divisor 
+#define SCR 10      // SSI Clock Prescaler  
 #define TICKS_PER_MS 40000
+
+// https://github.com/brianc118/MPU9250/blob/master/MPU9250.h
+#define BITS_DLPF_CFG_188HZ         0x01
+#define BITS_FS_250DPS              0x00
+#define BITS_FS_2G                  0x00
+#define AK8963_I2C_ADDR             0x0c
+#define AK8963_CNTL1                0x0A
+#define AK8963_CNTL2                0x0B
 
 //  Masks for reading and writing SPI to IMU
 
@@ -68,7 +76,7 @@ uint8_t readCount = 0;
 
 // ------------------------- Private Functions ---------------------------//
 static void IMU_SPI_Init( void ); 
-
+static void IMU_Write(uint8_t address, uint8_t data);
 
 /****************************************************************************
  Function
@@ -90,6 +98,7 @@ static void IMU_SPI_Init( void );
 ****************************************************************************/
 bool InitIMU(uint8_t Priority)
 {
+    printf("\ninit imu");
     CurrentState = ACC_X_HIGH;          // State 0 
         
     // Fill up adress array with values 
@@ -112,21 +121,119 @@ bool InitIMU(uint8_t Priority)
     address_array[11] = MPU9250_GYRO_ZOUT_L;
 
     IMU_SPI_Init();     // Initialize SPI 
-    uint16_t sendByte;
+    SysCtlDelay(16000000u / 3u);  
+    
+    // https://github.com/brianc118/MPU9250/blob/master/MPU9250.cpp
+    
+    //{BIT_H_RESET, MPUREG_PWR_MGMT_1},        // Reset Device
+    IMU_Write(MPU9250_PWR_MGMT_1, PWR_MGMT_1_H_RESET); 
+    SysCtlDelay(16000000u / 3u);  
+    
+    
+    //    {0x01, MPUREG_PWR_MGMT_1},               // Clock Source
+    IMU_Write(MPU9250_PWR_MGMT_1, 0x01); 
+    SysCtlDelay(16000000u / 3u);  
+    
+    //    {0x00, MPUREG_PWR_MGMT_2},               // Enable Acc & Gyro
+    IMU_Write(MPU9250_PWR_MGMT_2, 0x00); 
+    SysCtlDelay(16000000u / 3u);  
+    
 
+        
+     //{my_low_pass_filter, MPUREG_CONFIG},     // Use DLPF set Gyroscope bandwidth 184Hz, temperature bandwidth 188Hz
+     IMU_Write(MPU9250_CONFIG, BITS_DLPF_CFG_188HZ);
+       SysCtlDelay(16000000u / 3u);  
+       
+       
+    //    {BITS_FS_250DPS, MPUREG_GYRO_CONFIG},    // +-250dps
+      IMU_Write(MPU9250_GYRO_CONFIG, BITS_FS_250DPS); 
+      SysCtlDelay(16000000u / 3u);  
+      
+      
+    //{BITS_FS_2G, MPUREG_ACCEL_CONFIG},       // +-2G
+       IMU_Write(MPU9250_ACCEL_CONFIG, BITS_FS_2G);  
+  SysCtlDelay(16000000u / 3u);  
+  
+    //{my_low_pass_filter_acc, MPUREG_ACCEL_CONFIG_2}, // Set Acc Data Rates, Enable Acc LPF , Bandwidth 184Hz
+        IMU_Write(MPU9250_ACCEL_CONFIG_2, BITS_DLPF_CFG_188HZ);
+  SysCtlDelay(16000000u / 3u);  
+  
+  
+    //{0x12, MPUREG_INT_PIN_CFG},      //
+    IMU_Write(MPU9250_INT_PIN_CFG, 0x12);  // OR 0x12? or 0x30 https://github.com/kriswiner/MPU9250/issues/62
+  SysCtlDelay(16000000u / 3u); 
+//    DONT DO     {0x30, MPUREG_USER_CTRL},        // I2C Master mode and set I2C_IF_DIS to disable slave mode I2C bus
+ //   DONT DO     {0x0D, MPUREG_I2C_MST_CTRL},     // I2C configuration multi-master  IIC 400KHz
+        
+        
+        
+        // {0x30, MPUREG_USER_CTRL},        // I2C Master mode and set I2C_IF_DIS to disable slave mode I2C bus
+  IMU_Write(MPU9250_USER_CTRL, 0x30);       
+  SysCtlDelay(16000000u / 3u); 
+  
+ 
+        //{0x40, MPUREG_I2C_MST_CTRL},   // I2C Speed 348 kHz
+        //{0x20, MPUREG_USER_CTRL},      // Enable AUX
+
+//        {0x0D, MPUREG_I2C_MST_CTRL},     // I2C configuration multi-master  IIC 400KHz
+  
+        IMU_Write(MPU9250_I2C_MST_CTRL, 0x0D);
+        SysCtlDelay(16000000u / 3u);
+
+        //{AK8963_I2C_ADDR, MPUREG_I2C_SLV0_ADDR},  // Set the I2C slave addres of AK8963 and set for write.
+        IMU_Write(MPU9250_I2C_SLV0_ADDR, AK8963_I2C_ADDR);
+        SysCtlDelay(16000000u / 3u);
+                
+                //{0x09, MPUREG_I2C_SLV4_CTRL},
+                //{0x81, MPUREG_I2C_MST_DELAY_CTRL}, // Enable I2C delay
+
+        //{AK8963_CNTL2, MPUREG_I2C_SLV0_REG}, // I2C slave 0 register address from where to begin data transfer
+            IMU_Write(MPU9250_I2C_SLV0_REG, AK8963_CNTL2); 
+                SysCtlDelay(16000000u / 3u);
+
+        //{0x01, MPUREG_I2C_SLV0_DO},   // Reset AK8963
+        IMU_Write(MPU9250_I2C_SLV0_DO, 0x01);
+            SysCtlDelay(16000000u / 3u);
+        
+        //{0x81, MPUREG_I2C_SLV0_CTRL}, // Enable I2C and set 1 byte
+        IMU_Write(MPU9250_I2C_SLV0_CTRL, 0x81); 
+         SysCtlDelay(16000000u / 3u);
+
+
+        //{AK8963_CNTL1, MPUREG_I2C_SLV0_REG}, // I2C slave 0 register address from where to begin data transfer
+               IMU_Write(MPU9250_I2C_SLV0_REG, AK8963_CNTL1); 
+        SysCtlDelay(16000000u / 3u);
+        
+        
+        //{0x0D, MPUREG_I2C_MST_CTRL},     // I2C configuration multi-master  IIC 400KHz
+               IMU_Write(MPU9250_I2C_MST_CTRL, 0x0D); 
+        SysCtlDelay(16000000u / 3u);
+        
+        
     // Other Configurations with blocking code 
     // To prevent switching into I2C mode when using SPI, the I2C interface 
     // should be disabled by setting the I2C_IF_DIS configuration bit. 
     // Setting this bit should be performed immediately after waiting 
     // for the time specified by the “Start-Up Time 
-    // for Register Read/Write” in Section 6.3.
-    uint16_t config_bytes = BIT4HI; 
-    uint8_t config_reg = MPU9250_USER_CTRL;
-    sendByte = BIT15HI;            // MSB high for read
-    sendByte |= (config_reg << 8);
-    sendByte |= config_bytes; 
-    HWREG(SSI0_BASE+SSI_O_IM) |= BIT3HI;    // Enable TXIM
-    HWREG(SSI0_BASE+SSI_O_DR) = sendByte;   // write a new byte to the FIFO
+    // for Register Read/Write” in Section 6.3.    
+    
+
+        //{0x0D, MPUREG_I2C_MST_CTRL},     // I2C configuration multi-master  IIC 400KHz
+        
+//        {AK8963_I2C_ADDR, MPUREG_I2C_SLV0_ADDR},  // Set the I2C slave addres of AK8963 and set for write.
+        //{0x09, MPUREG_I2C_SLV4_CTRL},
+        //{0x81, MPUREG_I2C_MST_DELAY_CTRL}, // Enable I2C delay
+
+  //      {AK8963_CNTL2, MPUREG_I2C_SLV0_REG}, // I2C slave 0 register address from where to begin data transfer
+    //    {0x01, MPUREG_I2C_SLV0_DO},   // Reset AK8963
+      //  {0x81, MPUREG_I2C_SLV0_CTRL}, // Enable I2C and set 1 byte
+    
+    //IMU_Write(MPU9250_USER_CTRL, BIT4HI);
+    //SysCtlDelay(16000000u / 3u);
+    
+    // PAGE 44 - who am i
+    // This register is used to verify the identity of the device. The contents of WHO_AM_I is an 8-bit device
+    // ID. The default value of the register is 0x71.
 
     // Do this write then wait -- 
 
@@ -134,20 +241,11 @@ bool InitIMU(uint8_t Priority)
     // page 53 
     // This register disables I2C bus interface. I2C bus interface 
     // is enabled in default. To disable I2C bus interface,
-    // write “00011011” to I2CDIS register. Then I2C bus interface is disabled.
+    // write “00011011” to I2CDIS register. Then I2C bus interface is disabled. - this is for magnetometer
 
-    // Not sure if this part matters 
     
-    // do the I2C disable 
-    //sendByte = BIT15HI; 
-    //uint16_t disable_I2C = 0x1B;  
-    //sendByte = BIT15HI;            // MSB high for read
-    //sendByte |= (config_reg << 8);
-    //sendByte |= config_bytes; 
-    //HWREG(SSI0_BASE+SSI_O_IM) |= BIT3HI;    // Enable TXIM
-    //HWREG(SSI0_BASE+SSI_O_DR) = sendByte;   // write a new byte to the FIFO
+    
 
-    // SYSCTL_DELAY if need blocking delay for SPI setup 
 
 
     MyPriority = Priority;
@@ -163,6 +261,15 @@ bool InitIMU(uint8_t Priority)
     return returnValue;   
 }
 
+
+static void IMU_Write(uint8_t address, uint8_t data)
+{
+    uint16_t out_byte = 0; // MSB clear for write 
+    out_byte |= (address << 8);
+    out_byte |= data;
+    HWREG(SSI0_BASE+SSI_O_IM) |= BIT3HI;    // Enable TXIM
+    HWREG(SSI0_BASE+SSI_O_DR) = out_byte;   // write a new byte to the FIFO
+}
 
 /****************************************************************************
  Function
