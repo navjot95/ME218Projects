@@ -121,7 +121,6 @@ bool InitSHIP_RX ( uint8_t Priority )
   ES_Event_t ThisEvent;
   
   Init_UART_PIC();
-  Init_UART_XBee();
 
   MyPriority = Priority;
   // First state is waiting for 0x7E
