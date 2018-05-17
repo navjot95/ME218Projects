@@ -81,7 +81,7 @@ __heap_limit
         EXTERN  SysTickIntHandler
         EXTERN  ShortTimerAHandler
         EXTERN  ShortTimerBHandler
-        EXTERN  AnsibleTXISR
+        EXTERN  AnsibleTXRXISR 
 ;        EXTERN  UARTStdioIntHandler
 
 ;******************************************************************************
@@ -140,7 +140,7 @@ __Vectors
         DCD     IntDefaultHandler           ; GPIO Port F
         DCD     IntDefaultHandler           ; GPIO Port G
         DCD     IntDefaultHandler           ; GPIO Port H
-        DCD     AnsibleTXISR                 ; UART2 Rx and Tx
+        DCD     AnsibleTXRXISR              ; UART2 Rx and Tx
         DCD     IntDefaultHandler           ; SSI1 Rx and Tx
         DCD     IntDefaultHandler           ; Timer 3 subtimer A
         DCD     IntDefaultHandler           ; Timer 3 subtimer B
