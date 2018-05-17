@@ -432,6 +432,16 @@
               <FileType>1</FileType>
               <FilePath>.\Source\TemplateFSM.c</FilePath>
             </File>
+            <File>
+              <FileName>SensorUpdate.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\SensorUpdate.c</FilePath>
+            </File>
+            <File>
+              <FileName>ADMulti.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\ADMulti.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -541,6 +551,16 @@
               <FileName>ES_ShortTimer.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\ES_ShortTimer.h</FilePath>
+            </File>
+            <File>
+              <FileName>SensorUpdate.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\SensorUpdate.h</FilePath>
+            </File>
+            <File>
+              <FileName>ADMulti.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\ADMulti.h</FilePath>
             </File>
           </Files>
         </Group>

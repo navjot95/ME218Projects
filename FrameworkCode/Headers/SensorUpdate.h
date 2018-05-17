@@ -7,7 +7,7 @@
 // Event Definitions
 #include "ES_Configure.h" /* gets us event definitions */
 #include "ES_Types.h"     /* gets bool type for returns */
-#include "ES_Events.h" // Erez Added 
+#include "ES_Events.h" 
 #include "ES_Framework.h"
 
 
@@ -24,9 +24,9 @@
 #include "driverlib/gpio.h"
 #include "ADMulti.h"
 
-#include "TimeDefs.h"
-
-
+#include "inc/hw_pwm.h"
+#include "inc/hw_timer.h"
+#include "inc/hw_nvic.h"
 
 // Framework methods 
 bool InitSensorUpdate( uint8_t Priority );
