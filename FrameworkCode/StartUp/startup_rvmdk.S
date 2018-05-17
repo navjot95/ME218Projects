@@ -83,6 +83,7 @@ __heap_limit
         EXTERN  ShortTimerBHandler
         EXTERN SPI_IntResponse
 ;        EXTERN  UARTStdioIntHandler
+        EXTERN Encoder_IOC_Response
 
 ;******************************************************************************
 ;
@@ -107,7 +108,7 @@ __Vectors
         DCD     0                           ; Reserved
         DCD     IntDefaultHandler           ; The PendSV handler
         DCD     SysTickIntHandler           ; The SysTick handler
-        DCD     IntDefaultHandler           ; GPIO Port A
+        DCD     Encoder_IOC_Response        ; GPIO Port A
         DCD     IntDefaultHandler           ; GPIO Port B
         DCD     IntDefaultHandler           ; GPIO Port C
         DCD     IntDefaultHandler           ; GPIO Port D
