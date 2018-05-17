@@ -38,9 +38,9 @@ Notes
 #include "driverlib/timer.h"
 #include "driverlib/interrupt.h"
 
-#include "SHIP_RX.h"
+//#include "SHIP_RX.h"
 #include "SHIP_TX.h"
-#include "SHIP_PIC_RX.h"
+//#include "SHIP_PIC_RX.h"
 #include "Init_UART.h"
 
 /*----------------------------- Module Defines ----------------------------*/
@@ -96,11 +96,10 @@ static uint8_t CheckSum(uint8_t CHECKSUM_INDEX);
 static SHIP_TX_State_t CurrentState;
 
 static uint8_t IDX = 0;
-static uint8_t DataLength = 0;
+//static uint8_t DataLength = 0;
 static uint8_t Packet[100];
 static uint8_t PacketLength = 0;
 
-static uint8_t FrameID = 1;
 static uint16_t SourceAddress;
 
 // with the introduction of Gen2, we need a module level Priority var as well
@@ -131,9 +130,15 @@ bool InitSHIP_TX ( uint8_t Priority )
   // First state is waiting for 0x7E
   CurrentState = WaitingToTX;
   // post the initial transition event
-  ThisEvent.EventType = ES_INIT;
+  //ThisEvent.EventType = ES_INIT;
   // any other initializations
-
+  
+  Init_UART_XBee();
+  
+  // %%%%% TEST %%%%% //
+  ES_Timer_InitTimer(TEST_TIMER, 500);  
+  // %%%%% TEST %%%%% //
+  
   if (ES_PostToService( MyPriority, ThisEvent) == true)
   {
       return true;
@@ -189,24 +194,31 @@ ES_Event_t RunSHIP_TX( ES_Event_t ThisEvent)
   switch ( CurrentState )
   {
     case WaitingToTX :
-      if (ThisEvent.EventType == BEGIN_TX)
-      {
+      // %%%%% TEST %%%%% //
+      if (ThisEvent.EventType == ES_TIMEOUT) 
+      {        
+      // %%%%% TEST %%%%% //
+    //if (ThisEvent.EventType == BEGIN_TX)
+        IDX=0;
+        // TEST
+        ES_Timer_InitTimer(TEST_TIMER, 500);  
         // Construct Data Packet
         BuildPacket(ThisEvent);
         
         if (HWREG(UART5_BASE + UART_O_FR) & UART_FR_TXFE) // (Room to TX byte)
         {
-          HWREG(UART5_BASE + UART_O_DR) |= Packet[IDX];
-          IDX++;
-          
-          // Disable RX and Enable TX Interrupt
-          HWREG(UART5_BASE + UART_O_IM) &= ~UART_IM_RXIM;
+          HWREG(UART5_BASE + UART_O_DR) = Packet[IDX];
           HWREG(UART5_BASE + UART_O_IM) |= UART_IM_TXIM;
+          IDX++;
+          // Disable RX and Enable TX Interrupt
+          //HWREG(UART5_BASE + UART_O_IM) &= ~UART_IM_RXIM;
+
           
-          CurrentState = SendingTX;
-          
+          CurrentState = SendingTX;    
+        
         }
       }
+      break;
       
     case SendingTX :
       if (ThisEvent.EventType == BYTE_SENT)
@@ -246,15 +258,15 @@ void SHIP_XBEE_ISR(void)
 		HWREG(UART5_BASE + UART_O_ICR) |= UART_ICR_TXIC;
 		
 		//Write next byte to DR
-		HWREG(UART5_BASE + UART_O_DR) |= ((HWREG(UART5_BASE + UART_O_DR) & ~UART_DR_DATA_M) | Packet[IDX]);
+		HWREG(UART5_BASE + UART_O_DR) = Packet[IDX];
 		//Increment the index
 		IDX++;
 		
-    if(IDX == PacketLength)
+    if(IDX == 12)
     { 
       // End of packet, Disable TX and Enable RX
 			HWREG(UART5_BASE + UART_O_IM) &= ~UART_IM_TXIM;
-      HWREG(UART5_BASE + UART_O_IM) |= UART_IM_RXIM;
+      //HWREG(UART5_BASE + UART_O_IM) |= UART_IM_RXIM;
 			
 			ThisEvent.EventType = BYTE_SENT;
 			PostSHIP_TX(ThisEvent);
@@ -262,14 +274,15 @@ void SHIP_XBEE_ISR(void)
 	}
   
   // XBee RX
-  if (HWREG(UART5_BASE + UART_O_MIS) & UART_MIS_RXMIS)
-  {
-    HWREG(UART5_BASE + UART_O_ICR) |= UART_ICR_RXIC;
-    
-    ThisEvent.EventType = BYTE_RECEIVED;
-    ThisEvent.EventParam = HWREG(UART5_BASE + UART_O_DR);
-    PostSHIP_RX(ThisEvent);
-  }
+  // UNCOMMENT
+//  if (HWREG(UART5_BASE + UART_O_MIS) & UART_MIS_RXMIS)
+//  {
+//    HWREG(UART5_BASE + UART_O_ICR) |= UART_ICR_RXIC;
+//    
+//    ThisEvent.EventType = BYTE_RECEIVED;
+//    ThisEvent.EventParam = HWREG(UART5_BASE + UART_O_DR);
+//    PostSHIP_RX(ThisEvent);
+//  }
 }
 
 
@@ -279,33 +292,43 @@ void SHIP_XBEE_ISR(void)
 
 static void BuildPacket(ES_Event_t ThisEvent)
 {
-  SourceAddress = QuerySourceAddress();
+  //SourceAddress = QuerySourceAddress();
   
   Packet[0] = START_DELIMITER;
   Packet[3] = API_IDENTIFIER;
   Packet[4] = FRAME_ID;
-  Packet[5] = (uint8_t)(SourceAddress>>8);
-  Packet[6] = (uint8_t)SourceAddress;
+  //Packet[5] = (uint8_t)(SourceAddress>>8);
+  //Packet[6] = (uint8_t)SourceAddress;
   Packet[7] = OPTIONS;
   
-  if (ThisEvent.EventParam == PAIR_ACK)
-  {
-    Packet[1] = LENGTH_MSB_PAIR_ACK; // 0x00
-    Packet[2] = LENGTH_LSB_PAIR_ACK; // 0x06
-    Packet[8] = 0x02;
-    Packet[9] = CheckSum(9);
-  }
+  // %%%%% TEST %%%%% //
+  Packet[1] = LENGTH_MSB_STATUS;  // 0x00
+  Packet[2] = LENGTH_LSB_STATUS;  // 0x08
+  Packet[5] = 0x02;
+  Packet[6] = 0x03;
+  Packet[8] = 0x04;
+  Packet[9] = 0xAA;
+  Packet[10] = 0x11;
+  Packet[11] = CheckSum(11);
+  // %%%%% TEST %%%%% //
   
-  if (ThisEvent.EventParam == STATUS)
-  {
-    Packet[1] = LENGTH_MSB_STATUS;  // 0x00
-    Packet[2] = LENGTH_LSB_STATUS;  // 0x08
-    Packet[8] = 0x04;
-    Packet[9] = QueryFuelStatus();
-    Packet[10] = Query_CTRL();
-    Packet[11] = CheckSum(11);
-    
-  }
+//  if (ThisEvent.EventParam == 0)
+//  {
+//    Packet[1] = LENGTH_MSB_PAIR_ACK; // 0x00
+//    Packet[2] = LENGTH_LSB_PAIR_ACK; // 0x06
+//    Packet[8] = 0x02;
+//    Packet[9] = CheckSum(9);
+//  }
+//  
+//  if (ThisEvent.EventParam == STATUS)
+//  {
+//    Packet[1] = LENGTH_MSB_STATUS;  // 0x00
+//    Packet[2] = LENGTH_LSB_STATUS;  // 0x08
+//    Packet[8] = 0x04;
+//    Packet[9] = QueryFuelStatus();
+//    Packet[10] = Query_CTRL();
+//    Packet[11] = CheckSum(11);
+//  }
 }
 
 static uint8_t CheckSum(uint8_t CHECKSUM_INDEX)
@@ -313,7 +336,9 @@ static uint8_t CheckSum(uint8_t CHECKSUM_INDEX)
   static uint8_t CheckSum = 0xFF;
   static uint8_t i;
   
-  for (i=3;i<CHECKSUM_INDEX+1;i++)
+  CheckSum = 0xFF;
+  
+  for (i=3;i<CHECKSUM_INDEX;i++)
   {
     CheckSum -= Packet[i];
   }

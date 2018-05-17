@@ -113,18 +113,18 @@ void Init_UART_XBee(void)
   }  
   
   // Set PE4 and PE5 to digital 
-  HWREG(GPIO_PORTB_BASE + GPIO_O_DEN) |= (BIT4HI | BIT5HI); 
+  HWREG(GPIO_PORTE_BASE + GPIO_O_DEN) |= (BIT4HI | BIT5HI); 
   
-  // PB4 input (RX), PB5 output (TX)
-  HWREG(GPIO_PORTB_BASE + GPIO_O_DIR) |= BIT5HI; 
-  HWREG(GPIO_PORTB_BASE + GPIO_O_DIR) &= ~BIT4HI; 
+  // PE4 input (RX), PE5 output (TX)
+  HWREG(GPIO_PORTE_BASE + GPIO_O_DIR) |= BIT5HI; 
+  HWREG(GPIO_PORTE_BASE + GPIO_O_DIR) &= ~BIT4HI; 
   
   // Select the Alternate function for PE4 and PE5
-  HWREG(GPIO_PORTB_BASE + GPIO_O_AFSEL) |= (BIT4HI | BIT5HI);
+  HWREG(GPIO_PORTE_BASE + GPIO_O_AFSEL) |= (BIT4HI | BIT5HI);
   
   // Configure PMCn fields in the GPIO_PCTL register to assign the UART pins
   // (pg 1351) Write 1 for PE4 and PB5 for U5Rx and U5Tx 
-  HWREG(GPIO_PORTB_BASE + GPIO_O_PCTL) |= (HWREG(GPIO_PORTB_BASE +  GPIO_O_PCTL) & 0xff00ffff) | 0x00110000;
+  HWREG(GPIO_PORTE_BASE + GPIO_O_PCTL) |= (HWREG(GPIO_PORTE_BASE +  GPIO_O_PCTL) & 0xff00ffff) | 0x00110000;
 
 
   // Disable UART by clearing the UARTEN bit in the UART_CTL register
@@ -143,14 +143,16 @@ void Init_UART_XBee(void)
   
   // Set Recieve, Transmit, and End of Transmission bits
   // Enable UART
-  HWREG(UART5_BASE + UART_O_CTL) |= (UART_CTL_RXE| UART_CTL_TXE | 
-        UART_CTL_EOT | UART_CTL_UARTEN);
+  HWREG(UART5_BASE + UART_O_CTL) |= ( UART_CTL_RXE |UART_CTL_TXE | UART_CTL_UARTEN);
   
   // Enable NVIC interrupts
   HWREG(NVIC_EN1) |= BIT29HI;
   
   // Enable Interrupts for Rx
-  HWREG(UART5_BASE + UART_O_IM) |= UART_IM_RXIM;
+  //HWREG(UART5_BASE + UART_O_IM) |= UART_IM_RXIM;
+  
+ // Enable Interrupts for tx
+  //HWREG(UART5_BASE + UART_O_IM) |= UART_IM_TXIM;
   
   // Global enable
   __enable_irq();

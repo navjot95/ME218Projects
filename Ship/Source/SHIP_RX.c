@@ -120,7 +120,7 @@ bool InitSHIP_RX ( uint8_t Priority )
 {
   ES_Event_t ThisEvent;
   
-  Init_UART_PIC();
+  Init_UART_XBee();
 
   MyPriority = Priority;
   // First state is waiting for 0x7E
@@ -279,7 +279,9 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
             {
               // Send failed message event
               ThisEvent.EventType = ES_TX_FAIL;
-              PostSHIP_Master(ThisEvent);
+              
+              // UNCOMMENT
+              //PostSHIP_Master(ThisEvent);
             }
           }
           // If message is data packet
@@ -300,8 +302,10 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
               }
               
               // Post to MasterSM that control packet was received
-              ThisEvent.EventType = ES_CONTROL_PACKET;
-              PostSHIP_Master(ThisEvent);
+              
+              // UNCOMMENT
+              //ThisEvent.EventType = ES_CONTROL_PACKET;
+              //PostSHIP_Master(ThisEvent);
             }
 
             // if req_2_pair packet, save ansible colour
@@ -309,13 +313,16 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
             {
               ANSIBLEColour = RX_FrameData[9];
               
-              ThisEvent.EventType = ES_PAIR_REQUEST;
-              PostSHIP_Master(ThisEvent);
+              // UNCOMMENT
+              //ThisEvent.EventType = ES_PAIR_REQUEST;
+              //PostSHIP_Master(ThisEvent);
             }
               
             // Send packet received event, param = message header
             ThisEvent.EventType = PACKET_RECEIVED;
-            PostSHIP_Master(ThisEvent);
+            
+            // UNCOMMENT
+            //PostSHIP_Master(ThisEvent);
           }
         }
         CurrentState = WaitingForStart;

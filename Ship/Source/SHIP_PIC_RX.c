@@ -131,7 +131,7 @@ Notes
   uses nested switch/case to implement the machine.
 
 ****************************************************************************/
-ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
+ES_Event_t RunSHIP_PIC_RX( ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
