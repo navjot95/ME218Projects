@@ -81,6 +81,7 @@ __heap_limit
         EXTERN  SysTickIntHandler
         EXTERN  ShortTimerAHandler
         EXTERN  ShortTimerBHandler
+        EXTERN SPI_IntResponse
 ;        EXTERN  UARTStdioIntHandler
 
 ;******************************************************************************
@@ -113,7 +114,7 @@ __Vectors
         DCD     IntDefaultHandler           ; GPIO Port E
         DCD     IntDefaultHandler         	; UART0 Rx and Tx
         DCD     IntDefaultHandler           ; UART1 Rx and Tx
-        DCD     IntDefaultHandler           ; SSI0 Rx and Tx
+        DCD     SPI_IntResponse               ; SSI0 Rx and Tx
         DCD     IntDefaultHandler           ; I2C0 Master and Slave
         DCD     IntDefaultHandler           ; PWM Fault
         DCD     IntDefaultHandler           ; PWM Generator 0

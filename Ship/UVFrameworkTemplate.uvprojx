@@ -433,9 +433,9 @@
               <FilePath>.\Source\TemplateFSM.c</FilePath>
             </File>
             <File>
-              <FileName>MotorModule.c</FileName>
+              <FileName>IMU_SPI.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Source\MotorModule.c</FilePath>
+              <FilePath>.\Source\IMU_SPI.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -548,9 +548,14 @@
               <FilePath>.\Headers\ES_ShortTimer.h</FilePath>
             </File>
             <File>
-              <FileName>MotorModule.h</FileName>
+              <FileName>IMU_SPI.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Headers\MotorModule.h</FilePath>
+              <FilePath>.\Headers\IMU_SPI.h</FilePath>
+            </File>
+            <File>
+              <FileName>MPU9250_RegisterMap.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\MPU9250_RegisterMap.h</FilePath>
             </File>
           </Files>
         </Group>
