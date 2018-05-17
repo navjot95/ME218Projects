@@ -86,10 +86,11 @@ static uint8_t CHK_SUM = 1; //initialize check sum to 0xFF
 static uint8_t DestAddressLSB;
 static uint8_t DestAddressMSB; 
 bool receiving = false; 
+static uint8_t IDX; 
 
 //Arrays
 static uint8_t Message_Packet[100]; //***setting initial large value of array*** needs change
-static uint8_t RXMessage_Packet[100];
+uint8_t RXMessage_Packet[100]; //not static because I want to access from AnsibleRX 
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -215,7 +216,8 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
            //reset timer
             ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
        
-            
+            IDX =0; 
+          
             //Set local variable TXPacket_Length
              TXPacket_Length =  Preamble_Length_TX + Data_Length + CHK_SUM;  
  
@@ -233,12 +235,13 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
           {
 
             //Write the new data to the UARTDR (first byte)
-             HWREG(UART2_BASE+UART_O_DR) = Message_Packet[(BytesRemaining-1)];  
+             HWREG(UART2_BASE+UART_O_DR) = Message_Packet[(IDX)];  
 
             //decremet Bytes Remaining 
               BytesRemaining--;
             //Increment index 
                index++; 
+              IDX++; 
             
 //             if((HWREG(UART2_BASE+UART_O_FR)) & ((UART_FR_TXFE))) //if the TXFE is set (still empty)
 //             {
@@ -275,20 +278,6 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
       {
         case ES_TX_COMPLETE:  //If event is event one
         {   
-          /*
-          printf("\n \r MessagePacket = %x",Message_Packet[0]);
-          printf("\n \r MessagePacket = %x",Message_Packet[1]);
-          printf("\n \r MessagePacket = %x",Message_Packet[2]);
-          printf("\n \r MessagePacket = %x",Message_Packet[3]);
-          printf("\n \r MessagePacket = %x",Message_Packet[4]);
-          printf("\n \r MessagePacket = %x",Message_Packet[5]);
-          printf("\n \r MessagePacket = %x",Message_Packet[6]);
-          printf("\n \r MessagePacket = %x",Message_Packet[7]);
-          printf("\n \r MessagePacket = %x",Message_Packet[8]);
-          printf("\n \r MessagePacket = %x",Message_Packet[9]);
-          printf("\n \r Bytesatend %d", BytesRemaining); 
-          printf(" \n \r indexatend %d", index); 
-          */
           CurrentState = WaitingToTX; 
         }
         break;
@@ -336,10 +325,11 @@ void AnsibleTXRXISR (void)
      //clear the source of the interrupt
       HWREG(UART2_BASE+UART_O_ICR) |= UART_ICR_TXIC;
     //Write the new data to register (UARTDR)
-      HWREG(UART2_BASE+UART_O_DR) = Message_Packet[BytesRemaining-1]; 
+      HWREG(UART2_BASE+UART_O_DR) = Message_Packet[IDX]; 
+      IDX++; 
   
   //    printf("\n \r MessagePacket = %i",Message_Packet[BytesRemaining-1]);
-    if (BytesRemaining == 1)
+    if (IDX == (TXPacket_Length))
     {
       //clear the source of the interrupt
         HWREG(UART2_BASE+UART_O_ICR) |= UART_ICR_TXIC;
@@ -367,11 +357,15 @@ void AnsibleTXRXISR (void)
   //If RXMIS Is Set 
   if ((HWREG(UART2_BASE + UART_O_MIS)) & (UART_MIS_RXMIS)) //if bit is set, then an interrupt has occured
   {
-      //clear the source of the interrupt
-     HWREG(UART2_BASE+UART_O_ICR) |= UART_ICR_RXIC;
-      receiving = true; 
-    //Read the new data  register (UARTDR)
-      RXMessage_Packet[index] = HWREG(UART2_BASE+UART_O_DR); 
+       //clear the source of the interrupt
+        HWREG(UART2_BASE+UART_O_ICR) |= UART_ICR_RXIC;
+        receiving = true; 
+      //Read the new data  register (UARTDR)
+          ES_Event_t ThisEvent; 
+          ThisEvent.EventType = BYTE_RECEIVED; 
+          //PostAnsibleMaster(ThisEvent); 
+          //ThisEvent.EventParam = HWREG(UART2_BASE+UART_O_DR); 
+   
   }
   else
   {
@@ -538,9 +532,6 @@ static void BuildTXPacket(uint8_t PacketType)
       //calculate CheckSum (); 
       //store CheckSum as the next byte of Message_Packet
       Message_Packet[index] = CheckSum(); 
-  //    printf("\n \r CheckSum=%d", CheckSum());
-  //    printf(" \n \r sent build status packet"); 
-      
     }
     break; 
   

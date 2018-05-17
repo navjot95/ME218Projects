@@ -210,6 +210,11 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
          //Get SHIPTeamSelect, Initialized to SHIP Ansible 
           SourceAddressMSB = 0x86; 
           SourceAddressLSB = 0x21; 
+          
+          //Post an event to AnsibleMaster saying byte received 
+          ES_Event_t ThisEvent; 
+          ThisEvent.EventType = BYTE_RECEIVED; 
+          //PostAnsibleMaster(ThisEvent); 
         }
     }
     break;
@@ -321,7 +326,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
 
 /****************************************************************************
  Function
-     AnsibleMainSM
+     AnsiblrxSM
 
  Parameters
      None
@@ -344,24 +349,6 @@ AnsibleTXState_t QueryAnsibleTransmit(void)
 /***************************************************************************
  public functions
  ***************************************************************************/
-
-//void AnsibleRXISR (void)
-//{
-//  //Read the Masked Interrupt Status (UARTMIS)
-//  
-//  //If RXMIS Is Set 
-//  if ((HWREG(UART2_BASE + UART_O_MIS)) & (UART_MIS_RXMIS)) //if bit is set, then an interrupt has occured
-//  {
-//      printf("\n \r bit set");
-//    //Read the new data  register (UARTDR)
-//       RXMessage_Packet[index] = HWREG(UART2_BASE+UART_O_DR); 
-//  }
-//  else
-//  {
-//    receiving = false; 
-//    //you are done (not an RX interrupt)
-//  }
-//}
 
 ///PUBLIC FUNCTIONS//
  /***************************************************************************
