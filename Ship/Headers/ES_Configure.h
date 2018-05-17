@@ -260,6 +260,8 @@ typedef enum
   ES_SHORT_TIMEOUT,         /* signals that a short timer has expired */
   /* User-defined events start here */
   BYTE_RECEIVED,
+  BYTE_SENT,
+  BEGIN_TX,
   ES_TX_FAIL,
   PACKET_RECEIVED,
   ES_NEW_KEY,               /* signals a new key received from terminal */

@@ -24,5 +24,13 @@ typedef enum { WaitingForStart,
 bool InitSHIP_RX ( uint8_t Priority );
 bool PostSHIP_RX ( ES_Event_t ThisEvent );
 ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent);
-void SHIP_ISR(void);          
+
+uint16_t QuerySourceAddress(void);
+uint8_t Query_ANSIBLEColour (void);
+uint8_t Query_FB (void);
+uint8_t Query_LR (void);
+uint8_t Query_TurretR (void);
+uint8_t Query_TurretP (void);
+uint8_t Query_CTRL (void);
+
 #endif /* SHIP_RX_H */

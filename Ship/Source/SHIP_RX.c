@@ -39,6 +39,7 @@ Notes
 #include "driverlib/interrupt.h"
 
 #include "SHIP_RX.h"
+#include "SHIP_TX.h"
 #include "Init_UART.h"
 
 /*----------------------------- Module Defines ----------------------------*/
@@ -46,10 +47,10 @@ Notes
 #define RX_PERIOD   200   // 200 ms (5Hz transmission rate) 
 
 // XBee API Defines
-#define START_DELIMITER    0x7E
-#define API_IDENTIFIER     0x81
-#define TX_API_IDENTIFIER  0x89
-#define OPTIONS            0x00
+#define START_DELIMITER           0x7E
+#define API_IDENTIFIER            0x81
+#define TX_STATUS_API_IDENTIFIER  0x89
+#define OPTIONS                   0x00
 
 // Class Protocol Defines
 #define REQ_2_PAIR_HEADER  0x01
@@ -91,7 +92,9 @@ static SHIP_RX_State_t CurrentState;
 
 static uint16_t DataLength;
 static uint8_t  RX_FrameData[100];
+static uint8_t  RX_ControlData[10];
 static uint16_t SourceAddress;
+static uint8_t  ANSIBLEColour;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -179,7 +182,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
   
-  static uint8_t ByteCounter;
+  static uint8_t IDX;
   static uint8_t CheckSum;
 
   switch ( CurrentState )
@@ -231,7 +234,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
 
         CheckSum = 0xFF;
 
-        ByteCounter = 0;
+        IDX = 0;
         
         CurrentState = ReceivingData;
       }
@@ -248,13 +251,15 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
         
         // First will be API Identifier (0x81), then Source Address (0x20 and 0x8_)
         // then RSSI (signal strength), then Options (0x00), then data
-        RX_FrameData[ByteCounter] = ThisEvent.EventParam;
-        ByteCounter++;
+        RX_FrameData[IDX] = ThisEvent.EventParam;
+        IDX++;
         CheckSum -= ThisEvent.EventParam;
-        if (ByteCounter == DataLength)
+        
+        if (IDX == DataLength)
         {
           CurrentState = ReceivingCheckSum;
         }
+        
       }
       break;
       
@@ -267,10 +272,10 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
       {
         if (ThisEvent.EventParam == CheckSum)
         {
-          // If message is TX_STATUS
-          if (RX_FrameData[API_IDENTIFIER_IDX] == TX_API_IDENTIFIER)
+          // If message is TX_STATUS (MIGHT BE UNNESSARY)
+          if (RX_FrameData[API_IDENTIFIER_IDX] == TX_STATUS_API_IDENTIFIER)
           {
-            // If message failed
+            // If message failed (MIGHT BE UNNESSARY)
             if ( (RX_FrameData[TX_STATUS_IDX] == TX_NO_ACK) || (RX_FrameData[TX_STATUS_IDX] == TX_CCA_FAIL))
             {
               // Send failed message event
@@ -281,17 +286,37 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
           // If message is data packet
           else if (RX_FrameData[API_IDENTIFIER_IDX] == API_IDENTIFIER)
           {
-            // If SHIP is waiting to pair
-            if (QuerySHIPComm() == WaitingToPair)
+            if (RX_FrameData[DATA_HEADER_IDX] == CTRL_HEADER)
             {
               // Save source address
               SourceAddress |= ((uint16_t) RX_FrameData[SOURCE_ADDRESS_MSB_IDX])<<8;
               SourceAddress |= (uint16_t) RX_FrameData[SOURCE_ADDRESS_LSB_IDX];
-
-              // Send packet received event, param = message header
-              ThisEvent.EventType = PACKET_RECEIVED;
+              
+              static uint8_t i;
+              
+              // Build array containing just the control data 
+              for (i=0;i<5;i++)
+              {
+                RX_ControlData[i] = RX_FrameData[i+9];
+              }
+              
+              // Post to MasterSM that control packet was received
+              ThisEvent.EventType = ES_CONTROL_PACKET;
               PostSHIP_Master(ThisEvent);
             }
+
+            // if req_2_pair packet, save ansible colour
+            if (RX_FrameData[DATA_HEADER_IDX] == REQ_2_PAIR_HEADER)
+            {
+              ANSIBLEColour = RX_FrameData[9];
+              
+              ThisEvent.EventType = ES_PAIR_REQUEST;
+              PostSHIP_Master(ThisEvent);
+            }
+              
+            // Send packet received event, param = message header
+            ThisEvent.EventType = PACKET_RECEIVED;
+            PostSHIP_Master(ThisEvent);
           }
         }
         CurrentState = WaitingForStart;
@@ -301,46 +326,54 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
   return ReturnEvent;
 }  
 
-
 /****************************************************************************
 Function
-  SHIP_ISR
+	QuerySourceAddress
 
 Parameters
-  ES_Event : the event to process
+	None
 
 Returns
-  ES_Event, ES_NO_EVENT if no error ES_ERROR otherwise
+	SourceAddress of the ANSIBLE connected
 
 Description
-  add your description here
+	returns the Source Address of the SHIP_RX state machine
 
 Notes
-  uses nested switch/case to implement the machine.
 
 ****************************************************************************/
 
-void SHIP_ISR(void)
+uint16_t QuerySourceAddress(void)
 {
-  static ES_Event_t ThisEvent;
-  
-  // PIC RX
-  if (HWREG(UART1_BASE + UART_O_MIS) & UART_MIS_RXMIS)
-  {
-    HWREG(UART1_BASE + UART_O_ICR) |= UART_ICR_RXIC;
-    
-    ThisEvent.EventType = BYTE_RECEIVED;
-    ThisEvent.EventParam = HWREG(UART1_BASE + UART_O_DR);
-    PostSHIP_RX(ThisEvent);
-  }
-  
-  // XBee RX
-  if (HWREG(UART5_BASE + UART_O_MIS) & UART_MIS_RXMIS)
-  {
-    HWREG(UART5_BASE + UART_O_ICR) |= UART_ICR_RXIC;
-    
-    ThisEvent.EventType = BYTE_RECEIVED;
-    ThisEvent.EventParam = HWREG(UART5_BASE + UART_O_DR);
-    PostSHIP_RX(ThisEvent);
-  }
+  return SourceAddress;
+}
+
+uint8_t Query_ANSIBLEColour (void)
+{
+  return ANSIBLEColour;
+}
+
+uint8_t Query_FB (void)
+{
+  return RX_ControlData[0];
+}
+
+uint8_t Query_LR (void)
+{
+  return RX_ControlData[1];
+}
+
+uint8_t Query_TurretR (void)
+{
+  return RX_ControlData[2];
+}
+
+uint8_t Query_TurretP (void)
+{
+  return RX_ControlData[3];
+}
+
+uint8_t Query_CTRL (void)
+{
+  return RX_ControlData[4];
 }

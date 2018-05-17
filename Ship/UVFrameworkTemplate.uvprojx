@@ -533,6 +533,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\SHIP_RX.c</FilePath>
             </File>
+            <File>
+              <FileName>SHIP_TX.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\SHIP_TX.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -652,6 +657,11 @@
               <FileName>SHIP_RX.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\SHIP_RX.h</FilePath>
+            </File>
+            <File>
+              <FileName>SHIP_TX.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\SHIP_TX.h</FilePath>
             </File>
           </Files>
         </Group>
