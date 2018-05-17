@@ -9,13 +9,12 @@
 	E. Krimsky, ME218C
 ****************************************************************************/
 #define IMU_DEBUG   // Unccoment to stop printing 
-
 #include "IMU_SPI.h"
 
-// Set up SPI for 0.5 MHz
-#define PDIV 4      // SSI clock divisor 
-#define SCR 10      // SSI Clock Prescaler  
-#define TICKS_PER_MS 40000
+#define PDIV                4       // SSI clock divisor 
+#define SCR                 100     // SSI Clock Prescaler  
+#define TICKS_PER_MS        40000
+#define IMU_UPDATE_TIME     7      // 7 ms     
 
 // https://github.com/brianc118/MPU9250/blob/master/MPU9250.h
 #define BITS_DLPF_CFG_188HZ         0x01
@@ -24,13 +23,6 @@
 #define AK8963_I2C_ADDR             0x0c
 #define AK8963_CNTL1                0x0A
 #define AK8963_CNTL2                0x0B
-
-//  Masks for reading and writing SPI to IMU
-
-const int IMU_UPDATE_TIME = 10;    
-
-static uint16_t byteIn; 		    // 2 byte transfers
-
 
 // Stative Variables to store IMU Readings 
 static uint16_t accel_x;
@@ -55,23 +47,15 @@ typedef enum {  ACC_X_HIGH,
                 GYR_Z_LOW
                 } SPI_Write_State_t ;
 
-const uint8_t num_reads = GYR_Z_LOW - ACC_X_HIGH + 1; 
-
-uint8_t address_array[num_reads]; 
-
-uint8_t MyPriority; 
-
+static const uint8_t num_reads = GYR_Z_LOW - ACC_X_HIGH + 1; 
+static uint8_t address_array[num_reads]; 
+static uint8_t MyPriority; 
 static SPI_Write_State_t CurrentState; 
-
-
-
-// Local copies of IMU data 
-
-
-// make this a service? 
-
-uint8_t readCount = 0; 
-
+typedef enum {Initializing, Reading} IMU_State_t; 
+static IMU_State_t IMU_State; 
+static uint16_t byteIn; 		    // 2 byte transfers
+                
+ 
 
 
 // ------------------------- Private Functions ---------------------------//
@@ -91,14 +75,10 @@ static void IMU_Write(uint8_t address, uint8_t data);
  Description
      Saves away the priority, sets up the initial transition and does any
      other required initialization for this state machine
- Notes
-
- Author
-     J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
 bool InitIMU(uint8_t Priority)
 {
-    printf("\ninit imu");
+    IMU_State = Initializing;           // For first initializatoin bits 
     CurrentState = ACC_X_HIGH;          // State 0 
         
     // Fill up adress array with values 
@@ -121,95 +101,109 @@ bool InitIMU(uint8_t Priority)
     address_array[11] = MPU9250_GYRO_ZOUT_L;
 
     IMU_SPI_Init();     // Initialize SPI 
-    SysCtlDelay(16000000u / 3u);  
+    SysCtlDelay(1600000u / 3u);  
+        
+        
+      // #1  
+      IMU_Write(MPU9250_USER_CTRL, BIT4HI);       
+  SysCtlDelay(16000000u / 3u); 
     
     // https://github.com/brianc118/MPU9250/blob/master/MPU9250.cpp
     
-    //{BIT_H_RESET, MPUREG_PWR_MGMT_1},        // Reset Device
+    // #2
     IMU_Write(MPU9250_PWR_MGMT_1, PWR_MGMT_1_H_RESET); 
     SysCtlDelay(16000000u / 3u);  
     
     
-    //    {0x01, MPUREG_PWR_MGMT_1},               // Clock Source
-    IMU_Write(MPU9250_PWR_MGMT_1, 0x01); 
+    // # 3 
+    IMU_Write(MPU9250_PWR_MGMT_1, 0x01);  // clock source 
     SysCtlDelay(16000000u / 3u);  
     
-    //    {0x00, MPUREG_PWR_MGMT_2},               // Enable Acc & Gyro
-    IMU_Write(MPU9250_PWR_MGMT_2, 0x00); 
+    // #4        
+    IMU_Write(MPU9250_PWR_MGMT_2, 0x00); // Enable Acc & Gyro
     SysCtlDelay(16000000u / 3u);  
     
 
         
      //{my_low_pass_filter, MPUREG_CONFIG},     // Use DLPF set Gyroscope bandwidth 184Hz, temperature bandwidth 188Hz
+     // #5 
      IMU_Write(MPU9250_CONFIG, BITS_DLPF_CFG_188HZ);
        SysCtlDelay(16000000u / 3u);  
        
        
     //    {BITS_FS_250DPS, MPUREG_GYRO_CONFIG},    // +-250dps
+    // # 6 
       IMU_Write(MPU9250_GYRO_CONFIG, BITS_FS_250DPS); 
       SysCtlDelay(16000000u / 3u);  
       
       
-    //{BITS_FS_2G, MPUREG_ACCEL_CONFIG},       // +-2G
+    //{BITS_FS_2G, MPUREG_ACCEL_CONFIG},       // +-2G\
+    // #7 
        IMU_Write(MPU9250_ACCEL_CONFIG, BITS_FS_2G);  
   SysCtlDelay(16000000u / 3u);  
   
     //{my_low_pass_filter_acc, MPUREG_ACCEL_CONFIG_2}, // Set Acc Data Rates, Enable Acc LPF , Bandwidth 184Hz
+    // # 8 
         IMU_Write(MPU9250_ACCEL_CONFIG_2, BITS_DLPF_CFG_188HZ);
   SysCtlDelay(16000000u / 3u);  
   
-  
+  /*
     //{0x12, MPUREG_INT_PIN_CFG},      //
+    // # 9 
     IMU_Write(MPU9250_INT_PIN_CFG, 0x12);  // OR 0x12? or 0x30 https://github.com/kriswiner/MPU9250/issues/62
-  SysCtlDelay(16000000u / 3u); 
+  SysCtlDelay(160000000u / 3u); 
 //    DONT DO     {0x30, MPUREG_USER_CTRL},        // I2C Master mode and set I2C_IF_DIS to disable slave mode I2C bus
  //   DONT DO     {0x0D, MPUREG_I2C_MST_CTRL},     // I2C configuration multi-master  IIC 400KHz
         
         
         
         // {0x30, MPUREG_USER_CTRL},        // I2C Master mode and set I2C_IF_DIS to disable slave mode I2C bus
+        // #10 
   IMU_Write(MPU9250_USER_CTRL, 0x30);       
-  SysCtlDelay(16000000u / 3u); 
+  SysCtlDelay(160000000u / 3u); 
   
  
-        //{0x40, MPUREG_I2C_MST_CTRL},   // I2C Speed 348 kHz
-        //{0x20, MPUREG_USER_CTRL},      // Enable AUX
 
-//        {0x0D, MPUREG_I2C_MST_CTRL},     // I2C configuration multi-master  IIC 400KHz
-  
+        // # 11 
         IMU_Write(MPU9250_I2C_MST_CTRL, 0x0D);
-        SysCtlDelay(16000000u / 3u);
+        SysCtlDelay(160000000u / 3u);
+        
+        
 
         //{AK8963_I2C_ADDR, MPUREG_I2C_SLV0_ADDR},  // Set the I2C slave addres of AK8963 and set for write.
+        // # 12 
         IMU_Write(MPU9250_I2C_SLV0_ADDR, AK8963_I2C_ADDR);
         SysCtlDelay(16000000u / 3u);
                 
-                //{0x09, MPUREG_I2C_SLV4_CTRL},
-                //{0x81, MPUREG_I2C_MST_DELAY_CTRL}, // Enable I2C delay
+
 
         //{AK8963_CNTL2, MPUREG_I2C_SLV0_REG}, // I2C slave 0 register address from where to begin data transfer
+        // # 13 
             IMU_Write(MPU9250_I2C_SLV0_REG, AK8963_CNTL2); 
                 SysCtlDelay(16000000u / 3u);
 
         //{0x01, MPUREG_I2C_SLV0_DO},   // Reset AK8963
+        // #14 
         IMU_Write(MPU9250_I2C_SLV0_DO, 0x01);
             SysCtlDelay(16000000u / 3u);
         
         //{0x81, MPUREG_I2C_SLV0_CTRL}, // Enable I2C and set 1 byte
+        // # 15 
         IMU_Write(MPU9250_I2C_SLV0_CTRL, 0x81); 
          SysCtlDelay(16000000u / 3u);
 
 
         //{AK8963_CNTL1, MPUREG_I2C_SLV0_REG}, // I2C slave 0 register address from where to begin data transfer
+        // # 16 
                IMU_Write(MPU9250_I2C_SLV0_REG, AK8963_CNTL1); 
         SysCtlDelay(16000000u / 3u);
         
         
-        //{0x0D, MPUREG_I2C_MST_CTRL},     // I2C configuration multi-master  IIC 400KHz
+    // #17
                IMU_Write(MPU9250_I2C_MST_CTRL, 0x0D); 
         SysCtlDelay(16000000u / 3u);
         
-        
+        */
     // Other Configurations with blocking code 
     // To prevent switching into I2C mode when using SPI, the I2C interface 
     // should be disabled by setting the I2C_IF_DIS configuration bit. 
@@ -253,7 +247,8 @@ bool InitIMU(uint8_t Priority)
     // 
 
     
-    bool returnValue = false;    
+    bool returnValue = false; 
+    
     if (ES_Timer_InitTimer(IMU_TIMER, IMU_UPDATE_TIME) == ES_Timer_OK)  
     {
         returnValue = true;
@@ -333,8 +328,8 @@ ES_Event_t RunIMU(ES_Event_t ThisEvent)
             CurrentState = ACC_X_HIGH;                  // Set back to first state 
             
             #ifdef IMU_DEBUG
-            printf("\r\nX_ACC: %d Y_ACC: %d Z_ACC: %d\n", (int) accel_x, (int) accel_y, (int) accel_z); 
-            printf("\rX_GYRO: %d Y_GYRO: %d Z_GYRO: %d\n\n", (int) gyro_x, (int) gyro_y, (int) gyro_z); 
+            printf("\r\nX_ACC: %d Y_ACC: %d Z_ACC: %i\n", (int) accel_x, (int) accel_y, (int) accel_z); 
+            printf("\rX_GYRO: %d Y_GYRO: %d Z_GYRO: %x\n\n", (int) gyro_x, (int) gyro_y,  gyro_z); 
             #endif 
             
         }
@@ -384,31 +379,31 @@ void SPI_IntResponse ( void )
     switch (CurrentState)
     {
         case ACC_X_HIGH:
-            accel_x = (accel_x & 0x00FF) & (byteIn << 8);
+            accel_x = (accel_x & 0x00FF) | (byteIn << 8);
             break;
         case ACC_X_LOW:
-            accel_x = (accel_x & 0xFF00) & (byteIn & 0x00FF);
+            accel_x = (accel_x & 0xFF00) | (byteIn & 0x00FF);
             break;
         case ACC_Y_HIGH:
-            accel_y = (accel_x & 0x00FF) & (byteIn << 8);
+            accel_y = (accel_x & 0x00FF) | (byteIn << 8);
             break;
         case ACC_Y_LOW:
-            accel_y = (accel_y & 0xFF00) & (byteIn & 0x00FF);
+            accel_y = (accel_y & 0xFF00) | (byteIn & 0x00FF);
             break;
         case ACC_Z_HIGH:
-            accel_z = (accel_x & 0x00FF) & (byteIn << 8);
+            accel_z = (accel_x & 0x00FF) | (byteIn << 8);
             break;
         case ACC_Z_LOW:
-            accel_z = (accel_z & 0xFF00) & (byteIn & 0x00FF);
+            accel_z = (accel_z & 0xFF00) | (byteIn & 0x00FF);
             break;
         case GYR_X_HIGH:
-            gyro_x = (gyro_x & 0x00FF) & (byteIn << 8);
+            gyro_x = (gyro_x & 0x00FF) | (byteIn << 8);
             break;
         case GYR_X_LOW:
-            gyro_x = (gyro_x & 0xFF00) & (byteIn & 0x00FF);
+            gyro_x = (gyro_x & 0xFF00) | (byteIn & 0x00FF);
             break;
         case GYR_Y_HIGH:
-            gyro_y = (gyro_y & 0x00FF) & (byteIn << 8);
+            gyro_y = (gyro_y & 0x00FF) | (byteIn << 8);
             break;
         case GYR_Y_LOW:
             gyro_y = (gyro_y & 0xFF00) & (byteIn & 0x00FF);
@@ -488,9 +483,9 @@ static void IMU_SPI_Init( void )
     HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) &= ~BIT4HI; // Rx needs to be an input 
 
     // Set up PA 6 as a debug line, initially low 
-    HWREG(GPIO_PORTA_BASE+GPIO_O_DEN) |= BIT6HI; 
-    HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) |= BIT6HI;
-    HWREG(GPIO_PORTA_BASE+(GPIO_O_DATA + ALL_BITS)) &= ~BIT6HI; 
+    //HWREG(GPIO_PORTA_BASE+GPIO_O_DEN) |= BIT6HI; 
+    //HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) |= BIT6HI;
+    //HWREG(GPIO_PORTA_BASE+(GPIO_O_DATA + ALL_BITS)) &= ~BIT6HI; 
     
     
     // 8. If using SPI mode 3, program the pull-up on the clock line
@@ -500,6 +495,8 @@ static void IMU_SPI_Init( void )
     // see p. 1329, p. 650, p. 684 (LOCK) - handled by calling PortFunctions
 
     HWREG(GPIO_PORTA_BASE+GPIO_O_PUR) |= BIT2HI; // pullup on clock line 
+     //HWREG(GPIO_PORTA_BASE+GPIO_O_PUR) |= BIT2HI; // pullup on clock line     -- = 1? NOTE TRY THID 
+
 
     // 9. Wait for the SSI0 to be ready, see p. 412
     while ((HWREG(SYSCTL_PRSSI) & SYSCTL_PRSSI_R0) != SYSCTL_PRSSI_R0)
@@ -560,6 +557,9 @@ static void IMU_SPI_Init( void )
     // SSI0 is vector number 23, int num 7 
     // p. 140 use EN0 for int 0 - 31 
     HWREG(NVIC_EN0) |= BIT7HI;
+
+
+
 
     // Erez added: enable interrupts globally
     __enable_irq();
