@@ -14,16 +14,13 @@
 
 #include "SensorUpdate.h"
 
-
 #define MAX_AD 4095                     // for AD readings 
 #define DEBOUNCE_TIME 100                 // ms 
+
 // Port A 
 #define ENCODER_A BIT6HI                // encoder channel A
 #define ENCODER_B BIT7HI                // encoder channel B 
 #define PUMP_MIN 10
-// Port B 
-//#define BOAT_SELECT BIT0HI
-
 
 
 static uint8_t MyPriority;
@@ -63,16 +60,6 @@ bool InitSensorUpdate( uint8_t Priority )
     bool returnValue = false;
 
     InitIOC();      // initialize IOC
-
-    // Wait for clock to port B 
-   // while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R1) != SYSCTL_PRGPIO_R1)
-    //    ;
-
-    // Set inputs on port B, bits 0
-   // HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= BOAT_SELECT;
-
-    //set up as input
-  //  HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) &= ~BOAT_SELECT; 
   
 	//Initialize one Analog Input (on PE0) with ADC_MultiInit
     // PE0 - throttle input 
@@ -135,7 +122,6 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         uint32_t analogIn[2]; // to store AD value      
         ADC_MultiRead(analogIn);
 
-        // TODO -- scale values based on the resistors we end up using 
         throttle =  ((100 * analogIn[0])/MAX_AD);   
         pumpSpeed = 130 * ((MAX_AD - analogIn[1])/(MAX_AD + 0.0));    
 
@@ -156,7 +142,7 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
 	}
     else if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == DEBOUNCE_TIMER)
     {
-        HWREG(GPIO_PORTA_BASE+GPIO_O_ICR) |= ENCODER_A; // W1C 
+        HWREG(GPIO_PORTA_BASE+GPIO_O_ICR) |= ENCODER_A;         // W1C 
         HWREG(GPIO_PORTA_BASE+GPIO_O_IM) |= ENCODER_A;         // unmask
         printf("a");
     }
@@ -192,9 +178,6 @@ uint8_t getPumpSpeed( void )
 {
     return pumpSpeed; 
 } 
-
-
-
 
 
 /****************************************************************************
@@ -309,6 +292,4 @@ static void InitIOC( void )
 
     // globally enable interupts 
     __enable_irq();     
-
 }
-
