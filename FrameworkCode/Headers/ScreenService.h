@@ -24,6 +24,7 @@ typedef enum { InitPState, Initializing, Waiting2Write,
 bool InitScreenService ( uint8_t Priority );
 bool PostScreenService( ES_Event_t ThisEvent );
 ES_Event_t RunScreenService( ES_Event_t ThisEvent );
+char setStringReg(char *stringToPrint);
 
 
 #endif /* LCDService_H */

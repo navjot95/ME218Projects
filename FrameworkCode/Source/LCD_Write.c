@@ -18,7 +18,7 @@
  
 ****************************************************************************/
 //----------------------------- Include Files -----------------------------*/
-#define TEST 
+//#define TEST 
 
 
 // the common headers for C99 types 
@@ -68,7 +68,7 @@ static const uint16_t InitValues[NUM_INIT_STEPS] = {
     (0x03 | USE_4_BIT_WRITE),  
     (0x03 | USE_4_BIT_WRITE),  
     (0x02 | USE_4_BIT_WRITE),    
-    0x28, /* 4-bit data width, 2 line, 5x8 font */
+    0x08, /* 4-bit data width, 2 line, 5x8 font */
     0x08, /* turn off the display */
     0x01, /* clear the display */
     0x06, /* increment and no shift with each new character */ //0x06
@@ -78,17 +78,30 @@ static const uint16_t InitValues[NUM_INIT_STEPS] = {
 // these are the delays between the initialization steps.
 // the first delay is the power up delay so there is 1 more entry
 // in this table than in the InitValues Table    
+//static const uint16_t InitDelays[NUM_INIT_STEPS+1] = {
+//    65535, /* use max delay for powerup */
+//     4100,
+//      100,
+//      100,
+//      100,
+//       53,
+//       53,
+//     3000,
+//       53,
+//       53
+//};
+
 static const uint16_t InitDelays[NUM_INIT_STEPS+1] = {
-    65535, /* use max delay for powerup */
-     4100,
-      100,
-      100,
-      100,
-       53,
-       53,
-     3000,
-       53,
-       53
+       64999, /* use max delay for powerup */
+       64999,
+       64999,
+       64999,
+       64999,
+       64999,
+       64999,
+       64999,
+       64999,
+       64999
 };
 
 // place to keep track of which regiter we are writing to
@@ -162,12 +175,13 @@ uint16_t LCD_TakeInitStep(void){
     //InitDelays table
 		if(CurrentStep == 0){
 			Delay = InitDelays[CurrentStep];
+      printf("Initial delay\n\r"); 
 			CurrentStep++; 
 		}
 		else {
 			// normal step, so grab the correct init value into CurrentInitValue
 			CurrentInitValue = InitValues[CurrentStep-1];  
-            printf("Sending command\n\r"); 
+        printf("Sending command\n\r"); 
 			//is it 4-bit or 8-bit 
 			if(CurrentInitValue & USE_4_BIT_WRITE){
 				//4-bit mode
@@ -259,6 +273,7 @@ void LCD_WriteData8(uint8_t NewData){
 	//LCD_RegisterSelect(LCD_DATA);
     HWREG(GPIO_PORTB_BASE+(GPIO_O_DATA + ALL_BITS)) |= RS_BIT;     
   // write all 8 bits to the shift register in 2 4-bit writes
+  printf("Sending data\n\r"); 
 	LCD_Write8(NewData); 
 }
 
@@ -422,14 +437,14 @@ static void LCD_PulseEnable(void){
 	
   // set the LSB of the byte to be written to the shift register
 	HWREG(GPIO_PORTB_BASE+(GPIO_O_DATA + ALL_BITS)) |= EN_BIT; 
-    //printf("Stalling"); //hi needs to be 230ns at least
+    printf("Stalling"); //hi needs to be 230ns at least
  
     // now write the new value to the shift register
 	//SR_Write(CurrentValue); 
   // clear the LSB of the byte to be written to the shift register
 	
     HWREG(GPIO_PORTB_BASE+(GPIO_O_DATA + ALL_BITS)) &= ~EN_BIT;
-   // printf(" Stalling again\n\r"); //lo needs to be 230ns at least also     
+    printf(" Stalling again\n\r"); //lo needs to be 230ns at least also     
   
     // now write the new value to the shift register
 	//SR_Write(CurrentValue); 
@@ -459,14 +474,11 @@ int main(void){
                 LCD_WriteCommand8(0xC0); //go to second line
             }
             else{
-            printf("\r\n Printing char\n");
-            LCD_WriteData8(char2Print); 
-            }
-            
-        }
-        else{
-            printf("Step taken\n\r"); 
-        }
+              
+              LCD_WriteData8(char2Print); 
+            }     
+     }
+        
 	}
 	 
  return 0;

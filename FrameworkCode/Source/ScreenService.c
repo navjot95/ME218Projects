@@ -23,6 +23,8 @@
 /*----------------------------- Include Files -----------------------------*/
 /* include header files for the framework and this service
 */
+#include <string.h>
+
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 #include "ES_DeferRecall.h"
@@ -51,16 +53,17 @@
 /* prototypes for private functions for this service.They should be functions
    relevant to the behavior of this service
 */
-
+static char getNextChar(void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // with the introduction of Gen2, we need a module level Priority variable
 static uint8_t MyPriority;
+static char *stringToPrint; 
 
 static LCDState_t CurrentState = InitPState;
 
 // add a deferral queue for up to 3 pending deferrals +1 to allow for overhead
-static ES_Event_t DeferralQueue[3+1];
+//static ES_Event_t DeferralQueue[3+1];
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -154,64 +157,94 @@ ES_Event_t RunScreenService( ES_Event_t ThisEvent )
 				LCD_HWInit(); 
 // take the first initialization step and get required delay time
 				DelayTime = LCD_TakeInitStep();
+        printf("Delaytime: %d\n\r", DelayTime); 
 // start the timer for that delay
-				ES_ShortTimerStart(TIMER_A, DelayTime); 
+				//ES_ShortTimerStart(TIMER_A, DelayTime); 
+        ES_Timer_InitTimer(DEBUG_TIMER, 1000);
 // move to the Initializing state
 				CurrentState = Initializing; 
       }
       break;
     case Initializing :
-      if( ThisEvent.EventType == ES_SHORT_TIMEOUT ){  
+      if( ThisEvent.EventType == ES_TIMEOUT ){  
 // take the next LCD initialization step and get the next delay time
 				DelayTime = LCD_TakeInitStep(); 
+        printf("Delaytime: %d\n\r", DelayTime);
 // if there are more steps to the initialization, then start the timer
 // else move to the Waiting2Write state
 				if(DelayTime != 0){ 
-					ES_ShortTimerStart(TIMER_A, DelayTime); 
+					//ES_ShortTimerStart(TIMER_A, DelayTime); 
+          ES_Timer_InitTimer(DEBUG_TIMER, 1000);
 				}					
 				else {
 					CurrentState = Waiting2Write;
+          printf("Going to waiting to write\n\r"); 
                     //FOR DEGUB ONLYYYYYYY
 //                    ES_Event_t NewEvent; 
 //                    NewEvent.EventType = ES_LCD_PUTCHAR; 
-//                    NewEvent.EventParam = 0xF; 
+//                    NewEvent.EventParam = 'a'; 
 //                    ES_PostToService( MyPriority, NewEvent);
 				}					
       }
       break;
     case Waiting2Write :
       if (ThisEvent.EventType == ES_LCD_PUTCHAR ){
-// write the character to the LCD
-				LCD_WriteData8(ThisEvent.EventParam); 
-// start the inter-character timer
-				ES_ShortTimerStart(TIMER_A, INTER_CHAR_DELAY); 
-// move to the PausingBetweenWrites state
-				CurrentState = PausingBetweenWrites; 
+        // write the character to the LCD
+        char charToPrint = getNextChar(); 
+        
+        if(charToPrint){ //if not null char 
+          LCD_WriteData8(charToPrint); 
+          // start the inter-character timer
+          ES_ShortTimerStart(TIMER_A, INTER_CHAR_DELAY); 
+          //printf("Sending char\n\r"); 
+          // move to the PausingBetweenWrites state
+          CurrentState = PausingBetweenWrites; 
+        }
+        else
+          printf("Done printing\n\r"); 
       }
       break;
     case PausingBetweenWrites :
-// if this was a short timeout event, 
+
 		if(ThisEvent.EventType == ES_SHORT_TIMEOUT){
+      ES_Event_t NewEvent; 
+      NewEvent.EventType = ES_LCD_PUTCHAR; 
 			// then recall any defered events and move to the Waiting2Write state
-			ES_RecallEvents(MyPriority, DeferralQueue); 
 			CurrentState = Waiting2Write; 
+      ES_PostToService( MyPriority, NewEvent);
 		}
 
-// if this was an LCD_Putchar, 
-		if(ThisEvent.EventType == ES_LCD_PUTCHAR){
-// then defer any new characters that arrive while pausing between LCD writes
-			ES_EnQueueFIFO(DeferralQueue, ThisEvent); 
-		}
       break;
 
   }
   return ReturnEvent;
 }
 
+
+void printLCD(char *stringGotten){
+  printf("Starting print\n\r"); 
+  ES_Event_t ThisEvent; 
+  ThisEvent.EventType = ES_LCD_PUTCHAR; 
+  stringToPrint = stringGotten;
+  ES_PostToService( MyPriority, ThisEvent);   
+}
+
+
 /***************************************************************************
  private functions
  ***************************************************************************/
-
+static char getNextChar(void){
+  static uint32_t i = 0; 
+  
+  char returnChar = stringToPrint[i]; 
+  
+  if(returnChar == '\0')
+    i = 0; 
+  else
+    i++; 
+  
+  return returnChar;
+}
 
 /*------------------------------- Footnotes -------------------------------*/
 /*------------------------------ End of file ------------------------------*/
