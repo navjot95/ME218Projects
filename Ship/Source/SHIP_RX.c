@@ -189,6 +189,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
     case WaitingForStart :
       if((ThisEvent.EventType == BYTE_RECEIVED) && (ThisEvent.EventParam == START_DELIMITER))
       {
+        printf("\r\n%X",ThisEvent.EventParam);
         ES_Timer_InitTimer(BYTE_TIMER, RX_PERIOD);
         DataLength = 0;
         CurrentState = WaitingForMSBLen;
@@ -206,7 +207,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
       else if (ThisEvent.EventType == BYTE_RECEIVED)
       { 
         // Received byte in time
-        
+        printf("\r\n%X",ThisEvent.EventParam);
         // Start BYTE_TIMER again
         ES_Timer_InitTimer(BYTE_TIMER, RX_PERIOD);
         
@@ -227,6 +228,8 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
       }
       else if (ThisEvent.EventType == BYTE_RECEIVED) 
       {
+        printf("\r\n%X",ThisEvent.EventParam);
+        
         ES_Timer_InitTimer(BYTE_TIMER, RX_PERIOD);
 
         DataLength |= ThisEvent.EventParam;
@@ -246,6 +249,8 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
       }
       else if (ThisEvent.EventType == BYTE_RECEIVED)
       {
+        printf("\r\n%X",ThisEvent.EventParam);
+        
         ES_Timer_InitTimer(BYTE_TIMER, RX_PERIOD);
         
         // First will be API Identifier (0x81), then Source Address (0x20 and 0x8_)
@@ -269,8 +274,11 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
       }
       else if (ThisEvent.EventType == BYTE_RECEIVED)
       {
+
         if (ThisEvent.EventParam == CheckSum)
         {
+          printf("\r\n%X",ThisEvent.EventParam);
+          printf("\r\n ");
           // If message is TX_STATUS (MIGHT BE UNNESSARY)
           if (RX_FrameData[API_IDENTIFIER_IDX] == TX_STATUS_API_IDENTIFIER)
           {

@@ -38,7 +38,7 @@ Notes
 #include "driverlib/timer.h"
 #include "driverlib/interrupt.h"
 
-//#include "SHIP_RX.h"
+#include "SHIP_RX.h"
 #include "SHIP_TX.h"
 //#include "SHIP_PIC_RX.h"
 #include "Init_UART.h"
@@ -137,7 +137,7 @@ bool InitSHIP_TX ( uint8_t Priority )
   //ThisEvent.EventType = ES_INIT;
   // any other initializations
   
-  Init_UART_XBee();
+  //Init_UART_XBee();
   
   // %%%%% TEST %%%%% //
   ES_Timer_InitTimer(TEST_TIMER, 500);  
@@ -208,7 +208,7 @@ ES_Event_t RunSHIP_TX( ES_Event_t ThisEvent)
         ES_Timer_InitTimer(TEST_TIMER, 500);  
         // Construct Data Packet
         BuildPacket(ThisEvent);
-        
+
         if (HWREG(UART5_BASE + UART_O_FR) & UART_FR_TXFE) // (Room to TX byte)
         {
           HWREG(UART5_BASE + UART_O_DR) = Packet[IDX];
@@ -277,22 +277,24 @@ void SHIP_XBEE_ISR(void)
 	}
   
   // TEST
-  else if (HWREG(UART5_BASE + UART_O_MIS) & UART_MIS_RXMIS)
-  {
-    HWREG(UART5_BASE + UART_O_ICR) |= UART_ICR_RXIC;
-  }
+//  else if (HWREG(UART5_BASE + UART_O_MIS) & UART_MIS_RXMIS)
+//  {
+//    HWREG(UART5_BASE + UART_O_ICR) |= UART_ICR_RXIC;
+
+//  }
   // TEST
   
   // XBee RX
   // UNCOMMENT
-//  if (HWREG(UART5_BASE + UART_O_MIS) & UART_MIS_RXMIS)
-//  {
-//    HWREG(UART5_BASE + UART_O_ICR) |= UART_ICR_RXIC;
-//    
-//    ThisEvent.EventType = BYTE_RECEIVED;
-//    ThisEvent.EventParam = HWREG(UART5_BASE + UART_O_DR);
-//    PostSHIP_RX(ThisEvent);
-//  }
+  if (HWREG(UART5_BASE + UART_O_MIS) & UART_MIS_RXMIS)
+  {
+    HWREG(UART5_BASE + UART_O_ICR) |= UART_ICR_RXIC;
+    
+    ThisEvent.EventType = BYTE_RECEIVED;
+    ThisEvent.EventParam = HWREG(UART5_BASE + UART_O_DR);
+    PostSHIP_RX(ThisEvent);
+    //printf("\r\n%X",ThisEvent.EventParam);
+  }
 }
 
 
@@ -314,8 +316,8 @@ static void BuildPacket(ES_Event_t ThisEvent)
   // %%%%% TEST %%%%% //
   Packet[1] = LENGTH_MSB_STATUS;  // 0x00
   Packet[2] = LENGTH_LSB_STATUS;  // 0x08
-  Packet[5] = 0x02;
-  Packet[6] = 0x03;
+  Packet[5] = 0x21;
+  Packet[6] = 0x86;
   Packet[8] = 0x04;
   Packet[9] = 0xAA;
   Packet[10] = 0x11;

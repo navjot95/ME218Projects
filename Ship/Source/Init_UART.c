@@ -152,4 +152,5 @@ void Init_UART_XBee(void)
   
   // Global enable
   __enable_irq();
+
 }

@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 1
+#define NUM_SERVICES 2
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -57,13 +57,13 @@
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public function prototypes
-#define SERV_1_HEADER "SHIP_TX.h"
+#define SERV_1_HEADER "SHIP_RX.h"
 // the name of the Init function
-#define SERV_1_INIT InitSHIP_TX
+#define SERV_1_INIT InitSHIP_RX
 // the name of the run function
-#define SERV_1_RUN RunSHIP_TX
+#define SERV_1_RUN RunSHIP_RX
 // How big should this services Queue be?
-#define SERV_1_QUEUE_SIZE 5
+#define SERV_1_QUEUE_SIZE 15
 #endif
 
 /****************************************************************************/
@@ -310,7 +310,7 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC PostSHIP_TX
+#define TIMER0_RESP_FUNC PostSHIP_RX
 #define TIMER1_RESP_FUNC PostSHIP_TX
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
