@@ -82,6 +82,10 @@ Notes
 #define LENGTH_MSB_STATUS       0x00
 #define LENGTH_LSB_STATUS       0x08
 
+// EventParam 
+#define PAIR_ACK_EVENT  0
+#define STATUS_EVENT    1
+
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
@@ -96,7 +100,7 @@ static uint8_t CheckSum(uint8_t CHECKSUM_INDEX);
 static SHIP_TX_State_t CurrentState;
 
 static uint8_t IDX = 0;
-//static uint8_t DataLength = 0;
+static uint8_t DataLength;
 static uint8_t Packet[100];
 static uint8_t PacketLength = 0;
 
@@ -208,11 +212,10 @@ ES_Event_t RunSHIP_TX( ES_Event_t ThisEvent)
         if (HWREG(UART5_BASE + UART_O_FR) & UART_FR_TXFE) // (Room to TX byte)
         {
           HWREG(UART5_BASE + UART_O_DR) = Packet[IDX];
-          HWREG(UART5_BASE + UART_O_IM) |= UART_IM_TXIM;
-          IDX++;
           // Disable RX and Enable TX Interrupt
-          //HWREG(UART5_BASE + UART_O_IM) &= ~UART_IM_RXIM;
-
+          HWREG(UART5_BASE + UART_O_IM) &= ~UART_IM_RXIM;  
+          HWREG(UART5_BASE + UART_O_IM) |= UART_IM_TXIM;        
+          IDX++;
           
           CurrentState = SendingTX;    
         
@@ -262,16 +265,23 @@ void SHIP_XBEE_ISR(void)
 		//Increment the index
 		IDX++;
 		
-    if(IDX == 12)
+    if(IDX == DataLength)
     { 
       // End of packet, Disable TX and Enable RX
 			HWREG(UART5_BASE + UART_O_IM) &= ~UART_IM_TXIM;
-      //HWREG(UART5_BASE + UART_O_IM) |= UART_IM_RXIM;
+      HWREG(UART5_BASE + UART_O_IM) |= UART_IM_RXIM;
 			
 			ThisEvent.EventType = BYTE_SENT;
 			PostSHIP_TX(ThisEvent);
 		}	
 	}
+  
+  // TEST
+  else if (HWREG(UART5_BASE + UART_O_MIS) & UART_MIS_RXMIS)
+  {
+    HWREG(UART5_BASE + UART_O_ICR) |= UART_ICR_RXIC;
+  }
+  // TEST
   
   // XBee RX
   // UNCOMMENT
@@ -294,9 +304,9 @@ static void BuildPacket(ES_Event_t ThisEvent)
 {
   //SourceAddress = QuerySourceAddress();
   
-  Packet[0] = START_DELIMITER;
-  Packet[3] = API_IDENTIFIER;
-  Packet[4] = FRAME_ID;
+  Packet[0] = START_DELIMITER;  // 0x7E
+  Packet[3] = API_IDENTIFIER;   // 0x01
+  Packet[4] = FRAME_ID;         // 0x01
   //Packet[5] = (uint8_t)(SourceAddress>>8);
   //Packet[6] = (uint8_t)SourceAddress;
   Packet[7] = OPTIONS;
@@ -310,17 +320,19 @@ static void BuildPacket(ES_Event_t ThisEvent)
   Packet[9] = 0xAA;
   Packet[10] = 0x11;
   Packet[11] = CheckSum(11);
+  DataLength = 12;
   // %%%%% TEST %%%%% //
   
-//  if (ThisEvent.EventParam == 0)
+//  if (ThisEvent.EventParam == PAIR_ACK_EVENT)
 //  {
 //    Packet[1] = LENGTH_MSB_PAIR_ACK; // 0x00
 //    Packet[2] = LENGTH_LSB_PAIR_ACK; // 0x06
 //    Packet[8] = 0x02;
 //    Packet[9] = CheckSum(9);
+//    DataLength = 10;
 //  }
 //  
-//  if (ThisEvent.EventParam == STATUS)
+//  if (ThisEvent.EventParam == STATUS_EVENT)
 //  {
 //    Packet[1] = LENGTH_MSB_STATUS;  // 0x00
 //    Packet[2] = LENGTH_LSB_STATUS;  // 0x08
@@ -328,6 +340,7 @@ static void BuildPacket(ES_Event_t ThisEvent)
 //    Packet[9] = QueryFuelStatus();
 //    Packet[10] = Query_CTRL();
 //    Packet[11] = CheckSum(11);
+//    DataLength = 12;
 //  }
 }
 

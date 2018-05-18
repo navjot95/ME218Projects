@@ -81,14 +81,13 @@ void Init_UART_PIC(void)
   
   // Set Recieve, Transmit, and End of Transmission bits
   // Enable UART
-  HWREG(UART1_BASE + UART_O_CTL) |= (UART_CTL_RXE| UART_CTL_TXE | 
-        UART_CTL_EOT | UART_CTL_UARTEN);
+  HWREG(UART1_BASE + UART_O_CTL) |= (UART_CTL_RXE| UART_CTL_TXE | UART_CTL_UARTEN);
+  
+  // Enable Interrupts for TX and RX
+  HWREG(UART1_BASE + UART_O_IM) |= (UART_IM_RXIM | UART_IM_TXIM);
   
   // Enable NVIC interrupts
   HWREG(NVIC_EN0) |= BIT6HI;
-  
-  // Enable Interrupts for Rx
-  HWREG(UART1_BASE + UART_O_IM) |= UART_IM_RXIM;
   
   // Global enable
   __enable_irq();
@@ -145,14 +144,11 @@ void Init_UART_XBee(void)
   // Enable UART
   HWREG(UART5_BASE + UART_O_CTL) |= ( UART_CTL_RXE |UART_CTL_TXE | UART_CTL_UARTEN);
   
+  // Enable Interrupts for TX and RX
+  HWREG(UART5_BASE + UART_O_IM) |= (UART_IM_RXIM | UART_IM_TXIM);
+  
   // Enable NVIC interrupts
   HWREG(NVIC_EN1) |= BIT29HI;
-  
-  // Enable Interrupts for Rx
-  //HWREG(UART5_BASE + UART_O_IM) |= UART_IM_RXIM;
-  
- // Enable Interrupts for tx
-  //HWREG(UART5_BASE + UART_O_IM) |= UART_IM_TXIM;
   
   // Global enable
   __enable_irq();
