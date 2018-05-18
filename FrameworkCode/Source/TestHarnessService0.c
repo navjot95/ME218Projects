@@ -40,7 +40,7 @@
 #include "ES_Framework.h"
 #include "ES_DeferRecall.h"
 #include "ES_ShortTimer.h"
-#include "MotorModule.h" 
+
 
 /*----------------------------- Module Defines ----------------------------*/
 // these times assume a 1.000mS/tick timing
@@ -170,8 +170,6 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
   static char DeferredChar = '1';
 
-   MoveFanMotors(0,90); 
-   SetPumpSpeed(10); 
     
   switch (ThisEvent.EventType)
   {

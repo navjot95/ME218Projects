@@ -20,7 +20,6 @@
 //----------------------------- Include Files -----------------------------*/
 //#define TEST 
 
-
 // the common headers for C99 types 
 #include <stdint.h>
 #include <stdbool.h>
@@ -78,34 +77,19 @@ static const uint16_t InitValues[NUM_INIT_STEPS] = {
 // these are the delays between the initialization steps.
 // the first delay is the power up delay so there is 1 more entry
 // in this table than in the InitValues Table    
-//static const uint16_t InitDelays[NUM_INIT_STEPS+1] = {
-//    65535, /* use max delay for powerup */
-//     4100,
-//      100,
-//      100,
-//      100,
-//       53,
-//       53,
-//     3000,
-//       53,
-//       53
-//};
-
 static const uint16_t InitDelays[NUM_INIT_STEPS+1] = {
-       64999, /* use max delay for powerup */
-       64999,
-       64999,
-       64999,
-       64999,
-       64999,
-       64999,
-       64999,
-       64999,
-       64999
+    65535, /* use max delay for powerup */
+     4100,
+      100,
+      100,
+      100,
+       53,
+       53,
+     3000,
+       53,
+       53
 };
 
-// place to keep track of which regiter we are writing to
-//  static uint8_t RegisterSelect=0;
 
 
 /****************************************************************************
@@ -175,13 +159,13 @@ uint16_t LCD_TakeInitStep(void){
     //InitDelays table
 		if(CurrentStep == 0){
 			Delay = InitDelays[CurrentStep];
-      printf("Initial delay\n\r"); 
+      //printf("Initial delay\n\r"); 
 			CurrentStep++; 
 		}
 		else {
 			// normal step, so grab the correct init value into CurrentInitValue
 			CurrentInitValue = InitValues[CurrentStep-1];  
-        printf("Sending command\n\r"); 
+        //printf("Sending command\n\r"); 
 			//is it 4-bit or 8-bit 
 			if(CurrentInitValue & USE_4_BIT_WRITE){
 				//4-bit mode
@@ -273,7 +257,7 @@ void LCD_WriteData8(uint8_t NewData){
 	//LCD_RegisterSelect(LCD_DATA);
     HWREG(GPIO_PORTB_BASE+(GPIO_O_DATA + ALL_BITS)) |= RS_BIT;     
   // write all 8 bits to the shift register in 2 4-bit writes
-  printf("Sending data\n\r"); 
+  //printf("Sending data: %c\n\r", NewData); 
 	LCD_Write8(NewData); 
 }
 
@@ -400,7 +384,7 @@ static void LCD_SetData4(uint8_t NewData){ //asumes NewData comes in on LSB side
   // now write the new value to the shift register
 	//SR_Write(CurrentValue);
     
-    printf("This is 4 bit NewData: %d\n\r", NewData & 0x0f); 
+    //printf("This is 4 bit NewData: %d\n\r", NewData & 0x0f); 
     for(uint8_t i = 0; i < 4; i++){
         if((NewData >> i)  & BIT0HI){
             //set bit 
@@ -437,14 +421,14 @@ static void LCD_PulseEnable(void){
 	
   // set the LSB of the byte to be written to the shift register
 	HWREG(GPIO_PORTB_BASE+(GPIO_O_DATA + ALL_BITS)) |= EN_BIT; 
-    printf("Stalling"); //hi needs to be 230ns at least
+    //printf("Stalling"); //hi needs to be 230ns at least
  
     // now write the new value to the shift register
 	//SR_Write(CurrentValue); 
   // clear the LSB of the byte to be written to the shift register
 	
     HWREG(GPIO_PORTB_BASE+(GPIO_O_DATA + ALL_BITS)) &= ~EN_BIT;
-    printf(" Stalling again\n\r"); //lo needs to be 230ns at least also     
+    //printf(" Stalling again\n\r"); //lo needs to be 230ns at least also     
   
     // now write the new value to the shift register
 	//SR_Write(CurrentValue); 
@@ -465,19 +449,19 @@ int main(void){
 	//a keyboard key is pressed 
 	while(true){
         char char2Print = getchar(); 
-		if(!LCD_TakeInitStep()){
-		//LCD_WriteData8(getchar()); 
-            if(char2Print == 'h'){
-                LCD_WriteCommand8(0x80); //go to first line 
-            }
-            else if(char2Print == 'b'){
-                LCD_WriteCommand8(0xC0); //go to second line
-            }
-            else{
-              
-              LCD_WriteData8(char2Print); 
-            }     
-     }
+      LCD_WriteData8(char2Print); 
+//		if(!LCD_TakeInitStep()){
+//		//LCD_WriteData8(getchar()); 
+//            if(char2Print == 'h'){
+//                LCD_WriteCommand8(0x80); //go to first line 
+//            }
+//            else if(char2Print == 'b'){
+//                LCD_WriteCommand8(0xC0); //go to second line
+//            }
+//            else{             
+//              LCD_WriteData8(char2Print); 
+//            }     
+//     }
         
 	}
 	 

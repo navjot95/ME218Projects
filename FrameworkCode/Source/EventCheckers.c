@@ -37,7 +37,7 @@
 // include our own prototypes to insure consistency between header &
 // actual functionsdefinition
 #include "EventCheckers.h"
-
+#include "ScreenService.h"
 
 // This is the event checking function sample. It is not intended to be
 // included in the module. It is only here as a sample to guide you in writing
@@ -109,9 +109,10 @@ bool Check4Keystroke(void)
 {
   if (IsNewKeyReady())   // new key waiting?
   {
-//    ES_Event_t ThisEvent;
-//    ThisEvent.EventType   = ES_NEW_KEY;
-//    ThisEvent.EventParam  = GetNewKey();
+    ES_Event_t ThisEvent;
+    ThisEvent.EventType   = ES_NEW_KEY;
+    ThisEvent.EventParam  = GetNewKey();
+    static bool pairStatus = 0; 
     // test distribution list functionality by sending the 'L' key out via
     // a distribution list.
 //    if (ThisEvent.EventParam == 'L')
@@ -122,6 +123,15 @@ bool Check4Keystroke(void)
 //    {
 //      PostTestHarnessService0(ThisEvent);
 //    }
+    if(ThisEvent.EventParam == 'p'){
+      pairStatus ^= 1; 
+      updateConnection(pairStatus); 
+    }
+    else if(ThisEvent.EventParam == 'a'){
+      updateAddr("11"); 
+    }
+   
+    
     return true;
   }
   return false;

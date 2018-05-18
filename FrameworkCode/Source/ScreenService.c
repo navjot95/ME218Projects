@@ -48,6 +48,9 @@
 #define TWO_SEC (ONE_SEC*2)
 #define FIVE_SEC (ONE_SEC*5)
 
+//Screen location defines 
+#define BEG_SEC_LINE 0xC0  //beginning of second line 
+#define BEG_FIR_LINE 0x80  //beginning of first line 
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this service.They should be functions
@@ -148,45 +151,41 @@ ES_Event_t RunScreenService( ES_Event_t ThisEvent )
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
-  uint16_t DelayTime ;
+  uint16_t DelayTime  = 0;
   
   switch (CurrentState){
     case InitPState :
       if ( ThisEvent.EventType == ES_INIT ){
 // initialize the LCD hardware
 				LCD_HWInit(); 
-// take the first initialization step and get required delay time
-				DelayTime = LCD_TakeInitStep();
-        printf("Delaytime: %d\n\r", DelayTime); 
-// start the timer for that delay
-				//ES_ShortTimerStart(TIMER_A, DelayTime); 
-        ES_Timer_InitTimer(DEBUG_TIMER, 1000);
-// move to the Initializing state
+        // take the first initialization step and get required delay time
+				DelayTime = LCD_TakeInitStep();        
+
+        // start the timer for that delay
+				ES_ShortTimerStart(TIMER_A, DelayTime); 
+
+        // move to the Initializing state
 				CurrentState = Initializing; 
       }
       break;
     case Initializing :
-      if( ThisEvent.EventType == ES_TIMEOUT ){  
+      if( ThisEvent.EventType == ES_SHORT_TIMEOUT ){  
 // take the next LCD initialization step and get the next delay time
 				DelayTime = LCD_TakeInitStep(); 
-        printf("Delaytime: %d\n\r", DelayTime);
+
 // if there are more steps to the initialization, then start the timer
 // else move to the Waiting2Write state
 				if(DelayTime != 0){ 
-					//ES_ShortTimerStart(TIMER_A, DelayTime); 
-          ES_Timer_InitTimer(DEBUG_TIMER, 1000);
+          ES_ShortTimerStart(TIMER_A, DelayTime); 
 				}					
 				else {
 					CurrentState = Waiting2Write;
-          printf("Going to waiting to write\n\r"); 
-                    //FOR DEGUB ONLYYYYYYY
-//                    ES_Event_t NewEvent; 
-//                    NewEvent.EventType = ES_LCD_PUTCHAR; 
-//                    NewEvent.EventParam = 'a'; 
-//                    ES_PostToService( MyPriority, NewEvent);
+          
+          printLCD("Addr: 0  Fuel:E                         Status: UNPAIRED");  
 				}					
       }
       break;
+      
     case Waiting2Write :
       if (ThisEvent.EventType == ES_LCD_PUTCHAR ){
         // write the character to the LCD
@@ -195,25 +194,24 @@ ES_Event_t RunScreenService( ES_Event_t ThisEvent )
         if(charToPrint){ //if not null char 
           LCD_WriteData8(charToPrint); 
           // start the inter-character timer
-          ES_ShortTimerStart(TIMER_A, INTER_CHAR_DELAY); 
-          //printf("Sending char\n\r"); 
+          ES_ShortTimerStart(TIMER_A, INTER_CHAR_DELAY);
+
           // move to the PausingBetweenWrites state
           CurrentState = PausingBetweenWrites; 
         }
-        else
-          printf("Done printing\n\r"); 
-      }
+        
+     }
+      
       break;
+      
     case PausingBetweenWrites :
-
 		if(ThisEvent.EventType == ES_SHORT_TIMEOUT){
       ES_Event_t NewEvent; 
       NewEvent.EventType = ES_LCD_PUTCHAR; 
-			// then recall any defered events and move to the Waiting2Write state
+			
 			CurrentState = Waiting2Write; 
       ES_PostToService( MyPriority, NewEvent);
 		}
-
       break;
 
   }
@@ -227,6 +225,29 @@ void printLCD(char *stringGotten){
   ThisEvent.EventType = ES_LCD_PUTCHAR; 
   stringToPrint = stringGotten;
   ES_PostToService( MyPriority, ThisEvent);   
+}
+
+
+void updateAddr(char *addr){
+  ES_Event_t ThisEvent; 
+  ThisEvent.EventType = ES_LCD_PUTCHAR; 
+  LCD_WriteCommand8(0x86); //Move to where is address is written  
+  stringToPrint = addr;
+  ES_PostToService( MyPriority, ThisEvent);
+}
+
+//sending 0 means "unpaired" will be written, otherwise "paired" will be written 
+void updateConnection(uint8_t onOffVal){
+  ES_Event_t ThisEvent; 
+  ThisEvent.EventType = ES_LCD_PUTCHAR; 
+  LCD_WriteCommand8(0xC8); //Move to where is address is written  
+  
+  if(onOffVal)
+    stringToPrint = "PAIRED  ";
+  else
+    stringToPrint = "UNPAIRED"; 
+  
+  ES_PostToService( MyPriority, ThisEvent);
 }
 
 
