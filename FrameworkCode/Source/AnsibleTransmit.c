@@ -196,8 +196,8 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
         CurrentState = WaitingToTX;
         
         //Get SHIPTeamSelect, Initialized to SHIP Ansible 
-         DestAddressMSB = 0x86; 
-         DestAddressLSB = 0x20; 
+         DestAddressMSB = 0x20; 
+         DestAddressLSB = 0x86; 
         
         //enable timer 
         ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
@@ -223,8 +223,7 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
  
            //Initialize BytesRemaining = Length of XBee Packet (Preamble (Start + Length + API_ID) + DATA + CHKSUM) 
               BytesRemaining = (TXPacket_Length);  
-                printf("\n \r BytesRemaining = %d",TXPacket_Length );
-                
+                   
             //set index = 0 
                 index = 0; 
               

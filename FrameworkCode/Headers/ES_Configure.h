@@ -63,7 +63,7 @@
 // the name of the run function
 #define SERV_1_RUN RunAnsibleRXSM
 // How big should this services Queue be?
-#define SERV_1_QUEUE_SIZE 3
+#define SERV_1_QUEUE_SIZE 10
 #endif
 
 /****************************************************************************/
@@ -279,10 +279,10 @@ typedef enum
 // services are on that distribution list.
 #define NUM_DIST_LISTS 1
 #if NUM_DIST_LISTS > 0
-#define DIST_LIST0 PostAnsibleTX
+#define DIST_LIST0 PostAnsibleRX
 #endif
 #if NUM_DIST_LISTS > 1
-#define DIST_LIST1 PostTemplateFSM
+#define DIST_LIST1 PostAnsibleRX
 #endif
 #if NUM_DIST_LISTS > 2
 #define DIST_LIST2 PostTemplateFSM

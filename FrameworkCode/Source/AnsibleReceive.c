@@ -204,6 +204,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
          
         if((ThisEvent.EventType == BYTE_RECEIVED) && (ThisEvent.EventParam == Start_Delimiter))
         {
+                     printf("\r \n %X", ThisEvent.EventParam);
              //Enable Timer 
               ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
           
@@ -215,8 +216,8 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
              index = 0;  
 
          //Get SHIPTeamSelect, Initialized to SHIP Ansible 
-          SourceAddressMSB = 0x86; 
-          SourceAddressLSB = 0x21; 
+          SourceAddressMSB = 0x21 ; 
+          SourceAddressLSB = 0x86; 
         
         }
     }
@@ -231,6 +232,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)  //0x7E received in time 
         {     
+                     printf("\r \n %X", ThisEvent.EventParam);
         //Reset timer 
           ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
           
@@ -254,6 +256,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)
         {            
+                     printf("\r \n %X", ThisEvent.EventParam);
         //Reset timer 
           ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
           
@@ -277,7 +280,8 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)
         {  
-         
+         printf("\r \n %X", ThisEvent.EventParam);
+            
         //Reset timer 
           ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
          
@@ -303,6 +307,8 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)
         {
+                     printf("\r \n %X", ThisEvent.EventParam);
+            printf("\r \n        "); 
             if (ThisEvent.EventParam  == Computed_CheckSum) //good check sum
             {
              //Loook at the aPI_ID to see that it was indeed for transmit
