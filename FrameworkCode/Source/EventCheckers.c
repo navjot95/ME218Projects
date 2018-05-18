@@ -109,16 +109,17 @@ bool Check4Keystroke(void)
   if (IsNewKeyReady())   // new key waiting?
   {
     ES_Event_t ThisEvent;
-    ES_Event_t ByteEvent;
+ //   ES_Event_t ByteEvent;
     ThisEvent.EventType   = ES_NEW_KEY;
     ThisEvent.EventParam  = GetNewKey();
     // test distribution list functionality by sending the 'L' key out via
     // a distribution list.
     if (ThisEvent.EventParam == 'p')
     {
-        ByteEvent.EventType = BYTE_RECEIVED; 
-        ByteEvent.EventParam = 0x7E;
-        PostAnsibleRX(ByteEvent);
+    //    ByteEvent.EventType = BYTE_RECEIVED; 
+    //    ByteEvent.EventParam = 0x7E;
+    //    PostAnsibleRX(ByteEvent);
+        ES_PostList00(ThisEvent);
         
     }
     else     // otherwise post to Service 0 for processing

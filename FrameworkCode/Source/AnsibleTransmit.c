@@ -494,9 +494,7 @@ static void BuildTXPacket(uint8_t PacketType)
       //calculate CheckSum (); 
       //store CheckSum as the next byte of Message_Packet
       Message_Packet[index] = CheckSum(); 
-    //  printf("index_here %d", index); 
-    // printf("\n \r CheckSum=%d", CheckSum());
-     // printf(" \n \r sent pair request packet"); 
+
     }
     break;
     
@@ -513,9 +511,6 @@ static void BuildTXPacket(uint8_t PacketType)
       //calculate CheckSum (); 
       //store CheckSum as the next byte of Message_Packet
       Message_Packet[index] = CheckSum(); 
-   //   printf("\n \r CheckSum=%d", CheckSum());
-   //   printf(" \n \r sent control packet"); 
-      
       
     }
     break; 

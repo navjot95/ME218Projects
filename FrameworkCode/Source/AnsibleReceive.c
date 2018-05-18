@@ -128,14 +128,6 @@ bool InitAnsibleRX(uint8_t Priority)
   MyPriority = Priority;
   // put us into the Initial state
     CurrentState = WaitingForStart;  
-
-   //Initialize UART HW
-  //  UARTHardwareInit();  
-  
-  //Disable UART TX Interrupt so that default is
-  // HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_TXIM); 
-  //Enable RX   
-  // HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_RXIM); 
   
   // post the initial transition event
     ThisEvent.EventType = ES_INIT;
@@ -204,7 +196,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
          
         if((ThisEvent.EventType == BYTE_RECEIVED) && (ThisEvent.EventParam == Start_Delimiter))
         {
-                     printf("\r \n %X", ThisEvent.EventParam);
+             printf("\r \n %X", ThisEvent.EventParam);
              //Enable Timer 
               ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
           
@@ -232,7 +224,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)  //0x7E received in time 
         {     
-                     printf("\r \n %X", ThisEvent.EventParam);
+         //printf("\r \n %X", ThisEvent.EventParam);
         //Reset timer 
           ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
           
@@ -256,7 +248,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)
         {            
-                     printf("\r \n %X", ThisEvent.EventParam);
+        // printf("\r \n %X", ThisEvent.EventParam);
         //Reset timer 
           ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
           
@@ -280,7 +272,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)
         {  
-         printf("\r \n %X", ThisEvent.EventParam);
+      //  printf("\r \n %X", ThisEvent.EventParam);
             
         //Reset timer 
           ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
@@ -301,13 +293,13 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
     {
       switch (ThisEvent.EventType)
       {
-        if((ThisEvent.EventType ==ES_TIMEOUT) && (ThisEvent.EventParam == RX_ATTEMPT_TIMER))
+        if((ThisEvent.EventType == ES_TIMEOUT) && (ThisEvent.EventParam == RX_ATTEMPT_TIMER))
         {
           CurrentState = WaitingForStart; //Go back to waiting   
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)
         {
-                     printf("\r \n %X", ThisEvent.EventParam);
+            printf("\r \n %X", ThisEvent.EventParam);
             printf("\r \n        "); 
             if (ThisEvent.EventParam  == Computed_CheckSum) //good check sum
             {
