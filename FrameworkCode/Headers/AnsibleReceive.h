@@ -14,9 +14,6 @@
 #include "ES_Events.h"
 
 // Public Function Prototypes
-void UARTHardwareInit(void);
-void AnsibleTXISR (void);
- 
 
 //State definition for use with the query function 
 typedef enum{WaitingForStart, WaitingForMSBLen, WaitingForLSBLen,ReceivingData,ReceivingCheckSum} AnsibleRXState_t; 

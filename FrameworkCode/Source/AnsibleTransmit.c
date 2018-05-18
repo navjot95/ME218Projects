@@ -85,7 +85,7 @@ static uint8_t Data_Length = 1;  //number of bytes (**arbitrarily set")
 static uint8_t CHK_SUM = 1; //initialize check sum to 0xFF
 static uint8_t DestAddressLSB;
 static uint8_t DestAddressMSB; 
-bool receiving = false; 
+//static bool receiving = false; 
 static uint8_t IDX; 
 
 //Arrays
@@ -253,6 +253,7 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
 //               index++; 
 //             }
 //            //Enable TXIM (Note: also enabled in UARTInit)
+              HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_RXIM);
                HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_TXIM); 
              
             //Enable Interrupts globally  (also enabled in UARTinit) 
@@ -334,6 +335,7 @@ void AnsibleTXRXISR (void)
       //clear the source of the interrupt
         HWREG(UART2_BASE+UART_O_ICR) |= UART_ICR_TXIC;
         HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_TXIM); //disable interrupt on TX by clearing TXIM 
+        HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_RXIM); //enable rx
       //Post the ES_TX_COMPLETE (note: TX complete does not mean that that the Packet has been sent) 
       ES_Event_t ReturnEvent; 
       ReturnEvent.EventType = ES_TX_COMPLETE; 
@@ -359,7 +361,7 @@ void AnsibleTXRXISR (void)
   {
        //clear the source of the interrupt
         HWREG(UART2_BASE+UART_O_ICR) |= UART_ICR_RXIC;
-        receiving = true; 
+//        receiving = true; 
       //Read the new data  register (UARTDR)
           ES_Event_t ThisEvent; 
           ThisEvent.EventType = BYTE_RECEIVED; 
@@ -369,7 +371,7 @@ void AnsibleTXRXISR (void)
   }
   else
   {
-    receiving = false; 
+   // receiving = false; 
     //you are done (not an RX interrupt)
   }  
   
@@ -425,10 +427,10 @@ void UARTHardwareInit(void){
     HWREG(UART2_BASE + UART_O_CTL) |= (UART_CTL_UARTEN); 
         
   //Enable UART RX Interrupt (p.924)
-    HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_RXIM); 
+    HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_RXIM | UART_IM_TXIM); 
   
   //Enable UART TX Interrupt
-  // HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_TXIM); 
+   //HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_TXIM); 
   
   //Enable NVIC (p.104) UART2 is Interrtupt Number 33, so it is EN1, BIT1 HI (p.141)
     HWREG(NVIC_EN1) |= BIT1HI;
@@ -554,15 +556,4 @@ static uint8_t CheckSum(void)
   
   return computed_chksum; 
 }
-//uint8_t setpackettype (ES_Event_t ThisEvent)
-//{
-//    uint8_t packet_type; 
 
-//    if ((ThisEvent.EventType == ES_NEW_KEY) && (ThisEvent.EventParam == 'p'))
-//  {
-//    PacketType = BUILD_REQ_2_PAIR; 
-//    
-//  }
-//  return packet_type; 
-
-//}

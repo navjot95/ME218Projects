@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 1
+#define NUM_SERVICES 2
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -318,7 +318,7 @@ typedef enum
 #define TIMER1_RESP_FUNC TIMER_UNUSED //PostAnsibleMain //200ms 
 #define TIMER2_RESP_FUNC TIMER_UNUSED//PostAnsibleMain //1sec 
 #define TIMER3_RESP_FUNC PostAnsibleTX
-#define TIMER4_RESP_FUNC TIMER_UNUSED//PostAnsibleRX
+#define TIMER4_RESP_FUNC PostAnsibleRX
 #define TIMER5_RESP_FUNC TIMER_UNUSED
 #define TIMER6_RESP_FUNC TIMER_UNUSED
 #define TIMER7_RESP_FUNC TIMER_UNUSED
@@ -342,7 +342,7 @@ typedef enum
 //#define PAIR_ATTEMPT_TIMER 1
 //#define PAIR_TIMEOUT_TIMER 2
 #define TX_ATTEMPT_TIMER 3
-//#define RX_ATTEMPT_TIMER 4
+#define RX_ATTEMPT_TIMER 4
 /**************************************************************************/
 // uncomment this ine to get some basic framework operation debugging on
 // PF1 & PF2

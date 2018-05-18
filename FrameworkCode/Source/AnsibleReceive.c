@@ -65,6 +65,15 @@
 #define PAIR_ACK 0x02
 #define STATUS 0x04
 
+//TX Bytes
+#define TX_Status_IDX 0 
+#define TX_Success  1
+#define TX_Bad      2
+
+//Bit Positions
+#define API_Identifier_Index 0
+#define API_PACKET_ACK 5 //first bit of RF data is packet type
+
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
@@ -78,19 +87,17 @@ static AnsibleRXState_t CurrentState;
 static PacketType_t  PacketType; 
 
 //Variables for XBee API RX 
-static uint16_t BytesRemaining = 0; 
 static uint16_t index = 0; 
 
-//static uint8_t Preamble_Length = 5;  //API_ID(1 byte), Frame_ID(1byte), dest_address (2 bytes), options(1byte) 
 static uint16_t Data_Length;  //number of bytes (**arbitrarily set") 
-static uint8_t CheckSum; //initialize check sum to 0xFF
+static uint8_t Computed_CheckSum; //initialize check sum to 0xFF
 static uint8_t SourceAddressLSB;
 static uint8_t SourceAddressMSB; 
 
-bool receiving; 
+//static bool receiving; 
 
 //Arrays
-uint8_t RXMessage_Packet[100]; //***setting initial large value of array*** needs change
+uint8_t RXData_Packet[100]; //***setting initial large value of array*** needs change
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -123,10 +130,12 @@ bool InitAnsibleRX(uint8_t Priority)
     CurrentState = WaitingForStart;  
 
    //Initialize UART HW
-    UARTHardwareInit();  
+  //  UARTHardwareInit();  
   
-  //Disable UART TX Interrupt so that default is RX 
-    HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_TXIM); 
+  //Disable UART TX Interrupt so that default is
+  // HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_TXIM); 
+  //Enable RX   
+  // HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_RXIM); 
   
   // post the initial transition event
     ThisEvent.EventType = ES_INIT;
@@ -190,31 +199,25 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
   {
     case WaitingForStart:        // If current state is initial Psedudo State
     {
-      if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
-      {
         //Set the initial state 
-        CurrentState = WaitingForMSBLen;
-        
-        //Set initial variables 
-        CheckSum = 0xFF; 
-        index = 0; 
-      }        
+        CurrentState = WaitingForMSBLen;     
+         
         if((ThisEvent.EventType == BYTE_RECEIVED) && (ThisEvent.EventParam == Start_Delimiter))
         {
-         //Enable Timer 
-          ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
+             //Enable Timer 
+              ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
           
-          //Initialize DataLength to 0
-          Data_Length = 0; 
+              //Initialize DataLength to 0
+              Data_Length = 0; 
+                
+            //Set initial variables 
+             Computed_CheckSum = 0xFF; 
+             index = 0;  
 
          //Get SHIPTeamSelect, Initialized to SHIP Ansible 
           SourceAddressMSB = 0x86; 
           SourceAddressLSB = 0x21; 
-          
-          //Post an event to AnsibleMaster saying byte received 
-          ES_Event_t ThisEvent; 
-          ThisEvent.EventType = BYTE_RECEIVED; 
-          //PostAnsibleMaster(ThisEvent); 
+        
         }
     }
     break;
@@ -223,9 +226,6 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
     {
         if((ThisEvent.EventType == ES_TIMEOUT) && (ThisEvent.EventParam == RX_ATTEMPT_TIMER)) //ES_BEGIN_TX:  //If event is event one
         {  
-           //Reset timer 
-          ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
-          
           //Go back to Waiting For Start
           CurrentState = WaitingForStart;
         }
@@ -234,11 +234,13 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
         //Reset timer 
           ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
           
-        //Record length of MSB 
-          Data_Length |= (ThisEvent.EventParam <<8); 
+        //Record length of MSB (second byte) 
+          Data_Length |= (ThisEvent.EventParam <<8); //byte is length of msb
           
         //set next state to WaitingforLSB  
           CurrentState = WaitingForLSBLen; 
+
+            
         } 
      }        
         break;
@@ -247,23 +249,20 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
     {
         if((ThisEvent.EventType == ES_TIMEOUT) && (ThisEvent.EventParam == RX_ATTEMPT_TIMER)) //ES_BEGIN_TX:  //If event is event one
         {  
-           //Reset timer 
-          ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
-          
           //Go back to Waiting For Start
           CurrentState = WaitingForStart;
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)
-        {  
-          
+        {            
         //Reset timer 
           ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
           
         //Record length of LSB 
-          Data_Length |= (ThisEvent.EventParam); 
+          Data_Length |= (ThisEvent.EventParam); //byte is the length of the LSB 
           
         //set next state to ReceivingData  
           CurrentState = ReceivingData; 
+
         } 
      }        
         break;
@@ -278,17 +277,15 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)
         {  
-        //0x7E received in time 
-          
+         
         //Reset timer 
           ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
          
-        //API Identifier (0x81), Source Address (0x20 and 0x8_), RSSI, and Options, data   
-          
-          RXMessage_Packet[index] = ThisEvent.EventParam; 
+          //API Identifier (0x81), Source Address (0x20 and 0x8_), RSSI, and Options, data   
+          RXData_Packet[index] = ThisEvent.EventParam; //frame data packet
           index ++; //increment the index by the size of the data packet
           //Compute resultant (oxff - sum) 
-          CheckSum -= ThisEvent.EventParam; 
+          Computed_CheckSum -= ThisEvent.EventParam; 
           
         //set next state to WaitingforLSB  
           CurrentState = ReceivingCheckSum; 
@@ -302,24 +299,44 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
       {
         if((ThisEvent.EventType ==ES_TIMEOUT) && (ThisEvent.EventParam == RX_ATTEMPT_TIMER))
         {
-           //Reset timer 
-          ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
-          
           CurrentState = WaitingForStart; //Go back to waiting   
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)
         {
-            if (ThisEvent.EventParam  == CheckSum)
+            if (ThisEvent.EventParam  == Computed_CheckSum) //good check sum
             {
-              
+             //Loook at the aPI_ID to see that it was indeed for transmit
+                if ((RXData_Packet[API_Identifier_Index] == API_Identifier))
+                {
+                 //if there was a ACK (checking the status bit)   
+                    if((RXData_Packet[API_PACKET_ACK] != PAIR_ACK))
+                    {
+                      //Send a fail message
+                        //ThisEvent.EventType == ES_TX_FAIL; //the transmit from SHIP-> ANSIBLE failed
+                        //PostAnsibleMaster(ThisEvent); 
+                        CurrentState = WaitingForStart; //Go back to waiting 
+                    }
+                    else
+                    {
+                     //   ThisEvent.EventType = PACKET_RX; 
+                     //   PostAnsibleMaster(ThisEvent); 
+                    }
+                }
             }
-          
+            else
+            {
+               //Send a fail message
+               //ThisEvent.EventType == ES_TX_FAIL; //the transmit from SHIP-> ANSIBLE failed
+              //PostAnsibleMaster(ThisEvent); 
+              CurrentState = WaitingForStart; //Go back to waiting   
+            }
+            CurrentState = WaitingForStart; //Go back to waiting
+
         }
         
       }  // end switch on CurrentEvent
     }
     break;    
-    
   }                                   // end switch on Current State
   return ReturnEvent;
 }
@@ -341,7 +358,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-AnsibleTXState_t QueryAnsibleTransmit(void)
+AnsibleTXState_t QueryAnsibleRX(void)
 {
   return CurrentState;
 }
