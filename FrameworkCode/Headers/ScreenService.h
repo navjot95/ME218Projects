@@ -27,6 +27,8 @@ ES_Event_t RunScreenService( ES_Event_t ThisEvent );
 void printLCD(char *stringGotten);
 void updateConnection(uint8_t onOffVal);
 void updateAddr(char *addr);                
-
+void updateFuel(uint8_t fuelBool);
+  
+  
 #endif /* LCDService_H */
 

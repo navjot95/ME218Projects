@@ -250,6 +250,25 @@ void updateConnection(uint8_t onOffVal){
   ES_PostToService( MyPriority, ThisEvent);
 }
 
+void updateFuel(uint8_t fuelBool){
+  ES_Event_t ThisEvent; 
+  ThisEvent.EventType = ES_LCD_PUTCHAR; 
+  LCD_WriteCommand8(0x80); //Move to where is fuel status is written  
+  
+  if(fuelBool){
+    stringToPrint = "F"; 
+    //LCD_WriteData8(0xff); 
+    printf("1\n\r"); 
+  }
+  else {
+    stringToPrint = "E"; 
+    //LCD_WriteData8(0x00); 
+    printf("0\n\r"); 
+  }
+
+  ES_PostToService( MyPriority, ThisEvent);  
+
+}
 
 /***************************************************************************
  private functions

@@ -112,7 +112,11 @@ bool Check4Keystroke(void)
     ES_Event_t ThisEvent;
     ThisEvent.EventType   = ES_NEW_KEY;
     ThisEvent.EventParam  = GetNewKey();
-    static bool pairStatus = 0; 
+    static bool pairStatus = 0;
+    static bool addrStatus = 0; 
+    static bool fuelStatus = 0;   
+
+    
     // test distribution list functionality by sending the 'L' key out via
     // a distribution list.
 //    if (ThisEvent.EventParam == 'L')
@@ -123,12 +127,26 @@ bool Check4Keystroke(void)
 //    {
 //      PostTestHarnessService0(ThisEvent);
 //    }
+    
+    
     if(ThisEvent.EventParam == 'p'){
       pairStatus ^= 1; 
       updateConnection(pairStatus); 
+      printf("Status updated\n\r"); 
     }
     else if(ThisEvent.EventParam == 'a'){
-      updateAddr("11"); 
+      printf("Address updated\n\r"); 
+      addrStatus ^= 1; 
+      if(addrStatus)
+        updateAddr(" 11");
+      else
+        updateAddr(" 5 "); 
+    }
+    else if(ThisEvent.EventParam == 'f'){
+      printf("Fuel updated\n\r"); 
+      fuelStatus ^= 1;
+      updateFuel(fuelStatus); 
+      
     }
    
     

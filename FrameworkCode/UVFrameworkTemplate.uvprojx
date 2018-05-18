@@ -466,19 +466,9 @@
               <FilePath>.\Source\EventCheckers.c</FilePath>
             </File>
             <File>
-              <FileName>TestHarnessService0.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\TestHarnessService0.c</FilePath>
-            </File>
-            <File>
               <FileName>TemplateFSM.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\TemplateFSM.c</FilePath>
-            </File>
-            <File>
-              <FileName>MotorModule.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\MotorModule.c</FilePath>
             </File>
             <File>
               <FileName>ScreenService.c</FileName>
@@ -599,11 +589,6 @@
               <FileName>ES_ShortTimer.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\ES_ShortTimer.h</FilePath>
-            </File>
-            <File>
-              <FileName>MotorModule.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Headers\MotorModule.h</FilePath>
             </File>
             <File>
               <FileName>ScreenService.h</FileName>
