@@ -538,6 +538,16 @@
               <FileType>1</FileType>
               <FilePath>.\Source\SHIP_TX.c</FilePath>
             </File>
+            <File>
+              <FileName>SHIP_PIC_RX.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\SHIP_PIC_RX.c</FilePath>
+            </File>
+            <File>
+              <FileName>SHIP_PIC_TX.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\SHIP_PIC_TX.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -662,6 +672,16 @@
               <FileName>SHIP_TX.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\SHIP_TX.h</FilePath>
+            </File>
+            <File>
+              <FileName>SHIP_PIC_RX.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\SHIP_PIC_RX.h</FilePath>
+            </File>
+            <File>
+              <FileName>SHIP_PIC_TX.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\SHIP_PIC_TX.h</FilePath>
             </File>
           </Files>
         </Group>

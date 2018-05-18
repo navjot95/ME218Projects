@@ -147,7 +147,7 @@ ES_Event_t RunSHIP_PIC_TX( ES_Event_t ThisEvent)
         if (HWREG(UART5_BASE + UART_O_FR) & UART_FR_TXFE) // (Room to TX byte)
         {
           // Send 0xAA to query fuel status
-          HWREG(UART5_BASE + UART_O_DR) |= ((HWREG(UART1_BASE + UART_O_DR) & ~UART_DR_DATA_M) | 0xAA);
+          HWREG(UART5_BASE + UART_O_DR) = 0xAA;
           
           // Disable RX and Enable TX Interrupt
           HWREG(UART5_BASE + UART_O_IM) &= ~UART_IM_RXIM;
