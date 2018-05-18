@@ -23,9 +23,9 @@ typedef enum
 
 
 // Public Function Prototypes
-bool InitCommunicationSM(uint8_t Priority);
-bool PostCommunicationSM(ES_Event_t ThisEvent);
-ES_Event_t RunCommunicationSM(ES_Event_t ThisEvent);
+bool InitSHIP_MASTER(uint8_t Priority);
+bool PostSHIP_MASTER(ES_Event_t ThisEvent);
+ES_Event_t RunSHIP_MASTER(ES_Event_t ThisEvent);
 shipState_t QueryCommunicationSM(void);
 
 #endif /* CommSM_H */

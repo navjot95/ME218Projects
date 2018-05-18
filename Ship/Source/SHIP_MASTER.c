@@ -25,7 +25,7 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
-#include "CommunicationSM.h"
+#include "SHIP_MASTER.h"
 #include "MotorModule.h" 
 
 /*----------------------------- Module Defines ----------------------------*/
@@ -77,7 +77,7 @@ static bool homeTeamColor;
  Author
      J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
-bool InitCommunicationSM(uint8_t Priority)
+bool InitSHIP_MASTER(uint8_t Priority)
 {
   ES_Event_t ThisEvent;
 
@@ -118,7 +118,7 @@ bool InitCommunicationSM(uint8_t Priority)
  Author
      J. Edward Carryer, 10/23/11, 19:25
 ****************************************************************************/
-bool PostCommunicationSM(ES_Event_t ThisEvent)
+bool PostSHIP_MASTER(ES_Event_t ThisEvent)
 {
   return ES_PostToService(MyPriority, ThisEvent);
 }
@@ -140,7 +140,7 @@ bool PostCommunicationSM(ES_Event_t ThisEvent)
  Author
    J. Edward Carryer, 01/15/12, 15:23
 ****************************************************************************/
-ES_Event_t RunCommunicationSM(ES_Event_t ThisEvent)
+ES_Event_t RunSHIP_MASTER(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors

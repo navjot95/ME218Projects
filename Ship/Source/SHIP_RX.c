@@ -38,6 +38,7 @@ Notes
 #include "driverlib/timer.h"
 #include "driverlib/interrupt.h"
 
+#include "SHIP_MASTER.h"
 #include "SHIP_RX.h"
 #include "SHIP_TX.h"
 #include "Init_UART.h"
@@ -289,7 +290,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
               ThisEvent.EventType = ES_TX_FAIL;
               
               // UNCOMMENT
-              PostSHIP_Master(ThisEvent);
+              PostSHIP_MASTER(ThisEvent);
             }
           }
           // If message is data packet
@@ -313,7 +314,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
               
               // UNCOMMENT
               ThisEvent.EventType = ES_CONTROL_PACKET;
-              PostSHIP_Master(ThisEvent);
+              PostSHIP_MASTER(ThisEvent);
             }
 
             // if req_2_pair packet, save ansible colour
@@ -323,14 +324,14 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
               
               // UNCOMMENT
               ThisEvent.EventType = ES_PAIR_REQUEST;
-              PostSHIP_Master(ThisEvent);
+              PostSHIP_MASTER(ThisEvent);
             }
               
             // Send packet received event, param = message header
             ThisEvent.EventType = PACKET_RECEIVED;
             
             // UNCOMMENT
-            PostSHIP_Master(ThisEvent);
+            PostSHIP_MASTER(ThisEvent);
           }
         }
         CurrentState = WaitingForStart;

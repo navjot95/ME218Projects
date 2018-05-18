@@ -102,7 +102,6 @@ static SHIP_TX_State_t CurrentState;
 static uint8_t IDX = 0;
 static uint8_t DataLength;
 static uint8_t Packet[100];
-static uint8_t PacketLength = 0;
 
 static uint16_t SourceAddress;
 

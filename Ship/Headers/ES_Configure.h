@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 2
+#define NUM_SERVICES 5
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -41,11 +41,11 @@
 // services are added in numeric sequence (1,2,3,...) with increasing
 // priorities
 // the header file with the public function prototypes
-#define SERV_0_HEADER "TestHarnessService0.h"
+#define SERV_0_HEADER "SHIP_MASTER.h"
 // the name of the Init function
-#define SERV_0_INIT InitTestHarnessService0
+#define SERV_0_INIT InitSHIP_MASTER
 // the name of the run function
-#define SERV_0_RUN RunTestHarnessService0
+#define SERV_0_RUN RunSHIP_MASTER
 // How big should this services Queue be?
 #define SERV_0_QUEUE_SIZE 5
 
@@ -57,24 +57,24 @@
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public function prototypes
-#define SERV_1_HEADER "CommunicationSM.h"
+#define SERV_1_HEADER "SHIP_RX.h"
 // the name of the Init function
-#define SERV_1_INIT InitCommunicationSM
+#define SERV_1_INIT InitSHIP_RX
 // the name of the run function
-#define SERV_1_RUN RunCommunicationSM
+#define SERV_1_RUN RunSHIP_RX
 // How big should this services Queue be?
-#define SERV_1_QUEUE_SIZE 3
+#define SERV_1_QUEUE_SIZE 10
 #endif
 
 /****************************************************************************/
 // These are the definitions for Service 2
 #if NUM_SERVICES > 2
 // the header file with the public function prototypes
-#define SERV_2_HEADER "TestHarnessService2.h"
+#define SERV_2_HEADER "SHIP_TX.h"
 // the name of the Init function
-#define SERV_2_INIT InitTestHarnessService2
+#define SERV_2_INIT InitSHIP_TX
 // the name of the run function
-#define SERV_2_RUN RunTestHarnessService2
+#define SERV_2_RUN RunSHIP_TX
 // How big should this services Queue be?
 #define SERV_2_QUEUE_SIZE 3
 #endif
@@ -83,11 +83,11 @@
 // These are the definitions for Service 3
 #if NUM_SERVICES > 3
 // the header file with the public function prototypes
-#define SERV_3_HEADER "TestHarnessService3.h"
+#define SERV_3_HEADER "SHIP_PIC_RX.h"
 // the name of the Init function
-#define SERV_3_INIT InitTestHarnessService3
+#define SERV_3_INIT InitSHIP_PIC_RX
 // the name of the run function
-#define SERV_3_RUN RunTestHarnessService3
+#define SERV_3_RUN RunSHIP_PIC_RX
 // How big should this services Queue be?
 #define SERV_3_QUEUE_SIZE 3
 #endif
@@ -96,11 +96,11 @@
 // These are the definitions for Service 4
 #if NUM_SERVICES > 4
 // the header file with the public function prototypes
-#define SERV_4_HEADER "TestHarnessService4.h"
+#define SERV_4_HEADER "SHIP_PIC_TX.h"
 // the name of the Init function
-#define SERV_4_INIT InitTestHarnessService4
+#define SERV_4_INIT InitSHIP_PIC_TX
 // the name of the run function
-#define SERV_4_RUN RunTestHarnessService4
+#define SERV_4_RUN RunSHIP_PIC_TX
 // How big should this services Queue be?
 #define SERV_4_QUEUE_SIZE 3
 #endif
@@ -263,12 +263,17 @@ typedef enum
   ES_LOCK,
   ES_UNLOCK, 
   /*New events for the SHIP*/
+  BYTE_RECEIVED,
+  PACKET_RECEIVED,
+  BEGIN_TX,
+  BYTE_SENT,
   ES_PAIR_REQUEST,           /* when 0x01 packet is received */
   ES_SEND_PAIR_ACK,          /* when 0x02 packet needs to be sent */ 
   ES_CONTROL_PACKET,         /* when 0x03 packet is received */ 
   ES_SEND_STATUS,            /* when status packet needs to be sent */ 
   ES_OUT_OF_FUEL,           
   ES_REFUELED, 
+  ES_TX_FAIL
 }ES_EventType_t;
 
 /****************************************************************************/
@@ -312,9 +317,9 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC PostCommunicationSM  //200 sec timer
-#define TIMER1_RESP_FUNC PostCommunicationSM  //1 sec timer
-#define TIMER2_RESP_FUNC TIMER_UNUSED
+#define TIMER0_RESP_FUNC PostSHIP_MASTER  //200 sec timer
+#define TIMER1_RESP_FUNC PostSHIP_MASTER  //1 sec timer
+#define TIMER2_RESP_FUNC PostSHIP_RX
 #define TIMER3_RESP_FUNC TIMER_UNUSED
 #define TIMER4_RESP_FUNC TIMER_UNUSED
 #define TIMER5_RESP_FUNC TIMER_UNUSED
@@ -327,7 +332,7 @@ typedef enum
 #define TIMER12_RESP_FUNC TIMER_UNUSED
 #define TIMER13_RESP_FUNC TIMER_UNUSED
 #define TIMER14_RESP_FUNC TIMER_UNUSED
-#define TIMER15_RESP_FUNC PostTestHarnessService0
+#define TIMER15_RESP_FUNC TIMER_UNUSED
 
 /****************************************************************************/
 // Give the timer numbers symbolc names to make it easier to move them
@@ -336,11 +341,13 @@ typedef enum
 // the timer number matches where the timer event will be routed
 // These symbolic names should be changed to be relevant to your application
 
-#define SERVICE0_TIMER 15
 
 //Pairing timers 
 #define PAIR_ATTEMPT_SHIP_TIMER 0
 #define PAIR_TIMEOUT_SHIP_TIMER 1
+
+
+#define BYTE_TIMER              2
 
 
 /**************************************************************************/
