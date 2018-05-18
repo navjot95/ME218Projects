@@ -41,11 +41,11 @@
 // services are added in numeric sequence (1,2,3,...) with increasing
 // priorities
 // the header file with the public function prototypes
-#define SERV_0_HEADER "SHIP_TX.h"
+#define SERV_0_HEADER "TestHarnessService0.h"
 // the name of the Init function
-#define SERV_0_INIT InitSHIP_TX
+#define SERV_0_INIT InitTestHarnessService0
 // the name of the run function
-#define SERV_0_RUN RunSHIP_TX
+#define SERV_0_RUN RunTestHarnessService0
 // How big should this services Queue be?
 #define SERV_0_QUEUE_SIZE 5
 
@@ -57,13 +57,13 @@
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public function prototypes
-#define SERV_1_HEADER "SHIP_RX.h"
+#define SERV_1_HEADER "CommunicationSM.h"
 // the name of the Init function
-#define SERV_1_INIT InitSHIP_RX
+#define SERV_1_INIT InitCommunicationSM
 // the name of the run function
-#define SERV_1_RUN RunSHIP_RX
+#define SERV_1_RUN RunCommunicationSM
 // How big should this services Queue be?
-#define SERV_1_QUEUE_SIZE 15
+#define SERV_1_QUEUE_SIZE 3
 #endif
 
 /****************************************************************************/
@@ -259,23 +259,25 @@ typedef enum
   ES_TIMEOUT,               /* signals that the timer has expired */
   ES_SHORT_TIMEOUT,         /* signals that a short timer has expired */
   /* User-defined events start here */
-  BYTE_RECEIVED,
-  BYTE_SENT,
-  BEGIN_TX,
-  ES_TX_FAIL,
-  PACKET_RECEIVED,
   ES_NEW_KEY,               /* signals a new key received from terminal */
   ES_LOCK,
-  ES_UNLOCK
+  ES_UNLOCK, 
+  /*New events for the SHIP*/
+  ES_PAIR_REQUEST,           /* when 0x01 packet is received */
+  ES_SEND_PAIR_ACK,          /* when 0x02 packet needs to be sent */ 
+  ES_CONTROL_PACKET,         /* when 0x03 packet is received */ 
+  ES_SEND_STATUS,            /* when status packet needs to be sent */ 
+  ES_OUT_OF_FUEL,           
+  ES_REFUELED, 
 }ES_EventType_t;
 
 /****************************************************************************/
 // These are the definitions for the Distribution lists. Each definition
 // should be a comma separated list of post functions to indicate which
 // services are on that distribution list.
-#define NUM_DIST_LISTS 1
+#define NUM_DIST_LISTS 0
 #if NUM_DIST_LISTS > 0
-#define DIST_LIST0 PostSHIP_TX
+#define DIST_LIST0 PostTestHarnessService0, PostTestHarnessService0
 #endif
 #if NUM_DIST_LISTS > 1
 #define DIST_LIST1 PostTestHarnessService1, PostTestHarnessService1
@@ -310,8 +312,8 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC PostSHIP_RX
-#define TIMER1_RESP_FUNC PostSHIP_TX
+#define TIMER0_RESP_FUNC PostCommunicationSM  //200 sec timer
+#define TIMER1_RESP_FUNC PostCommunicationSM  //1 sec timer
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
 #define TIMER4_RESP_FUNC TIMER_UNUSED
@@ -325,7 +327,7 @@ typedef enum
 #define TIMER12_RESP_FUNC TIMER_UNUSED
 #define TIMER13_RESP_FUNC TIMER_UNUSED
 #define TIMER14_RESP_FUNC TIMER_UNUSED
-#define TIMER15_RESP_FUNC TIMER_UNUSED
+#define TIMER15_RESP_FUNC PostTestHarnessService0
 
 /****************************************************************************/
 // Give the timer numbers symbolc names to make it easier to move them
@@ -334,12 +336,16 @@ typedef enum
 // the timer number matches where the timer event will be routed
 // These symbolic names should be changed to be relevant to your application
 
-#define BYTE_TIMER 0
-#define TEST_TIMER 1
+#define SERVICE0_TIMER 15
+
+//Pairing timers 
+#define PAIR_ATTEMPT_SHIP_TIMER 0
+#define PAIR_TIMEOUT_SHIP_TIMER 1
+
 
 /**************************************************************************/
 // uncomment this ine to get some basic framework operation debugging on
 // PF1 & PF2
-#define _INCLUDE_BASIC_FRAMEWORK_DEBUG_
+//#define _INCLUDE_BASIC_FRAMEWORK_DEBUG_
 
 #endif /* ES_CONFIGURE_H */
