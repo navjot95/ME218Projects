@@ -289,7 +289,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
               ThisEvent.EventType = ES_TX_FAIL;
               
               // UNCOMMENT
-              //PostSHIP_Master(ThisEvent);
+              PostSHIP_Master(ThisEvent);
             }
           }
           // If message is data packet
@@ -312,8 +312,8 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
               // Post to MasterSM that control packet was received
               
               // UNCOMMENT
-              //ThisEvent.EventType = ES_CONTROL_PACKET;
-              //PostSHIP_Master(ThisEvent);
+              ThisEvent.EventType = ES_CONTROL_PACKET;
+              PostSHIP_Master(ThisEvent);
             }
 
             // if req_2_pair packet, save ansible colour
@@ -322,15 +322,15 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
               ANSIBLEColour = RX_FrameData[9];
               
               // UNCOMMENT
-              //ThisEvent.EventType = ES_PAIR_REQUEST;
-              //PostSHIP_Master(ThisEvent);
+              ThisEvent.EventType = ES_PAIR_REQUEST;
+              PostSHIP_Master(ThisEvent);
             }
               
             // Send packet received event, param = message header
             ThisEvent.EventType = PACKET_RECEIVED;
             
             // UNCOMMENT
-            //PostSHIP_Master(ThisEvent);
+            PostSHIP_Master(ThisEvent);
           }
         }
         CurrentState = WaitingForStart;
