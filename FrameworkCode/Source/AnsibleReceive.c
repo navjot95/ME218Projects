@@ -44,6 +44,7 @@
 
 #include "AnsibleTransmit.h"
 #include "AnsibleReceive.h"
+#include "AnsibleMain.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 #define RX_TIME 500 //sending bits at 500ms time interval 
@@ -72,7 +73,7 @@
 
 //Bit Positions
 #define API_Identifier_Index 0
-#define API_PACKET_ACK 5 //first bit of RF data is packet type
+#define API_PACKET_HEADER 5 //first bit of RF data is packet type
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -84,15 +85,15 @@
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
 static AnsibleRXState_t CurrentState;
-static PacketType_t  PacketType; 
+//static PacketType_t  PacketType; 
 
 //Variables for XBee API RX 
 static uint16_t index = 0; 
 
 static uint16_t Data_Length;  //number of bytes (**arbitrarily set") 
 static uint8_t Computed_CheckSum; //initialize check sum to 0xFF
-static uint8_t SourceAddressLSB;
-static uint8_t SourceAddressMSB; 
+static uint8_t SourceAddressLSB = 0x00;
+static uint8_t SourceAddressMSB = 0x00; 
 
 //static bool receiving; 
 
@@ -272,8 +273,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)
         {  
-      //  printf("\r \n %X", ThisEvent.EventParam);
-            
+         // printf("\r \n %X", ThisEvent.EventParam);   
         //Reset timer 
           ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
          
@@ -306,8 +306,8 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
              //Loook at the aPI_ID to see that it was indeed for transmit
                 if ((RXData_Packet[API_Identifier_Index] == API_Identifier))
                 {
-                 //if there was a ACK (checking the status bit)   
-                    if((RXData_Packet[API_PACKET_ACK] != PAIR_ACK))
+                 //if there was a ACK  
+                    if((RXData_Packet[API_PACKET_HEADER] != PAIR_ACK))
                     {
                       //Send a fail message
                         //ThisEvent.EventType == ES_TX_FAIL; //the transmit from SHIP-> ANSIBLE failed
@@ -316,8 +316,16 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
                     }
                     else
                     {
-                     //   ThisEvent.EventType = PACKET_RX; 
-                     //   PostAnsibleMaster(ThisEvent); 
+                        ThisEvent.EventType = ES_CONNECTIONEST; 
+                        PostAnsibleMain(ThisEvent); //post the Connection is established
+                    }
+                    if((RXData_Packet[API_PACKET_HEADER] = STATUS))
+                    {
+                       //call different functions to deal with this    
+                      
+                      
+                      
+                      
                     }
                 }
             }

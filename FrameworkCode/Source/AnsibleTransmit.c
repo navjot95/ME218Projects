@@ -43,6 +43,7 @@
 #include "inc/hw_uart.h" 
 
 #include "AnsibleTransmit.h"
+#include "AnsibleMain.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 #define TX_TIME 500 //sending bits at 500ms time interval 
@@ -83,8 +84,8 @@ static uint8_t TXPacket_Length;
 //static uint8_t Preamble_Length = 5;  //API_ID(1 byte), Frame_ID(1byte), dest_address (2 bytes), options(1byte) 
 static uint8_t Data_Length = 1;  //number of bytes (**arbitrarily set") 
 static uint8_t CHK_SUM = 1; //initialize check sum to 0xFF
-static uint8_t DestAddressLSB;
-static uint8_t DestAddressMSB; 
+static uint8_t DestAddressLSB_val;
+static uint8_t DestAddressMSB_val; 
 //static bool receiving = false; 
 static uint8_t IDX; 
 
@@ -123,7 +124,7 @@ bool InitAnsibleTX(uint8_t Priority)
     CurrentState = InitTX;  
 
    //Initialize UART HW
-    UARTHardwareInit();  
+   // UARTHardwareInit();  
   
   //Disable UART TX Interrupt so that default is RX 
     HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_TXIM); 
@@ -196,11 +197,11 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
         CurrentState = WaitingToTX;
         
         //Get SHIPTeamSelect, Initialized to SHIP Ansible 
-         DestAddressMSB = 0x20; 
-         DestAddressLSB = 0x86; 
+       DestAddressMSB_val = DestAddressMSB(); //= 0x20; 
+       DestAddressMSB_val = DestAddressLSB(); // = 0x86; 
         
-        //enable timer 
-        ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
+        //enable timer (testing only)
+        //ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
       }
     }
     break;
@@ -209,26 +210,27 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
     {
       switch (ThisEvent.EventType)
       {
-        case ES_TIMEOUT: //ES_BEGIN_TX:  //If event is event one
+        case ES_BEGIN_TX:  //If event is event one
         {  
           CurrentState = Transmitting;  //Set next state to transmitting
           
-           //reset timer
-            ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
-       
-            IDX =0; 
+           //reset timer (testing only)
+           // ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
+        
+            //Initialize IDX;
+             IDX=0; 
           
             //Set local variable TXPacket_Length
              TXPacket_Length =  Preamble_Length_TX + Data_Length + CHK_SUM;  
  
            //Initialize BytesRemaining = Length of XBee Packet (Preamble (Start + Length + API_ID) + DATA + CHKSUM) 
-              BytesRemaining = (TXPacket_Length);  
+              BytesRemaining = TXPacket_Length;  
                    
             //set index = 0 
-                index = 0; 
+              index = 0; 
               
             //Build the packet to send
-              BuildTXPacket(BUILD_REQ_2_PAIR);  
+              BuildTXPacket(ThisEvent.EventParam);  
 
           if((HWREG(UART2_BASE+UART_O_FR)) & ((UART_FR_TXFE)))//If TXFE is set (empty)
           {
@@ -236,11 +238,11 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
             //Write the new data to the UARTDR (first byte)
              HWREG(UART2_BASE+UART_O_DR) = Message_Packet[(IDX)];  
 
-            //decremet Bytes Remaining 
-              BytesRemaining--;
-            //Increment index 
-               index++; 
-              IDX++; 
+              //decremet Bytes Remaining 
+                BytesRemaining--;
+              //Increment index 
+                index++; 
+                IDX++; 
             
 //             if((HWREG(UART2_BASE+UART_O_FR)) & ((UART_FR_TXFE))) //if the TXFE is set (still empty)
 //             {
@@ -252,7 +254,7 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
 //               index++; 
 //             }
 //            //Enable TXIM (Note: also enabled in UARTInit)
-              HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_RXIM);
+               HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_RXIM);
                HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_TXIM); 
              
             //Enable Interrupts globally  (also enabled in UARTinit) 
@@ -364,8 +366,8 @@ void AnsibleTXRXISR (void)
       //Read the new data  register (UARTDR)
           ES_Event_t ThisEvent; 
           ThisEvent.EventType = BYTE_RECEIVED; 
-          //PostAnsibleMaster(ThisEvent); 
-          //ThisEvent.EventParam = HWREG(UART2_BASE+UART_O_DR); 
+          PostAnsibleMain(ThisEvent); 
+          ThisEvent.EventParam = HWREG(UART2_BASE+UART_O_DR); 
    
   }
   else
@@ -461,10 +463,10 @@ void UARTHardwareInit(void){
       Message_Packet[4] = 0x01;  //Frame_ID (**arbitrary for the moment)
    //   printf("\n \r %x \n \r", Message_Packet[4]); 
     
-      Message_Packet[5] = DestAddressMSB;   //Destination Address MSB
+      Message_Packet[5] = DestAddressMSB_val;   //Destination Address MSB
    //   printf("\n \r %x \n \r", Message_Packet[5]); 
     
-      Message_Packet[6] = DestAddressLSB;   //Destination Address LSB
+      Message_Packet[6] = DestAddressLSB_val;   //Destination Address LSB
     //  printf("\n \r %x \n \r", Message_Packet[6]); 
     
       Message_Packet[7] = Options;  //Options Byte 

@@ -55,6 +55,12 @@ first pass   Sai Koppaka 5/13/18
 #define ATTEMPT_TIME 200 //200ms
 #define PAIRING_TIME 1000 //1 sec time 
 
+//Defines for Class Packets 
+#define REQ_2_PAIR 0x01
+#define CTRL 0x03 
+#define PAIR_ACK 0x02
+#define STATUS 0x04
+
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
@@ -72,6 +78,9 @@ static bool pair_var = false;
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
 
+//public getter function
+uint8_t DestAddressMSB(void); 
+uint8_t DestAddressLSB(void); 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
  Function
@@ -99,7 +108,7 @@ bool InitAnsibleMain(uint8_t Priority)
   MyPriority = Priority;
   
   UARTHardwareInit(); //Initialize HW for UART 
-  
+
   // put us into the Initial PseudoState
   CurrentState = InitAnsible;
   // post the initial transition event
@@ -178,16 +187,19 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
     case WaitingForPair:        // If current state is state one
     {
         if(ThisEvent.EventType == ES_PAIRBUTTONPRESSED)  // only respond if the button is pressed to pair to a specific team 
-        {  
-        //set ship address
-        //send packet to SHIP (0x01)
-        //Start attempt time to 200ms to keep trying at a rate of 5 Hz 
-          ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); 
-          
-        //Start Pairing Timer to 1sec 
-          ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); 
-          
-          NextState = WaitingForPairResp;  //Decide what the next state will be
+          {  
+            //set ship address (**getter function that determines ship destination address and sends dest address to ansibletx)  
+            //send packet to SHIP (0x01)
+             ThisEvent.EventType = ES_BEGIN_TX;
+             ThisEvent.EventParam = REQ_2_PAIR;
+            
+            //Start attempt time to 200ms to keep trying at a rate of 5 Hz 
+            ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); 
+            
+          //Start Pairing Timer to 1sec 
+            ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); 
+            
+            NextState = WaitingForPairResp;  //Decide what the next state will be
         }
     }
     break; //break out of WaitingForPair 
@@ -202,7 +214,10 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
           {
              ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset timer
              //Self transition and send packet (0x01) again to the SHIP
-             NextState = WaitingForPairResp; 
+              NextState = WaitingForPairResp; 
+            //send packet to SHIP (0x01)
+             ThisEvent.EventType = ES_BEGIN_TX;
+             ThisEvent.EventParam = REQ_2_PAIR;
           }
           if (ThisEvent.EventParam == PAIR_TIMEOUT_TIMER)
           {
@@ -234,14 +249,16 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
       {
         case ES_PAIRBUTTONPRESSED:  //if connection established event is posted
         {  
-         //send 0x01 packet
-         //start 200ms timer
+           //send packet to SHIP (0x01)
+             ThisEvent.EventType = ES_BEGIN_TX;
+             ThisEvent.EventParam = REQ_2_PAIR;
+          //start 200ms timer
            ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset 200 timer 
-         //start 1s timer
+          //start 1s timer
            ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); //reset timer
-         //Paired = false 
+          //Paired = false 
           pair_var = false; 
-        // now put the machine into the actual initial state
+         // now put the machine into the actual initial state
           NextState = WaitingForPairResp;  //Decide what the next state will be
         }
         break; 
@@ -249,7 +266,10 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
         {  
           if (ThisEvent.EventParam == PAIR_ATTEMPT_TIMER)
           {
-            //send CNTRL packet
+             //send CNTRL packet to SHIP 
+             ThisEvent.EventType = ES_BEGIN_TX;
+             ThisEvent.EventParam = CTRL; //add cntrl data 
+             
             //reset PAIR_ATTEMPT_TIMER
             ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset 200 timer
             NextState = CommunicatingSHIP;  //Decide what the next state will be
@@ -257,11 +277,21 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
            if (ThisEvent.EventParam == PAIR_TIMEOUT_TIMER)
           {
           //local bool paired = false
-            pair_var = false; 
+           pair_var = false; 
            NextState = WaitingForPair;  //NextState
           }
         }
+        
         break;  
+        
+     /*   case STATUS_RX:  //if connection established event is posted
+        {  
+            //reset PAIR_TIMEOUT_TIMER
+            ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); //reset timer 
+            NextState = CommunicatingSHIP;  //Decide what the next state will be
+
+        break; */ 
+       
       }
     }
       break; //break out of switch 
@@ -302,63 +332,15 @@ AnsibleMainState_t QueryAnsible(void)
 /***************************************************************************
  public functions
  ***************************************************************************/
-/*static void UARTHardwareInit(void){
-//Setting up the registers for UART-XBee communications
-  
-  //Enable the clock to the UART module using the RCGCUART (run time gating clock control) register
-   HWREG(SYSCTL_RCGCUART) |= SYSCTL_RCGCUART_R2; //UART2 Clock
-  
-  //Wait for the UART to be ready (PRUART)
-   while ((HWREG(SYSCTL_PRUART) & SYSCTL_PRUART_R2) != SYSCTL_PRUART_R2); 
-  
-  //Enable the clock to the GPIO port D
-   HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R3;
-  
-  //Wait for the GPIO module to be ready  (PRGPIO)
-   while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_RCGCGPIO_R3) != SYSCTL_RCGCGPIO_R3); 
-  
-  //Configure the GPIO pine for in/out/drive-level/drive-type 
-     HWREG(GPIO_PORTD_BASE+GPIO_O_DEN) |= (UART2_TX_PIN|UART2_RX_PIN); //setting pins as digital
-     HWREG(GPIO_PORTD_BASE+GPIO_O_DIR) &= ~(UART2_RX_PIN); //setting RX as input 
-     HWREG(GPIO_PORTD_BASE+GPIO_O_DIR) |= (UART2_RX_PIN); //setting TX as output
-  
-  //Select the Alternative functions for the UART pins (AFSEL)(AFSEL Table pg.1351)
-   HWREG(GPIO_PORTD_BASE+GPIO_O_AFSEL) |= (UART2_TX_PIN|UART2_RX_PIN); 
-    
-  //Configure the PMCn fields in the GPPIOPCTL (p.689) register to assign the UART pins
-    HWREG(GPIO_PORTD_BASE+GPIO_O_PCTL) = (HWREG(GPIO_PORTD_BASE+GPIO_O_PCTL) & 0xf00fffff)+(1<<(6*BitsPerNibble))+(1<<(7*BitsPerNibble)); //Write 1 to select U2RX as alternative function and to select U2TX as alt fun 
-
-  //Disable the UART by clearning the UARTEN bits in the UARTCTL register
-    HWREG(UART2_BASE+UART_O_CTL) &= ~(UART_CTL_UARTEN); 
-  
-  //Write the inter portion of the URTIBRD register (setting baud rate) 
-    HWREG(UART2_BASE+UART_O_IBRD) = HWREG(UART2_BASE+UART_O_IBRD) + 0x15;  //writing 21 in hex
-  
-  //Write the fractional portion of the BRD to the UARTIBRD register
-    HWREG(UART2_BASE+UART_O_FBRD) = HWREG(UART2_BASE+UART_O_FBRD) + 0x2D;  //writing 21 in hex; //writing 45 in hex 
-
-  //Write the desired serial parameters to the UARTLCRH registers to set word length to 8
-     HWREG (UART2_BASE + UART_O_LCRH) = (UART_LCRH_WLEN_8); 
-
-  //Configure the UART operation using the UARTCTL register 
-   //UART Data Registers should be cleared by default (RXE and TXE are already enabled) **
-     HWREG(UART2_BASE + UART_O_CTL) |= (UART_CTL_TXE); 
-     HWREG(UART2_BASE + UART_O_CTL) |= (UART_CTL_RXE); 
-
-  //Enable the UART by setting the UARTEN bit in the UARTCTL register 
-    HWREG(UART2_BASE + UART_O_CTL) |= (UART_CTL_UARTEN); 
-        
-  //Enable UART RX Interrupt (p.924)
-    HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_RXIM); 
-  
-  //Enable UART TX Interrupt
-   HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_TXIM); 
-  
-  //Enable NVIC (p.104) UART2 is Interrtupt Number 33, so it is EN1, BIT1 HI (p.141)
-    HWREG(NVIC_EN1) |= BIT1HI;
-  
-  //Enable Interrupts Globally 
-  __enable_irq();
-
-  //Enable IN KEIL 
-  }*/
+uint8_t DestAddressMSB(void)
+{
+  static uint8_t DestAddressMSB; 
+  DestAddressMSB = 0x20; 
+  return DestAddressMSB; 
+}
+uint8_t DestAddressLSB(void)
+{
+  static uint8_t DestAddressLSB; 
+  DestAddressLSB = 0x86; 
+  return DestAddressLSB; 
+}

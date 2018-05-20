@@ -18,6 +18,8 @@ typedef enum{InitAnsible, WaitingForPair, WaitingForPairResp, CommunicatingSHIP}
 
 // Public Function Prototypes
 void UARTHardwareInit(void); //initialize the UART hardware
+uint8_t DestAddressLSB(void); //get dest address
+uint8_t DestAddressLSB(void);  //get dest address
 
 bool InitAnsibleMain(uint8_t Priority);
 bool PostAnsibleMain(ES_Event_t ThisEvent);

@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 2
+#define NUM_SERVICES 3
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -41,11 +41,11 @@
 // services are added in numeric sequence (1,2,3,...) with increasing
 // priorities
 // the header file with the public function prototypes
-#define SERV_0_HEADER "AnsibleTransmit.h"
+#define SERV_0_HEADER "AnsibleMain.h"
 // the name of the Init function
-#define SERV_0_INIT InitAnsibleTX
+#define SERV_0_INIT InitAnsibleMain
 // the name of the run function
-#define SERV_0_RUN RunAnsibleTXSM
+#define SERV_0_RUN RunAnsibleMainSM
 // How big should this services Queue be?
 #define SERV_0_QUEUE_SIZE 5
 
@@ -57,11 +57,11 @@
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public function prototypes
-#define SERV_1_HEADER "AnsibleReceive.h"
+#define SERV_1_HEADER "AnsibleTransmit.h"
 // the name of the Init function
-#define SERV_1_INIT InitAnsibleRX
+#define SERV_1_INIT InitAnsibleTX
 // the name of the run function
-#define SERV_1_RUN RunAnsibleRXSM
+#define SERV_1_RUN RunAnsibleTXSM
 // How big should this services Queue be?
 #define SERV_1_QUEUE_SIZE 10
 #endif
@@ -70,11 +70,11 @@
 // These are the definitions for Service 2
 #if NUM_SERVICES > 2
 // the header file with the public function prototypes
-#define SERV_2_HEADER "TestHarnessService2.h"
+#define SERV_2_HEADER "AnsibleReceive.h"
 // the name of the Init function
-#define SERV_2_INIT InitTestHarnessService2
+#define SERV_2_INIT InitAnsibleRX
 // the name of the run function
-#define SERV_2_RUN RunTestHarnessService2
+#define SERV_2_RUN RunAnsibleRXSM
 // How big should this services Queue be?
 #define SERV_2_QUEUE_SIZE 3
 #endif
@@ -315,8 +315,8 @@ typedef enum
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
 #define TIMER0_RESP_FUNC TIMER_UNUSED  //Imu timer
-#define TIMER1_RESP_FUNC TIMER_UNUSED //PostAnsibleMain //200ms 
-#define TIMER2_RESP_FUNC TIMER_UNUSED//PostAnsibleMain //1sec 
+#define TIMER1_RESP_FUNC PostAnsibleMain //200ms 
+#define TIMER2_RESP_FUNC PostAnsibleMain //1sec 
 #define TIMER3_RESP_FUNC PostAnsibleTX
 #define TIMER4_RESP_FUNC PostAnsibleRX
 #define TIMER5_RESP_FUNC TIMER_UNUSED
@@ -339,8 +339,8 @@ typedef enum
 // These symbolic names should be changed to be relevant to your application
 
 #define SERVICE0_TIMER 15
-//#define PAIR_ATTEMPT_TIMER 1
-//#define PAIR_TIMEOUT_TIMER 2
+#define PAIR_ATTEMPT_TIMER 1
+#define PAIR_TIMEOUT_TIMER 2
 #define TX_ATTEMPT_TIMER 3
 #define RX_ATTEMPT_TIMER 4
 /**************************************************************************/

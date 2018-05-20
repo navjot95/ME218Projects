@@ -442,6 +442,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\AnsibleReceive.c</FilePath>
             </File>
+            <File>
+              <FileName>AnsibleMain.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\AnsibleMain.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -561,6 +566,11 @@
               <FileName>AnsibleReceive.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\AnsibleReceive.h</FilePath>
+            </File>
+            <File>
+              <FileName>AnsibleMain.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\AnsibleMain.h</FilePath>
             </File>
           </Files>
         </Group>
