@@ -183,7 +183,7 @@ ES_Event_t RunScreenService( ES_Event_t ThisEvent )
 				}					
 				else {
 					CurrentState = Waiting2Write; 
-                    ES_Timer_InitTimer(SCREEN_UPDATE_TIMER, HALF_SEC);
+                    ES_Timer_InitTimer(SCREEN_UPDATE_TIMER, ONE_SEC*5);
 				}					
       }
       break;
@@ -193,19 +193,17 @@ ES_Event_t RunScreenService( ES_Event_t ThisEvent )
             char stringVal[70]; 
             char fuel = getCurrFuelStatus()? 'F' : 'E'; 
             char *connection = getCurrConStatus()? "PAIRED  " : "UNPAIRED";  
-            sprintf(stringVal, "Team #: %d  Fuel:%c                 Connection:%s", getCurrTeamNum(), fuel, connection);           
+            sprintf(stringVal, "Team #: %d  Fuel:%c                 Connection:%s", getCurrTeamNum(), fuel, connection); 
+            printf("String to print: %s\n\r",stringVal); 
             stringToPrint = stringVal; 
-            ES_Timer_InitTimer(SCREEN_UPDATE_TIMER, HALF_SEC); //restart the refresh timer
+            ES_Timer_InitTimer(SCREEN_UPDATE_TIMER, ONE_SEC*5); //restart the refresh timer
             
             ThisEvent.EventType = ES_LCD_PUTCHAR; //So next part of Waiting2Write executes     
         }
-    
-    
-    
-      if (ThisEvent.EventType == ES_LCD_PUTCHAR ){
+      else if (ThisEvent.EventType == ES_LCD_PUTCHAR ){
         // write the character to the LCD
         char charToPrint = getNextChar(); 
-        
+        printf("Printing char: %c\n\r", charToPrint); 
         if(charToPrint){ //if not null char 
           LCD_WriteData8(charToPrint); 
           // start the inter-character timer

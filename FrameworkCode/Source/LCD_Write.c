@@ -257,7 +257,7 @@ void LCD_WriteData8(uint8_t NewData){
 	//LCD_RegisterSelect(LCD_DATA);
     HWREG(GPIO_PORTB_BASE+(GPIO_O_DATA + ALL_BITS)) |= RS_BIT;     
   // write all 8 bits to the shift register in 2 4-bit writes
-  //printf("Sending data: %c\n\r", NewData); 
+    //printf("Sending data: %c\n\r", NewData); 
 	LCD_Write8(NewData); 
 }
 
