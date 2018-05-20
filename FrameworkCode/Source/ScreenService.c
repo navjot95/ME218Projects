@@ -57,6 +57,9 @@
    relevant to the behavior of this service
 */
 static char getNextChar(void);
+static bool getCurrConStatus(void);
+static bool getCurrFuelStatus(void);
+static uint8_t getCurrTeamNum(void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // with the introduction of Gen2, we need a module level Priority variable
@@ -170,23 +173,35 @@ ES_Event_t RunScreenService( ES_Event_t ThisEvent )
       break;
     case Initializing :
       if( ThisEvent.EventType == ES_SHORT_TIMEOUT ){  
-// take the next LCD initialization step and get the next delay time
+                // take the next LCD initialization step and get the next delay time
 				DelayTime = LCD_TakeInitStep(); 
 
-// if there are more steps to the initialization, then start the timer
-// else move to the Waiting2Write state
+                // if there are more steps to the initialization, then start the timer
+                // else move to the Waiting2Write state
 				if(DelayTime != 0){ 
-          ES_ShortTimerStart(TIMER_A, DelayTime); 
+                    ES_ShortTimerStart(TIMER_A, DelayTime); 
 				}					
 				else {
-					CurrentState = Waiting2Write;
-          
-          printLCD("Addr: 0  Fuel:E                         Status: UNPAIRED");  
+					CurrentState = Waiting2Write; 
+                    ES_Timer_InitTimer(SCREEN_UPDATE_TIMER, HALF_SEC);
 				}					
       }
       break;
-      
+
     case Waiting2Write :
+        if(ThisEvent.EventType == ES_TIMEOUT && (ThisEvent.EventParam == SCREEN_UPDATE_TIMER)){           
+            char stringVal[70]; 
+            char fuel = getCurrFuelStatus()? 'F' : 'E'; 
+            char *connection = getCurrConStatus()? "PAIRED  " : "UNPAIRED";  
+            sprintf(stringVal, "Team #: %d  Fuel:%c                 Connection:%s", getCurrTeamNum(), fuel, connection);           
+            stringToPrint = stringVal; 
+            ES_Timer_InitTimer(SCREEN_UPDATE_TIMER, HALF_SEC); //restart the refresh timer
+            
+            ThisEvent.EventType = ES_LCD_PUTCHAR; //So next part of Waiting2Write executes     
+        }
+    
+    
+    
       if (ThisEvent.EventType == ES_LCD_PUTCHAR ){
         // write the character to the LCD
         char charToPrint = getNextChar(); 
@@ -206,14 +221,13 @@ ES_Event_t RunScreenService( ES_Event_t ThisEvent )
       
     case PausingBetweenWrites :
 		if(ThisEvent.EventType == ES_SHORT_TIMEOUT){
-      ES_Event_t NewEvent; 
-      NewEvent.EventType = ES_LCD_PUTCHAR; 
+            ES_Event_t NewEvent; 
+            NewEvent.EventType = ES_LCD_PUTCHAR; 
 			
 			CurrentState = Waiting2Write; 
-      ES_PostToService( MyPriority, NewEvent);
+            ES_PostToService( MyPriority, NewEvent);
 		}
-      break;
-
+        break;
   }
   return ReturnEvent;
 }
@@ -284,6 +298,22 @@ static char getNextChar(void){
     i++; 
   
   return returnChar;
+}
+
+/*FOR DEBUG ONLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY*/
+static bool getCurrFuelStatus(void){
+    return true; 
+}
+
+
+/*FOR DEBUG ONLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY*/
+static bool getCurrConStatus(void){
+    return true; 
+}
+
+
+static uint8_t getCurrTeamNum(void){
+    return 11; 
 }
 
 /*------------------------------- Footnotes -------------------------------*/
