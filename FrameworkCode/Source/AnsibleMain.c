@@ -53,8 +53,8 @@ first pass   Sai Koppaka 5/13/18
 #define BitsPerNibble 4
 #define UART2_RX_PIN GPIO_PIN_6 //Port D6
 #define UART2_TX_PIN GPIO_PIN_7 //Port D7
-#define ATTEMPT_TIME 200 //200ms
-#define PAIRING_TIME 1000 //1 sec time 
+#define ATTEMPT_TIME 2000 //200ms
+#define PAIRING_TIME 10000 //1 sec time 
 
 //Defines for Class Packets 
 #define REQ_2_PAIR 0x01
@@ -179,7 +179,6 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
       {
         //set bool paired to false 
          pair_var = false; 
-         printf("\n \r InitAnsbile state"); 
         //Set next state to WaitingforPair
         NextState = WaitingForPair;
        
@@ -195,7 +194,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
             //send packet to SHIP (0x01)
              ThisEvent.EventType = ES_BEGIN_TX;
              ThisEvent.EventParam = REQ_2_PAIR;
-              PostAnsibleTX(ThisEvent); 
+             PostAnsibleTX(ThisEvent); 
               
              printf("\n \r ES_PairButtonPressed");
              printf("\n \r EventParam = %x", ThisEvent.EventParam);
@@ -297,14 +296,13 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
         
         break;  
         
-     /*   case STATUS_RX:  //if connection established event is posted
+        case STATUS_RX:  //if connection established event is posted
         {  
             //reset PAIR_TIMEOUT_TIMER
             ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); //reset timer 
             NextState = CommunicatingSHIP;  //Decide what the next state will be
-
-        break; */ 
-       
+        }
+        break;
       }
     }
       break; //break out of switch 

@@ -47,7 +47,7 @@
 #include "AnsibleMain.h"
 
 /*----------------------------- Module Defines ----------------------------*/
-#define RX_TIME 500 //sending bits at 500ms time interval 
+#define RX_TIME 2000 //sending bits at 500ms time interval 
 #define BitsPerNibble 4
 #define UART2_RX_PIN GPIO_PIN_6 //Port D6
 #define UART2_TX_PIN GPIO_PIN_7 //Port D7
@@ -192,8 +192,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
   {
     case WaitingForStart:        // If current state is initial Psedudo State
     {
-      printf("\n \r Waiting for STart"); 
-      
+    
         //Set the initial state 
         CurrentState = WaitingForMSBLen;     
          

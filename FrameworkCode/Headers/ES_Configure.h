@@ -265,7 +265,7 @@ typedef enum
   ES_TX_COMPLETE,
   ES_BEGIN_TX,
   BYTE_RECEIVED, 
-  
+  STATUS_RX, 
   
   
   ES_NEW_KEY,               /* signals a new key received from terminal */

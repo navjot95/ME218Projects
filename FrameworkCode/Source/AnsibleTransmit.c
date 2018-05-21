@@ -194,13 +194,12 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
     {
       if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
-        printf(" \n \r In Init of TX"); 
         //Set the initial state 
         CurrentState = WaitingToTX;
         
         //Get SHIPTeamSelect, Initialized to SHIP Ansible 
-       DestAddressMSB_val = DestAddressMSB(); //= 0x20; 
-       DestAddressMSB_val = DestAddressLSB(); // = 0x86; 
+       DestAddressMSB_val = 0x20; // = DestAddressMSB(); //= 0x20; 
+       DestAddressLSB_val = 0x86;//DestAddressLSB(); // = 0x86; 
         
         //enable timer (testing only)
         //ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
@@ -233,15 +232,14 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
               
             //Build the packet to send
               BuildTXPacket(ThisEvent.EventParam);  
-          
+              printf("\n \r PacketTX = %X", ThisEvent.EventParam);
             //Transmiting this packet 
-            printf("\n \r PacketTransmit = %x", ThisEvent.EventParam); 
+           
           if((HWREG(UART2_BASE+UART_O_FR)) & ((UART_FR_TXFE)))//If TXFE is set (empty)
           {
-
+         //   printf("\r\nwriting to DR");
             //Write the new data to the UARTDR (first byte)
              HWREG(UART2_BASE+UART_O_DR) = Message_Packet[(IDX)];  
-
               //decremet Bytes Remaining 
                 BytesRemaining--;
               //Increment index 
@@ -328,12 +326,14 @@ void AnsibleTXRXISR (void)
   //If TXMIS Is Set 
   if ((HWREG(UART2_BASE + UART_O_MIS)) & (UART_MIS_TXMIS)) //if bit is set, then an interrupt has occured
   {
+  //  printf("\r\nISRbitch");
      //clear the source of the interrupt
       HWREG(UART2_BASE+UART_O_ICR) |= UART_ICR_TXIC;
     //Write the new data to register (UARTDR)
       HWREG(UART2_BASE+UART_O_DR) = Message_Packet[IDX]; 
+     // printf("\n \r PacketTransmit = %x", Message_Packet[(IDX)]); 
       IDX++; 
-  
+      
   //    printf("\n \r MessagePacket = %i",Message_Packet[BytesRemaining-1]);
     if (IDX == (TXPacket_Length))
     {
@@ -468,7 +468,7 @@ void UARTHardwareInit(void){
    //   printf("\n \r %x \n \r", Message_Packet[4]); 
     
       Message_Packet[5] = DestAddressMSB_val;   //Destination Address MSB
-   //   printf("\n \r %x \n \r", Message_Packet[5]); 
+    // printf("\n \r %x \n \r", Message_Packet[5]); 
     
       Message_Packet[6] = DestAddressLSB_val;   //Destination Address LSB
     //  printf("\n \r %x \n \r", Message_Packet[6]); 
@@ -488,7 +488,6 @@ static void BuildTXPacket(uint8_t PacketType)
     {
       //build the preamble 
        BuildPreamble(); 
-       printf("\n \r built preamble"); 
       //set index to length of preamble
       index = Preamble_Length_TX; 
       //Add RF Data packet corresponding to REQ_2_PAIR
