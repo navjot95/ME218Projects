@@ -20,15 +20,15 @@ typedef enum { InitPState, Initializing, Waiting2Write,
                PausingBetweenWrites } LCDState_t ;
 
 // Public Function Prototypes
-
 bool InitScreenService ( uint8_t Priority );
 bool PostScreenService( ES_Event_t ThisEvent );
 ES_Event_t RunScreenService( ES_Event_t ThisEvent );
+/*
 void printLCD(char *stringGotten);
 void updateConnection(uint8_t onOffVal);
 void updateAddr(char *addr);                
 void updateFuel(uint8_t fuelBool);
-  
+*/
   
 #endif /* LCDService_H */
 

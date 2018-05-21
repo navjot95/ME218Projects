@@ -109,13 +109,14 @@ bool Check4Keystroke(void)
 {
   if (IsNewKeyReady())   // new key waiting?
   {
-    ES_Event_t ThisEvent;
-    ThisEvent.EventType   = ES_NEW_KEY;
-    ThisEvent.EventParam  = GetNewKey();
+//    ES_Event_t ThisEvent;
+//    ThisEvent.EventType   = ES_NEW_KEY;
+//    ThisEvent.EventParam  = GetNewKey();
+      /*
     static bool pairStatus = 0;
     static bool addrStatus = 0; 
     static bool fuelStatus = 0;   
-
+     */
     
     // test distribution list functionality by sending the 'L' key out via
     // a distribution list.
@@ -128,7 +129,7 @@ bool Check4Keystroke(void)
 //      PostTestHarnessService0(ThisEvent);
 //    }
     
-    
+    /*
     if(ThisEvent.EventParam == 'p'){
       pairStatus ^= 1; 
       updateConnection(pairStatus); 
@@ -146,9 +147,8 @@ bool Check4Keystroke(void)
       printf("Fuel updated\n\r"); 
       fuelStatus ^= 1;
       updateFuel(fuelStatus); 
-      
     }
-   
+   */
     
     return true;
   }

@@ -47,16 +47,20 @@
 #define HALF_SEC (ONE_SEC/2)
 #define TWO_SEC (ONE_SEC*2)
 #define FIVE_SEC (ONE_SEC*5)
+#define LCD_REFRESH_TIME HALF_SEC
 
 //Screen location defines 
 #define BEG_SEC_LINE 0xC0  //beginning of second line 
 #define BEG_FIR_LINE 0x80  //beginning of first line 
+
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this service.They should be functions
    relevant to the behavior of this service
 */
 static char getNextChar(void);
+
+//These three are for DEBUG only, need to be replaced by other services
 static bool getCurrConStatus(void);
 static bool getCurrFuelStatus(void);
 static uint8_t getCurrTeamNum(void);
@@ -64,7 +68,8 @@ static uint8_t getCurrTeamNum(void);
 /*---------------------------- Module Variables ---------------------------*/
 // with the introduction of Gen2, we need a module level Priority variable
 static uint8_t MyPriority;
-static char *stringToPrint; 
+//static char *stringToPrint;
+static char stringBuffer[70]; 
 
 static LCDState_t CurrentState = InitPState;
 
@@ -182,29 +187,33 @@ ES_Event_t RunScreenService( ES_Event_t ThisEvent )
                     ES_ShortTimerStart(TIMER_A, DelayTime); 
 				}					
 				else {
-					CurrentState = Waiting2Write; 
-                    ES_Timer_InitTimer(SCREEN_UPDATE_TIMER, ONE_SEC*5);
+					CurrentState = Waiting2Write;
+                    
+                    ES_Event_t NewEvent; 
+                    NewEvent.EventType = ES_TIMEOUT; 
+                    NewEvent.EventParam = SCREEN_UPDATE_TIMER; 
+                    ES_PostToService( MyPriority, NewEvent);
 				}					
       }
       break;
 
     case Waiting2Write :
         if(ThisEvent.EventType == ES_TIMEOUT && (ThisEvent.EventParam == SCREEN_UPDATE_TIMER)){           
-            char stringVal[70]; 
             char fuel = getCurrFuelStatus()? 'F' : 'E'; 
             char *connection = getCurrConStatus()? "PAIRED  " : "UNPAIRED";  
-            sprintf(stringVal, "Team #: %d  Fuel:%c                 Connection:%s", getCurrTeamNum(), fuel, connection); 
-            printf("String to print: %s\n\r",stringVal); 
-            stringToPrint = stringVal; 
-            ES_Timer_InitTimer(SCREEN_UPDATE_TIMER, ONE_SEC*5); //restart the refresh timer
+            LCD_WriteCommand8(BEG_FIR_LINE); //move to start of line 1
+            
+            sprintf(stringBuffer, "Team #:%02d  Fl:%c                         Status: %s", getCurrTeamNum(), fuel, connection);
+            
+            ES_Timer_InitTimer(SCREEN_UPDATE_TIMER, LCD_REFRESH_TIME); //restart the refresh timer
             
             ThisEvent.EventType = ES_LCD_PUTCHAR; //So next part of Waiting2Write executes     
         }
-      else if (ThisEvent.EventType == ES_LCD_PUTCHAR ){
+      if (ThisEvent.EventType == ES_LCD_PUTCHAR ){
         // write the character to the LCD
         char charToPrint = getNextChar(); 
-        printf("Printing char: %c\n\r", charToPrint); 
-        if(charToPrint){ //if not null char 
+        
+        if(charToPrint){ //if not null char            
           LCD_WriteData8(charToPrint); 
           // start the inter-character timer
           ES_ShortTimerStart(TIMER_A, INTER_CHAR_DELAY);
@@ -212,9 +221,7 @@ ES_Event_t RunScreenService( ES_Event_t ThisEvent )
           // move to the PausingBetweenWrites state
           CurrentState = PausingBetweenWrites; 
         }
-        
-     }
-      
+     }      
       break;
       
     case PausingBetweenWrites :
@@ -223,14 +230,14 @@ ES_Event_t RunScreenService( ES_Event_t ThisEvent )
             NewEvent.EventType = ES_LCD_PUTCHAR; 
 			
 			CurrentState = Waiting2Write; 
-            ES_PostToService( MyPriority, NewEvent);
+            ES_PostToService( MyPriority, NewEvent); 
 		}
         break;
   }
   return ReturnEvent;
 }
 
-
+/*
 void printLCD(char *stringGotten){
   printf("Starting print\n\r"); 
   ES_Event_t ThisEvent; 
@@ -279,8 +286,8 @@ void updateFuel(uint8_t fuelBool){
   }
 
   ES_PostToService( MyPriority, ThisEvent);  
-
 }
+*/
 
 /***************************************************************************
  private functions
@@ -288,8 +295,8 @@ void updateFuel(uint8_t fuelBool){
 static char getNextChar(void){
   static uint32_t i = 0; 
   
-  char returnChar = stringToPrint[i]; 
-  
+  char returnChar = stringBuffer[i]; 
+    
   if(returnChar == '\0')
     i = 0; 
   else
@@ -300,18 +307,18 @@ static char getNextChar(void){
 
 /*FOR DEBUG ONLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY*/
 static bool getCurrFuelStatus(void){
-    return true; 
+    return false; 
 }
 
 
 /*FOR DEBUG ONLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY*/
 static bool getCurrConStatus(void){
-    return true; 
+    return false; 
 }
 
 
 static uint8_t getCurrTeamNum(void){
-    return 11; 
+    return 5; 
 }
 
 /*------------------------------- Footnotes -------------------------------*/

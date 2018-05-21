@@ -306,7 +306,7 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-#define TIMER0_RESP_FUNC PostScreenService
+#define TIMER0_RESP_FUNC TIMER_UNUSED
 #define TIMER1_RESP_FUNC TIMER_UNUSED
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC TIMER_UNUSED
@@ -330,7 +330,6 @@ typedef enum
 // the timer number matches where the timer event will be routed
 // These symbolic names should be changed to be relevant to your application
 
-#define DEBUG_TIMER 0 
 #define SCREEN_UPDATE_TIMER 5
 #define SERVICE0_TIMER 15
 
