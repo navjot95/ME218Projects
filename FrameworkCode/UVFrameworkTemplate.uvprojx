@@ -411,6 +411,7 @@
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\main.c</FilePath>
+<<<<<<< HEAD
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -454,6 +455,8 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
+=======
+>>>>>>> 9680db7ea0f9221eff9d500640a567c9665e4d57
             </File>
           </Files>
         </Group>
@@ -466,11 +469,20 @@
               <FilePath>.\Source\EventCheckers.c</FilePath>
             </File>
             <File>
+<<<<<<< HEAD
+=======
+              <FileName>TestHarnessService0.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\TestHarnessService0.c</FilePath>
+            </File>
+            <File>
+>>>>>>> 9680db7ea0f9221eff9d500640a567c9665e4d57
               <FileName>TemplateFSM.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\TemplateFSM.c</FilePath>
             </File>
             <File>
+<<<<<<< HEAD
               <FileName>ScreenService.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\ScreenService.c</FilePath>
@@ -479,6 +491,16 @@
               <FileName>LCD_Write.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\LCD_Write.c</FilePath>
+=======
+              <FileName>SensorUpdate.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\SensorUpdate.c</FilePath>
+            </File>
+            <File>
+              <FileName>ADMulti.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\ADMulti.c</FilePath>
+>>>>>>> 9680db7ea0f9221eff9d500640a567c9665e4d57
             </File>
           </Files>
         </Group>
@@ -591,6 +613,7 @@
               <FilePath>.\Headers\ES_ShortTimer.h</FilePath>
             </File>
             <File>
+<<<<<<< HEAD
               <FileName>ScreenService.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\ScreenService.h</FilePath>
@@ -599,6 +622,16 @@
               <FileName>LCD_Write.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\LCD_Write.h</FilePath>
+=======
+              <FileName>SensorUpdate.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\SensorUpdate.h</FilePath>
+            </File>
+            <File>
+              <FileName>ADMulti.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\ADMulti.h</FilePath>
+>>>>>>> 9680db7ea0f9221eff9d500640a567c9665e4d57
             </File>
           </Files>
         </Group>
