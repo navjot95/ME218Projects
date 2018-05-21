@@ -64,7 +64,7 @@ bool InitSensorUpdate( uint8_t Priority )
 	//Initialize one Analog Input (on PE0) with ADC_MultiInit
     // PE0 - throttle input 
     // PE1 - shoot input (force sensor)
-    ADC_MultiInit(2);
+    ADC_MultiInit(3);
 
 	if (ES_Timer_InitTimer(SENSOR_UPDATE_TIMER, updateInterval) == ES_Timer_OK)  
     {

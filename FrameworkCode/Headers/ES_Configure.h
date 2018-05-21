@@ -57,11 +57,11 @@
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public function prototypes
-#define SERV_1_HEADER "TestHarnessService1.h"
+#define SERV_1_HEADER "IMU_SPI.h"
 // the name of the Init function
-#define SERV_1_INIT InitTestHarnessService1
+#define SERV_1_INIT InitIMU
 // the name of the run function
-#define SERV_1_RUN RunTestHarnessService1
+#define SERV_1_RUN RunIMU
 // How big should this services Queue be?
 #define SERV_1_QUEUE_SIZE 3
 #endif
@@ -83,11 +83,11 @@
 // These are the definitions for Service 3
 #if NUM_SERVICES > 3
 // the header file with the public function prototypes
-#define SERV_3_HEADER "TestHarnessService3.h"
+#define SERV_3_HEADER "SensorUpdate.h"
 // the name of the Init function
-#define SERV_3_INIT InitTestHarnessService3
+#define SERV_3_INIT InitSensorUpdate
 // the name of the run function
-#define SERV_3_RUN RunTestHarnessService3
+#define SERV_3_RUN RunSensorUpdate
 // How big should this services Queue be?
 #define SERV_3_QUEUE_SIZE 3
 #endif
@@ -96,11 +96,11 @@
 // These are the definitions for Service 4
 #if NUM_SERVICES > 4
 // the header file with the public function prototypes
-#define SERV_4_HEADER "TestHarnessService4.h"
+#define SERV_4_HEADER "ScreenService.h"
 // the name of the Init function
-#define SERV_4_INIT InitTestHarnessService4
+#define SERV_4_INIT InitScreenService
 // the name of the run function
-#define SERV_4_RUN RunTestHarnessService4
+#define SERV_4_RUN RunScreenService
 // How big should this services Queue be?
 #define SERV_4_QUEUE_SIZE 3
 #endif
@@ -109,14 +109,16 @@
 // These are the definitions for Service 5
 #if NUM_SERVICES > 5
 // the header file with the public function prototypes
-#define SERV_5_HEADER "ScreenService.h"
+#define SERV_5_HEADER "TestHarnessService5.h"
 // the name of the Init function
-#define SERV_5_INIT InitScreenService
+#define SERV_5_INIT InitTestHarnessService5
 // the name of the run function
-#define SERV_5_RUN RunScreenService
+#define SERV_5_RUN RunTestHarnessService5
 // How big should this services Queue be?
 #define SERV_5_QUEUE_SIZE 3
 #endif
+
+
 
 /****************************************************************************/
 // These are the definitions for Service 6
@@ -309,8 +311,8 @@ typedef enum
 #define TIMER0_RESP_FUNC TIMER_UNUSED
 #define TIMER1_RESP_FUNC TIMER_UNUSED
 #define TIMER2_RESP_FUNC TIMER_UNUSED
-#define TIMER3_RESP_FUNC TIMER_UNUSED
-#define TIMER4_RESP_FUNC TIMER_UNUSED
+#define TIMER3_RESP_FUNC PostSensorUpdate
+#define TIMER4_RESP_FUNC PostSensorUpdate
 #define TIMER5_RESP_FUNC PostScreenService
 #define TIMER6_RESP_FUNC TIMER_UNUSED
 #define TIMER7_RESP_FUNC TIMER_UNUSED
@@ -330,6 +332,9 @@ typedef enum
 // the timer number matches where the timer event will be routed
 // These symbolic names should be changed to be relevant to your application
 
+#define IMU_TIMER 0
+#define SENSOR_UPDATE_TIMER 3
+#define DEBOUNCE_TIMER 4
 #define SCREEN_UPDATE_TIMER 5
 #define SERVICE0_TIMER 15
 
