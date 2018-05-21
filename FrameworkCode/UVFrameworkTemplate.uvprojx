@@ -411,58 +411,6 @@
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\main.c</FilePath>
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> Screen
-              <FileOption>
-                <CommonProperty>
-                  <UseCPPCompiler>2</UseCPPCompiler>
-                  <RVCTCodeConst>0</RVCTCodeConst>
-                  <RVCTZI>0</RVCTZI>
-                  <RVCTOtherData>0</RVCTOtherData>
-                  <ModuleSelection>0</ModuleSelection>
-                  <IncludeInBuild>1</IncludeInBuild>
-                  <AlwaysBuild>2</AlwaysBuild>
-                  <GenerateAssemblyFile>2</GenerateAssemblyFile>
-                  <AssembleAssemblyFile>2</AssembleAssemblyFile>
-                  <PublicsOnly>2</PublicsOnly>
-                  <StopOnExitCode>11</StopOnExitCode>
-                  <CustomArgument></CustomArgument>
-                  <IncludeLibraryModules></IncludeLibraryModules>
-                  <ComprImg>1</ComprImg>
-                </CommonProperty>
-                <FileArmAds>
-                  <Cads>
-                    <interw>2</interw>
-                    <Optim>0</Optim>
-                    <oTime>2</oTime>
-                    <SplitLS>2</SplitLS>
-                    <OneElfS>2</OneElfS>
-                    <Strict>2</Strict>
-                    <EnumInt>2</EnumInt>
-                    <PlainCh>2</PlainCh>
-                    <Ropi>2</Ropi>
-                    <Rwpi>2</Rwpi>
-                    <wLevel>2</wLevel>
-                    <uThumb>2</uThumb>
-                    <uSurpInc>2</uSurpInc>
-                    <uC99>2</uC99>
-                    <useXO>2</useXO>
-                    <VariousControls>
-                      <MiscControls></MiscControls>
-                      <Define></Define>
-                      <Undefine></Undefine>
-                      <IncludePath></IncludePath>
-                    </VariousControls>
-                  </Cads>
-                </FileArmAds>
-              </FileOption>
-<<<<<<< HEAD
-=======
->>>>>>> 9680db7ea0f9221eff9d500640a567c9665e4d57
-=======
->>>>>>> Screen
             </File>
           </Files>
         </Group>
@@ -475,47 +423,44 @@
               <FilePath>.\Source\EventCheckers.c</FilePath>
             </File>
             <File>
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
               <FileName>TestHarnessService0.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\TestHarnessService0.c</FilePath>
             </File>
             <File>
->>>>>>> 9680db7ea0f9221eff9d500640a567c9665e4d57
-=======
->>>>>>> Screen
               <FileName>TemplateFSM.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\TemplateFSM.c</FilePath>
             </File>
             <File>
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> Screen
-              <FileName>ScreenService.c</FileName>
+              <FileName>IMU_SPI.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Source\ScreenService.c</FilePath>
+              <FilePath>.\Source\IMU_SPI.c</FilePath>
+            </File>
+            <File>
+              <FileName>ES_Framework.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\ES_Framework.c</FilePath>
             </File>
             <File>
               <FileName>LCD_Write.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\LCD_Write.c</FilePath>
-<<<<<<< HEAD
-=======
+            </File>
+            <File>
+              <FileName>MotorModule.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\MotorModule.c</FilePath>
+            </File>
+            <File>
+              <FileName>ScreenService.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\ScreenService.c</FilePath>
+            </File>
+            <File>
               <FileName>SensorUpdate.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\SensorUpdate.c</FilePath>
-            </File>
-            <File>
-              <FileName>ADMulti.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\ADMulti.c</FilePath>
->>>>>>> 9680db7ea0f9221eff9d500640a567c9665e4d57
-=======
->>>>>>> Screen
             </File>
           </Files>
         </Group>
@@ -628,31 +573,34 @@
               <FilePath>.\Headers\ES_ShortTimer.h</FilePath>
             </File>
             <File>
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> Screen
-              <FileName>ScreenService.h</FileName>
+              <FileName>IMU_SPI.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Headers\ScreenService.h</FilePath>
+              <FilePath>.\Headers\IMU_SPI.h</FilePath>
+            </File>
+            <File>
+              <FileName>MPU9250_RegisterMap.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\MPU9250_RegisterMap.h</FilePath>
             </File>
             <File>
               <FileName>LCD_Write.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\LCD_Write.h</FilePath>
-<<<<<<< HEAD
-=======
+            </File>
+            <File>
+              <FileName>MotorModule.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\MotorModule.h</FilePath>
+            </File>
+            <File>
+              <FileName>ScreenService.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\ScreenService.h</FilePath>
+            </File>
+            <File>
               <FileName>SensorUpdate.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\SensorUpdate.h</FilePath>
-            </File>
-            <File>
-              <FileName>ADMulti.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Headers\ADMulti.h</FilePath>
->>>>>>> 9680db7ea0f9221eff9d500640a567c9665e4d57
-=======
->>>>>>> Screen
             </File>
           </Files>
         </Group>
