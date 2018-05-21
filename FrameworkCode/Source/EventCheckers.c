@@ -114,28 +114,38 @@ bool Check4Keystroke(void)
     ThisEvent.EventParam  = GetNewKey();
     // test distribution list functionality by sending the 'L' key out via
     // a distribution list.
-    if (ThisEvent.EventParam == 'p')
+    if (ThisEvent.EventParam == 'b')
+    {
+      
+      ThisEvent.EventType = BYTE_RECEIVED; 
+      ThisEvent.EventParam = 0x7E; 
+      PostAnsibleRX(ThisEvent);
+    }
+     else if (ThisEvent.EventParam == 'p')   // otherwise post to Service 0 for processing
     {
         ThisEvent.EventType = ES_PAIRBUTTONPRESSED; 
         PostAnsibleMain(ThisEvent);
       //  ES_PostList00(ThisEvent);
-        
     }
-    else if (ThisEvent.EventParam == 'c')   // otherwise post to Service 0 for processing
+     else if (ThisEvent.EventParam == 'c')
     {
-   
       ThisEvent.EventType = ES_CONNECTIONEST; 
-      PostAnsibleMain(ThisEvent);
-     // PostTestHarnessService0(ThisEvent);
+      PostAnsibleMain(ThisEvent);  
     }
-    else if (ThisEvent.EventParam == 's')
+     else if (ThisEvent.EventParam == 't')
     {
-      ByteEvent.EventType = ES_STATUSRECEIVED; 
-      PostAnsibleRX(ByteEvent);  
+      ByteEvent.EventType = ES_BEGIN_TX; 
+      PostAnsibleTX(ByteEvent);  
     }
+    else
+      
+    {}; 
 
     return true;
   }
+  else
+  {
   return false;
+  }
 }
 

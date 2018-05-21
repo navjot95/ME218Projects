@@ -47,6 +47,7 @@ first pass   Sai Koppaka 5/13/18
 
 
 #include "AnsibleMain.h"
+#include "AnsibleTransmit.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 #define BitsPerNibble 4
@@ -178,8 +179,10 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
       {
         //set bool paired to false 
          pair_var = false; 
+         printf("\n \r InitAnsbile state"); 
         //Set next state to WaitingforPair
         NextState = WaitingForPair;
+       
       }
     }
     break; //break out of InitAnsible
@@ -192,6 +195,10 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
             //send packet to SHIP (0x01)
              ThisEvent.EventType = ES_BEGIN_TX;
              ThisEvent.EventParam = REQ_2_PAIR;
+              PostAnsibleTX(ThisEvent); 
+              
+             printf("\n \r ES_PairButtonPressed");
+             printf("\n \r EventParam = %x", ThisEvent.EventParam);
             
             //Start attempt time to 200ms to keep trying at a rate of 5 Hz 
             ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); 
@@ -211,13 +218,16 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
         case ES_TIMEOUT:  //if this event is a timeout 
         {  
           if (ThisEvent.EventParam == PAIR_ATTEMPT_TIMER)
-          {
+          { 
+             
              ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset timer
              //Self transition and send packet (0x01) again to the SHIP
               NextState = WaitingForPairResp; 
             //send packet to SHIP (0x01)
              ThisEvent.EventType = ES_BEGIN_TX;
              ThisEvent.EventParam = REQ_2_PAIR;
+             PostAnsibleTX(ThisEvent); 
+             printf("\n \r es_begin_tX");
           }
           if (ThisEvent.EventParam == PAIR_TIMEOUT_TIMER)
           {
@@ -229,6 +239,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
         break;
         case ES_CONNECTIONEST:  //if this event is a timeout 
         {  
+          printf("\n \r connection established event"); 
          //local variable paired = true
           pair_var = true; 
           //Start Pairing Timer (1sec)
@@ -252,6 +263,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
            //send packet to SHIP (0x01)
              ThisEvent.EventType = ES_BEGIN_TX;
              ThisEvent.EventParam = REQ_2_PAIR;
+             PostAnsibleTX(ThisEvent);  
           //start 200ms timer
            ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset 200 timer 
           //start 1s timer
@@ -269,6 +281,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
              //send CNTRL packet to SHIP 
              ThisEvent.EventType = ES_BEGIN_TX;
              ThisEvent.EventParam = CTRL; //add cntrl data 
+             PostAnsibleTX(ThisEvent);  
              
             //reset PAIR_ATTEMPT_TIMER
             ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset 200 timer

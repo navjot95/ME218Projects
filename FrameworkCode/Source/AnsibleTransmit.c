@@ -44,6 +44,7 @@
 
 #include "AnsibleTransmit.h"
 #include "AnsibleMain.h"
+#include "AnsibleReceive.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 #define TX_TIME 500 //sending bits at 500ms time interval 
@@ -75,7 +76,7 @@ static uint8_t CheckSum(void);
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
 static AnsibleTXState_t CurrentState;
-static PacketType_t  PacketType; 
+//static PacketType_t  PacketType; 
 
 static bool Ready2TX = false; 
 static uint8_t BytesRemaining = 0; 
@@ -193,6 +194,7 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
     {
       if (ThisEvent.EventType == ES_INIT)    // only respond to ES_Init
       {
+        printf(" \n \r In Init of TX"); 
         //Set the initial state 
         CurrentState = WaitingToTX;
         
@@ -231,7 +233,9 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
               
             //Build the packet to send
               BuildTXPacket(ThisEvent.EventParam);  
-
+          
+            //Transmiting this packet 
+            printf("\n \r PacketTransmit = %x", ThisEvent.EventParam); 
           if((HWREG(UART2_BASE+UART_O_FR)) & ((UART_FR_TXFE)))//If TXFE is set (empty)
           {
 
@@ -256,7 +260,7 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
 //            //Enable TXIM (Note: also enabled in UARTInit)
                HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_RXIM);
                HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_TXIM); 
-             
+
             //Enable Interrupts globally  (also enabled in UARTinit) 
                __enable_irq();
             //return Success 
@@ -366,7 +370,7 @@ void AnsibleTXRXISR (void)
       //Read the new data  register (UARTDR)
           ES_Event_t ThisEvent; 
           ThisEvent.EventType = BYTE_RECEIVED; 
-          PostAnsibleMain(ThisEvent); 
+          PostAnsibleRX(ThisEvent); 
           ThisEvent.EventParam = HWREG(UART2_BASE+UART_O_DR); 
    
   }
@@ -484,6 +488,7 @@ static void BuildTXPacket(uint8_t PacketType)
     {
       //build the preamble 
        BuildPreamble(); 
+       printf("\n \r built preamble"); 
       //set index to length of preamble
       index = Preamble_Length_TX; 
       //Add RF Data packet corresponding to REQ_2_PAIR

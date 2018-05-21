@@ -192,12 +192,14 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
   {
     case WaitingForStart:        // If current state is initial Psedudo State
     {
+      printf("\n \r Waiting for STart"); 
+      
         //Set the initial state 
         CurrentState = WaitingForMSBLen;     
          
         if((ThisEvent.EventType == BYTE_RECEIVED) && (ThisEvent.EventParam == Start_Delimiter))
         {
-             printf("\r \n %X", ThisEvent.EventParam);
+             printf("\r \n Start_Delimiter %X", ThisEvent.EventParam);
              //Enable Timer 
               ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
           
@@ -225,7 +227,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)  //0x7E received in time 
         {     
-         //printf("\r \n %X", ThisEvent.EventParam);
+         printf("\r \n Arbitrary_MSB %X", ThisEvent.EventParam);
         //Reset timer 
           ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
           
@@ -249,7 +251,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)
         {            
-        // printf("\r \n %X", ThisEvent.EventParam);
+         printf("\r \n Arbitary_LSB %X", ThisEvent.EventParam);
         //Reset timer 
           ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
           
@@ -273,7 +275,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)
         {  
-         // printf("\r \n %X", ThisEvent.EventParam);   
+          printf("\r \n BYTE_RX %X", ThisEvent.EventParam);   
         //Reset timer 
           ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
          
@@ -299,34 +301,32 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
         }
         else if (ThisEvent.EventType == BYTE_RECEIVED)
         {
-            printf("\r \n %X", ThisEvent.EventParam);
+            printf("\r \n Arbitrary_CHK SUM %X", ThisEvent.EventParam);
             printf("\r \n        "); 
-            if (ThisEvent.EventParam  == Computed_CheckSum) //good check sum
+            if (ThisEvent.EventParam  == Computed_CheckSum) // process data only for good check sum
             {
              //Loook at the aPI_ID to see that it was indeed for transmit
                 if ((RXData_Packet[API_Identifier_Index] == API_Identifier))
                 {
                  //if there was a ACK  
-                    if((RXData_Packet[API_PACKET_HEADER] != PAIR_ACK))
+                    if((RXData_Packet[API_PACKET_HEADER] = PAIR_ACK))
                     {
-                      //Send a fail message
+                       ThisEvent.EventType = ES_CONNECTIONEST; 
+                       PostAnsibleMain(ThisEvent); //post the Connection is established
+                       //ProcessData(); 
+ 
+                    }
+                    else
+                    {
+                        //Send a fail message
                         //ThisEvent.EventType == ES_TX_FAIL; //the transmit from SHIP-> ANSIBLE failed
                         //PostAnsibleMaster(ThisEvent); 
                         CurrentState = WaitingForStart; //Go back to waiting 
                     }
-                    else
-                    {
-                        ThisEvent.EventType = ES_CONNECTIONEST; 
-                        PostAnsibleMain(ThisEvent); //post the Connection is established
-                    }
-                    if((RXData_Packet[API_PACKET_HEADER] = STATUS))
+                   /* if((RXData_Packet[API_PACKET_HEADER] = STATUS))
                     {
                        //call different functions to deal with this    
-                      
-                      
-                      
-                      
-                    }
+                    }*/
                 }
             }
             else
