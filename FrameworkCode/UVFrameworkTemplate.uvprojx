@@ -412,6 +412,9 @@
               <FileType>1</FileType>
               <FilePath>.\Source\main.c</FilePath>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Screen
               <FileOption>
                 <CommonProperty>
                   <UseCPPCompiler>2</UseCPPCompiler>
@@ -455,8 +458,11 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
+<<<<<<< HEAD
 =======
 >>>>>>> 9680db7ea0f9221eff9d500640a567c9665e4d57
+=======
+>>>>>>> Screen
             </File>
           </Files>
         </Group>
@@ -470,6 +476,7 @@
             </File>
             <File>
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
               <FileName>TestHarnessService0.c</FileName>
               <FileType>1</FileType>
@@ -477,12 +484,17 @@
             </File>
             <File>
 >>>>>>> 9680db7ea0f9221eff9d500640a567c9665e4d57
+=======
+>>>>>>> Screen
               <FileName>TemplateFSM.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\TemplateFSM.c</FilePath>
             </File>
             <File>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Screen
               <FileName>ScreenService.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\ScreenService.c</FilePath>
@@ -491,6 +503,7 @@
               <FileName>LCD_Write.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\LCD_Write.c</FilePath>
+<<<<<<< HEAD
 =======
               <FileName>SensorUpdate.c</FileName>
               <FileType>1</FileType>
@@ -501,6 +514,8 @@
               <FileType>1</FileType>
               <FilePath>.\Source\ADMulti.c</FilePath>
 >>>>>>> 9680db7ea0f9221eff9d500640a567c9665e4d57
+=======
+>>>>>>> Screen
             </File>
           </Files>
         </Group>
@@ -614,6 +629,9 @@
             </File>
             <File>
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> Screen
               <FileName>ScreenService.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\ScreenService.h</FilePath>
@@ -622,6 +640,7 @@
               <FileName>LCD_Write.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\LCD_Write.h</FilePath>
+<<<<<<< HEAD
 =======
               <FileName>SensorUpdate.h</FileName>
               <FileType>5</FileType>
@@ -632,6 +651,8 @@
               <FileType>5</FileType>
               <FilePath>.\Headers\ADMulti.h</FilePath>
 >>>>>>> 9680db7ea0f9221eff9d500640a567c9665e4d57
+=======
+>>>>>>> Screen
             </File>
           </Files>
         </Group>
