@@ -192,25 +192,23 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
   {
     case WaitingForStart:        // If current state is initial Psedudo State
     {
-        //Set the initial state 
-        CurrentState = WaitingForMSBLen;     
+        //Set the initial state      
          
         if((ThisEvent.EventType == BYTE_RECEIVED) && (ThisEvent.EventParam == Start_Delimiter))
         {
            //  printf("\r \n Start_Delimiter %X", ThisEvent.EventParam);
              //Enable Timer 
               ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
-          
+    
               //Initialize DataLength to 0
               Data_Length = 0; 
-                
-            //Set initial variables 
-             Computed_CheckSum = 0xFF; 
-             index = 0;  
+            //  printf("\n \r FirstByte = %X", ThisEvent.EventParam );
 
          //Get SHIPTeamSelect, Initialized to SHIP Ansible 
           SourceAddressMSB = 0x21 ; 
           SourceAddressLSB = 0x86; 
+          
+          CurrentState = WaitingForMSBLen;
         
         }
     }
@@ -231,6 +229,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
           
         //Record length of MSB (second byte) 
           Data_Length |= (ThisEvent.EventParam <<8); //byte is length of msb
+        //  printf("\n \r DataLengthMSB = %x", ThisEvent.EventParam<<8);  
           
         //set next state to WaitingforLSB  
           CurrentState = WaitingForLSBLen; 
@@ -255,6 +254,11 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
           
         //Record length of LSB 
           Data_Length |= (ThisEvent.EventParam); //byte is the length of the LSB 
+  //        printf("\n \r Datalength = %04X", Data_Length);
+
+         //Set initial variables 
+          Computed_CheckSum = 0xFF; 
+          index = 0;  
           
         //set next state to ReceivingData  
           CurrentState = ReceivingData; 
@@ -279,20 +283,24 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
          
           //API Identifier (0x81), Source Address (0x20 and 0x8_), RSSI, and Options, data   
           RXData_Packet[index] = ThisEvent.EventParam; //frame data packet
+         //   printf("\n \r rx_data =%X", RXData_Packet[index]); 
           index ++; //increment the index by the size of the data packet
           //Compute resultant (oxff - sum) 
           Computed_CheckSum -= ThisEvent.EventParam; 
-          
-        //set next state to WaitingforLSB  
+
+       //  printf("\n \r chksum = %x" , Computed_CheckSum); 
+           if (index == 6) //DataLength)
+           {
+          //set next state to WaitingforLSB  
           CurrentState = ReceivingCheckSum; 
+           }
         } 
      }        
         break;
      
         case ReceivingCheckSum:        // If current state is state one
     {
-      switch (ThisEvent.EventType)
-      {
+ 
         if((ThisEvent.EventType == ES_TIMEOUT) && (ThisEvent.EventParam == RX_ATTEMPT_TIMER))
         {
           CurrentState = WaitingForStart; //Go back to waiting   
@@ -300,19 +308,21 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
         else if (ThisEvent.EventType == BYTE_RECEIVED)
         {
           //  printf("\r \n Arbitrary_CHK SUM %X", ThisEvent.EventParam);
-            printf("\r \n        "); 
+          //  printf("\r \n        "); 
             if (ThisEvent.EventParam  == Computed_CheckSum) // process data only for good check sum
             {
+ //              printf("\n \r chk sum is RX"); 
              //Loook at the aPI_ID to see that it was indeed for transmit
-                if ((RXData_Packet[API_Identifier_Index] == API_Identifier))
+                if (RXData_Packet[API_Identifier_Index] == API_Identifier)
                 {
                  //if there was a ACK  
-                    if((RXData_Packet[API_PACKET_HEADER] = PAIR_ACK))
+                    if(RXData_Packet[API_PACKET_HEADER] == PAIR_ACK)
                     {
-                       
+                     printf("\n \r ACK RX"); 
                       ThisEvent.EventType = ES_CONNECTIONEST; 
                        PostAnsibleMain(ThisEvent); //post the Connection is established
                        //ProcessData(); 
+                       
  
                     }
                     else
@@ -339,7 +349,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
 
         }
         
-      }  // end switch on CurrentEvent
+      
     }
     break;    
   }                                   // end switch on Current State

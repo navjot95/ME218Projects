@@ -55,10 +55,10 @@ first pass   Sai Koppaka 5/13/18
 
 /*----------------------------- Module Defines ----------------------------*/
 #define BitsPerNibble 4
-#define UART2_RX_PIN            GPIO_PIN_6 //Port D6
-#define UART2_TX_PIN            GPIO_PIN_7 //Port D7
-#define ATTEMPT_TIME            2000        //200ms
-#define PAIRING_TIME            10000       //1 sec time 
+#define UART2_RX_PIN GPIO_PIN_6 //Port D6
+#define UART2_TX_PIN GPIO_PIN_7 //Port D7
+#define ATTEMPT_TIME 2000 //200ms
+#define PAIRING_TIME 10000 //1 sec time 
 
 //Defines for Class Packets 
 #define REQ_2_PAIR              0x01
@@ -198,7 +198,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
             //set ship address (**getter function that determines ship destination address and sends dest address to ansibletx)  
             //send packet to SHIP (0x01)
              ThisEvent.EventType = ES_BEGIN_TX;
-             ThisEvent.EventParam = REQ_2_PAIR;
+             ThisEvent.EventParam = REQ_2_PAIR; //CTRL;//REQ_2_PAIR; //// REQ_2_PAIR;
              PostAnsibleTX(ThisEvent); 
               
               currentBoat = getBoatNumber(); 
@@ -253,6 +253,10 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
           //Start Attempt Timer (200ms)
           ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset timer 
           
+                       ThisEvent.EventType = ES_BEGIN_TX;
+             ThisEvent.EventParam = CTRL; //add cntrl data
+             PostAnsibleTX(ThisEvent); 
+          
           NextState = CommunicatingSHIP;  //Decide what the next state will be
         }
         break; 
@@ -264,7 +268,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
     {
       switch (ThisEvent.EventType)
       {
-        case ES_PAIRBUTTONPRESSED:  //if connection established event is posted
+    /*(   case ES_PAIRBUTTONPRESSED:  //if connection established event is posted
         {  
            //send packet to SHIP (0x01)
              ThisEvent.EventType = ES_BEGIN_TX;
@@ -279,18 +283,20 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
          // now put the machine into the actual initial state
           NextState = WaitingForPairResp;  //Decide what the next state will be
         }
-        break; 
+        break; */
         case ES_TIMEOUT:  //if connection established event is posted
         {  
           if (ThisEvent.EventParam == PAIR_ATTEMPT_TIMER)
           {
+          // printf("\r\n ATTEMPT timeout"); 
              //send CNTRL packet to SHIP 
              ThisEvent.EventType = ES_BEGIN_TX;
-             ThisEvent.EventParam = CTRL; //add cntrl data 
-             PostAnsibleTX(ThisEvent);  
-             
+             ThisEvent.EventParam = CTRL; //add cntrl data
+             PostAnsibleTX(ThisEvent); 
+           
             //reset PAIR_ATTEMPT_TIMER
             ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset 200 timer
+            ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); //reset 200 timer
             NextState = CommunicatingSHIP;  //Decide what the next state will be
           }
            if (ThisEvent.EventParam == PAIR_TIMEOUT_TIMER)

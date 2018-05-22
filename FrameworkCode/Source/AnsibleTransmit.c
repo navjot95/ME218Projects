@@ -66,6 +66,7 @@
 #define PAIR_ACK 0x02
 #define STATUS 0x04
 
+
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
@@ -83,12 +84,19 @@ static uint8_t BytesRemaining = 0;
 static uint16_t index = 0; 
 static uint8_t TXPacket_Length; 
 //static uint8_t Preamble_Length = 5;  //API_ID(1 byte), Frame_ID(1byte), dest_address (2 bytes), options(1byte) 
-static uint8_t Data_Length = 1;  //number of bytes (**arbitrarily set") 
+static uint8_t Packet; 
+
+static uint8_t Data_Length = 2;  //number of bytes (**arbitrarily set") 
 static uint8_t CHK_SUM = 1; //initialize check sum to 0xFF
 static uint8_t DestAddressLSB_val;
 static uint8_t DestAddressMSB_val; 
 //static bool receiving = false; 
 static uint8_t IDX; 
+static uint8_t TeamColor; 
+static uint8_t ShipFwdBack; 
+static uint8_t ShipYaw; 
+static uint8_t TurretYaw; 
+static uint8_t TurretPitch; 
 
 //Arrays
 static uint16_t DestAddress[11];
@@ -217,6 +225,11 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
           DestAddressMSB_val = DestAddress[boat_number - 1] >> 8;
           DestAddressLSB_val = DestAddress[boat_number - 1] & 0x00FF; 
         
+       //Set Team Color 
+        TeamColor = (HWREG(GPIO_PORTD_BASE+(GPIO_O_DATA+ALL_BITS) & BIT1HI)); 
+         // 0 = blue 
+         // 1 = red 
+
         //enable timer (testing only)
         //ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
       }
@@ -229,8 +242,7 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
       {
         case ES_BEGIN_TX:  //If event is event one
         {  
-          CurrentState = Transmitting;  //Set next state to transmitting
-          
+                 
            //reset timer (testing only)
            // ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
         
@@ -247,8 +259,9 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
               index = 0; 
               
             //Build the packet to send
-              BuildTXPacket(ThisEvent.EventParam);  
-              printf("\n \r PacketTX = %X", ThisEvent.EventParam);
+              Packet= ThisEvent.EventParam;
+              BuildTXPacket(Packet);  
+             // printf("\n \r PacketTX = %X", ThisEvent.EventParam);
             //Transmiting this packet 
            
           if((HWREG(UART2_BASE+UART_O_FR)) & ((UART_FR_TXFE)))//If TXFE is set (empty)
@@ -279,6 +292,8 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
                __enable_irq();
             //return Success 
               Ready2TX = true;
+              
+              CurrentState = Transmitting;  //Set next state to transmitting
           }
           else
           {
@@ -347,7 +362,7 @@ void AnsibleTXRXISR (void)
       HWREG(UART2_BASE+UART_O_ICR) |= UART_ICR_TXIC;
     //Write the new data to register (UARTDR)
       HWREG(UART2_BASE+UART_O_DR) = Message_Packet[IDX]; 
-     // printf("\n \r PacketTransmit = %x", Message_Packet[(IDX)]); 
+    //  printf("\n \r PacketTransmit = %x", Message_Packet[(IDX)]); 
       IDX++; 
       
   //    printf("\n \r MessagePacket = %i",Message_Packet[BytesRemaining-1]);
@@ -385,10 +400,10 @@ void AnsibleTXRXISR (void)
 //        receiving = true; 
       //Read the new data  register (UARTDR)
           ES_Event_t ThisEvent; 
-          ThisEvent.EventType = BYTE_RECEIVED; 
-          PostAnsibleRX(ThisEvent); 
+          ThisEvent.EventType = BYTE_RECEIVED;  
           ThisEvent.EventParam = HWREG(UART2_BASE+UART_O_DR); 
-         // printf("\n \r RX = %X", ThisEvent.EventParam); 
+          PostAnsibleRX(ThisEvent);
+       //  printf("\n \r RX = %X", ThisEvent.EventParam); 
    
   }
   else
@@ -477,7 +492,7 @@ void UARTHardwareInit(void){
       Message_Packet[1] = 0x00; //Data_Length = Preamble_Length + SizeofArray MSB
      // printf("\n \r %x \n \r", Message_Packet[1]); 
      
-     Message_Packet[2] = 0x06; //Data_Length = Preamble_Length + SizeofArray LSB 
+    // Message_Packet[2] = 0x07; //Data_Length = Preamble_Length + SizeofArray LSB 
     //  printf("\n \r %x \n \r", Message_Packet[2]); 
      
      Message_Packet[3] = API_Identifier;  //API_ID
@@ -498,24 +513,32 @@ void UARTHardwareInit(void){
   }
   
   
-static void BuildTXPacket(uint8_t PacketType)
+static void BuildTXPacket(uint8_t Packet)
 {
-  switch(PacketType)
+  switch(Packet)
   { 
           
-    case BUILD_REQ_2_PAIR: 
+    case REQ_2_PAIR: 
     {
       //build the preamble 
        BuildPreamble(); 
       //set index to length of preamble
       index = Preamble_Length_TX; 
-      //Add RF Data packet corresponding to REQ_2_PAIR
+      //Add RF Data packet header corresponding to REQ_2_PAIR
       Message_Packet[index] = REQ_2_PAIR; 
       //increment index
       index++; 
       //decrement BytesRemaining 
        BytesRemaining--;
-      
+      //Red or Blue state 
+       Message_Packet[index] = TeamColor; 
+      //increment index
+       index++; 
+      //decrement BytesRemaining 
+       BytesRemaining--;
+      //ModifyDataLength()
+        Message_Packet[2] = 0x07; //Data_Length = Preamble_Length + SizeofArray LSB 
+        TXPacket_Length = 11; 
       //calculate CheckSum (); 
       //store CheckSum as the next byte of Message_Packet
       Message_Packet[index] = CheckSum(); 
@@ -523,24 +546,73 @@ static void BuildTXPacket(uint8_t PacketType)
     }
     break;
     
-    case BUILD_CTRL: 
+    case CTRL: 
     {
+      //index = 0; 
       //Build Preamble 
       BuildPreamble();
       //set index to length of preamble
        index = Preamble_Length_TX; 
       //Add RF Data packet corresponding to REQ_2_PAIR
-      Message_Packet[index] = CTRL; 
+      Message_Packet[8] = CTRL; 
       //increment index
-      index++; 
+        index++; 
+      //decrement BytesRemaining 
+       BytesRemaining--;
+      
+      //Forward/Back
+       ShipFwdBack = 0x7F; 
+       Message_Packet[index] = ShipFwdBack; 
+      //increment index
+        index++; 
+      //decrement BytesRemaining 
+       BytesRemaining--;
+      
+      //Left/Right
+       ShipFwdBack = 0x7F; 
+       Message_Packet[index] = ShipFwdBack; 
+      //increment index
+        index++; 
+      //decrement BytesRemaining 
+       BytesRemaining--;
+      
+      //Ship Yaw
+       ShipYaw = 0x7F; 
+       Message_Packet[index] = ShipYaw; 
+       //increment index
+        index++; 
+      //decrement BytesRemaining 
+       BytesRemaining--;
+       
+       //Turret Yaw
+       TurretYaw = 0x7F; 
+       Message_Packet[index] = TurretYaw; 
+       //increment index
+        index++; 
+      //decrement BytesRemaining 
+       BytesRemaining--;
+       
+       //Turret Yaw
+       TurretPitch = 0x7F; 
+       Message_Packet[index] = TurretPitch; 
+         //increment index
+       index++; 
+      //decrement BytesRemaining 
+       BytesRemaining--;
+      
+       //ModifyDataLength()
+        Message_Packet[2] = 0x0B; //Data_Length = Preamble_Length + SizeofArray LSB 
+        TXPacket_Length = 0x0F; 
+      
       //calculate CheckSum (); 
       //store CheckSum as the next byte of Message_Packet
       Message_Packet[index] = CheckSum(); 
+
       
     }
     break; 
 
-    case BUILD_STATUS: 
+    case STATUS: 
     {
       //BuildPreamble
       BuildPreamble(); 
@@ -575,4 +647,5 @@ static uint8_t CheckSum(void)
   
   return computed_chksum; 
 }
+
 
