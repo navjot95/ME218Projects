@@ -38,7 +38,9 @@ uint8_t getBoatNumber( void );
 uint8_t getThrottle( void );
 uint8_t getPumpSpeed( void ); 
 uint8_t getSteering( void );
-bool shooting( void ); 
+uint8_t getPitch( void );
+uint8_t getYaw( void );
+uint8_t getControl( void ); 
 
 
 void Encoder_IOC_Response( void ); 

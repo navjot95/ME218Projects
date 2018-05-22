@@ -92,8 +92,7 @@ static uint16_t index = 0;
 
 static uint16_t Data_Length;  //number of bytes (**arbitrarily set") 
 static uint8_t Computed_CheckSum; //initialize check sum to 0xFF
-static uint8_t SourceAddressLSB;
-static uint8_t SourceAddressMSB; 
+
 
 //static bool receiving; 
 
@@ -205,8 +204,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
             //  printf("\n \r FirstByte = %X", ThisEvent.EventParam );
 
          //Get SHIPTeamSelect, Initialized to SHIP Ansible 
-          SourceAddressMSB = 0x21 ; 
-          SourceAddressLSB = 0x86; 
+
           
           CurrentState = WaitingForMSBLen;
         
@@ -373,7 +371,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-AnsibleTXState_t QueryAnsibleRX(void)
+AnsibleRXState_t QueryAnsibleRX(void)
 {
   return CurrentState;
 }

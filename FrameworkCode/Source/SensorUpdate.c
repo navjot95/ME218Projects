@@ -35,7 +35,7 @@ static const uint8_t maxBoatNumber = 11;
 static uint8_t throttle = 0;            // 0 to 255 
 static uint8_t yaw = 127;               // 0 to 255 
 static uint8_t pitch = 127;             // 0 to 255 
-static bool shoot = false;
+
 
 // ------------- Private Functions ------------
 static void InitIOC( void );
@@ -204,9 +204,19 @@ uint8_t getSteering( void )
     return 127; // TODO -- fill in with IMU data 
 }
 
-bool getShooting( void )
+uint8_t getControl( void )
 {
-    return (HWREG(GPIO_PORTB_BASE+(GPIO_O_DATA + ALL_BITS)) & SHOOT_PIN); // NOT could move this to the update 
+    uint8_t control = 0x00; 
+    if (HWREG(GPIO_PORTB_BASE+(GPIO_O_DATA + ALL_BITS)) & SHOOT_PIN)
+    {
+      control |= BIT0HI; 
+    }
+      
+    // BIT1 Self refuel
+    // TODO add in these two bits 
+    
+    // Bit 2 special function 
+    return control;
 }
 
 /****************************************************************************

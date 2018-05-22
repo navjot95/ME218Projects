@@ -56,9 +56,9 @@ first pass   Sai Koppaka 5/13/18
 /*----------------------------- Module Defines ----------------------------*/
 #define BitsPerNibble 4
 #define UART2_RX_PIN GPIO_PIN_6 //Port D6
-#define UART2_TX_PIN GPIO_PIN_7 //Port D7
-#define ATTEMPT_TIME 2000 //200ms
-#define PAIRING_TIME 10000 //1 sec time 
+#define UART2_TX_PIN        GPIO_PIN_7 //Port D7
+#define ATTEMPT_TIME              200     //200ms
+#define PAIRING_TIME            1000      //1 sec time 
 
 //Defines for Class Packets 
 #define REQ_2_PAIR              0x01
@@ -361,15 +361,7 @@ uint8_t getCurrentBoat( void )
 /***************************************************************************
  public functions
  ***************************************************************************/
-uint8_t DestAddressMSB(void)
+bool getpairStatus( void )
 {
-  static uint8_t DestAddressMSB; 
-  DestAddressMSB = 0x20; 
-  return DestAddressMSB; 
-}
-uint8_t DestAddressLSB(void)
-{
-  static uint8_t DestAddressLSB; 
-  DestAddressLSB = 0x86; 
-  return DestAddressLSB; 
+  return pair_var;
 }

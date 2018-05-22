@@ -22,6 +22,7 @@
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 
+
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -45,7 +46,7 @@
 #include "AnsibleTransmit.h"
 #include "AnsibleMain.h"
 #include "AnsibleReceive.h"
-
+#include "SensorUpdate.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 #define TX_TIME 500 //sending bits at 500ms time interval 
@@ -79,7 +80,7 @@ static uint8_t CheckSum(void);
 // type of state variable should match htat of enum in header file
 static AnsibleTXState_t CurrentState;
 //static PacketType_t  PacketType; 
-static bool Ready2TX = false; 
+//static bool Ready2TX = false; 
 static uint8_t BytesRemaining = 0; 
 static uint16_t index = 0; 
 static uint8_t TXPacket_Length; 
@@ -93,10 +94,7 @@ static uint8_t DestAddressMSB_val;
 //static bool receiving = false; 
 static uint8_t IDX; 
 static uint8_t TeamColor; 
-static uint8_t ShipFwdBack; 
-static uint8_t ShipYaw; 
-static uint8_t TurretYaw; 
-static uint8_t TurretPitch; 
+
 
 //Arrays
 static uint16_t DestAddress[11];
@@ -291,14 +289,14 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
             //Enable Interrupts globally  (also enabled in UARTinit) 
                __enable_irq();
             //return Success 
-              Ready2TX = true;
+              //Ready2TX = true;
               
               CurrentState = Transmitting;  //Set next state to transmitting
           }
           else
           {
             //return Error 
-            Ready2TX = false; 
+            //Ready2TX = false; 
           }
         }
         break;
@@ -387,7 +385,8 @@ void AnsibleTXRXISR (void)
   }
   else
   {
-    Ready2TX = false; 
+    // Ready2TX = false; 
+    // TODO -- decide to delete or not
     //you are done (not an TX interrupt)
   }
   
@@ -561,40 +560,38 @@ static void BuildTXPacket(uint8_t Packet)
        BytesRemaining--;
       
       //Forward/Back
-       ShipFwdBack = 0x7F; 
-       Message_Packet[index] = ShipFwdBack; 
+       Message_Packet[index] =  getThrottle(); 
       //increment index
         index++; 
       //decrement BytesRemaining 
        BytesRemaining--;
       
       //Left/Right
-       ShipFwdBack = 0x7F; 
-       Message_Packet[index] = ShipFwdBack; 
+
+       Message_Packet[index] = getSteering(); 
       //increment index
         index++; 
       //decrement BytesRemaining 
        BytesRemaining--;
       
-      //Ship Yaw
-       ShipYaw = 0x7F; 
-       Message_Packet[index] = ShipYaw; 
+     
+       //Turret Yaw
+
+       Message_Packet[index] = getYaw(); 
        //increment index
         index++; 
       //decrement BytesRemaining 
        BytesRemaining--;
        
        //Turret Yaw
-       TurretYaw = 0x7F; 
-       Message_Packet[index] = TurretYaw; 
-       //increment index
-        index++; 
+
+       Message_Packet[index] = getPitch(); 
+         //increment index
+       index++; 
       //decrement BytesRemaining 
        BytesRemaining--;
        
-       //Turret Yaw
-       TurretPitch = 0x7F; 
-       Message_Packet[index] = TurretPitch; 
+       Message_Packet[index] = getControl(); 
          //increment index
        index++; 
       //decrement BytesRemaining 
