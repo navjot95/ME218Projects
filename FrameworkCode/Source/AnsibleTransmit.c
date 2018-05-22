@@ -372,6 +372,7 @@ void AnsibleTXRXISR (void)
           ThisEvent.EventType = BYTE_RECEIVED; 
           PostAnsibleRX(ThisEvent); 
           ThisEvent.EventParam = HWREG(UART2_BASE+UART_O_DR); 
+         // printf("\n \r RX = %X", ThisEvent.EventParam); 
    
   }
   else
@@ -430,6 +431,8 @@ void UARTHardwareInit(void){
 
   //Enable the UART by setting the UARTEN bit in the UARTCTL register 
     HWREG(UART2_BASE + UART_O_CTL) |= (UART_CTL_UARTEN); 
+    
+   // HWREG(UART2_BASE + UART_O_CTL) |= UART_CTL_LBE;
         
   //Enable UART RX Interrupt (p.924)
     HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_RXIM | UART_IM_TXIM); 

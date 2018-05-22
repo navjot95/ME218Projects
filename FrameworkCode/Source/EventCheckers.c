@@ -127,21 +127,21 @@ bool Check4Keystroke(void)
         PostAnsibleMain(ThisEvent);
       //  ES_PostList00(ThisEvent);
     }
-     else if (ThisEvent.EventParam == 'c')
+    /* else if (ThisEvent.EventParam == 'c')
     {
       ThisEvent.EventType = ES_CONNECTIONEST; 
       PostAnsibleMain(ThisEvent);  
-    }
-     else if (ThisEvent.EventParam == 't')
+    } */ 
+   /*  else if (ThisEvent.EventParam == 't')
     {
       ByteEvent.EventType = ES_BEGIN_TX; 
       PostAnsibleTX(ByteEvent);  
-    }
-      else if (ThisEvent.EventParam == 's')
+    } */ 
+ /*     else if (ThisEvent.EventParam == 's')
     {
       ThisEvent.EventType = STATUS_RX; 
       PostAnsibleMain(ThisEvent);  
-    }
+    } */ 
     else
       
     {}; 
