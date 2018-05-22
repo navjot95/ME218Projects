@@ -37,6 +37,8 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent);
 uint8_t getBoatNumber( void );
 uint8_t getThrottle( void );
 uint8_t getPumpSpeed( void ); 
+uint8_t getSteering( void );
+bool shooting( void ); 
 
 
 void Encoder_IOC_Response( void ); 

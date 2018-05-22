@@ -467,6 +467,11 @@
               <FileType>1</FileType>
               <FilePath>.\Source\ADMulti.c</FilePath>
             </File>
+            <File>
+              <FileName>ButtonService.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\ButtonService.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -621,6 +626,16 @@
               <FileName>LCD_Write.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\LCD_Write.h</FilePath>
+            </File>
+            <File>
+              <FileName>ButtonService.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\ButtonService.h</FilePath>
+            </File>
+            <File>
+              <FileName>MPU9250_RegisterMap.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\MPU9250_RegisterMap.h</FilePath>
             </File>
           </Files>
         </Group>

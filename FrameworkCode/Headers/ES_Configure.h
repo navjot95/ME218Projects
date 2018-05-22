@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 6
+#define NUM_SERVICES 7
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -125,11 +125,11 @@
 // These are the definitions for Service 6
 #if NUM_SERVICES > 6
 // the header file with the public function prototypes
-#define SERV_6_HEADER "TestHarnessService6.h"
+#define SERV_6_HEADER "ButtonService.h"
 // the name of the Init function
-#define SERV_6_INIT InitTestHarnessService6
+#define SERV_6_INIT InitButton
 // the name of the run function
-#define SERV_6_RUN RunTestHarnessService6
+#define SERV_6_RUN RunButton
 // How big should this services Queue be?
 #define SERV_6_QUEUE_SIZE 3
 #endif
@@ -269,7 +269,8 @@ typedef enum
   ES_BEGIN_TX,
   BYTE_RECEIVED, 
   STATUS_RX, 
-  
+  ES_BUTTON_DOWN,
+  ES_BUTTON_UP,
   
   ES_NEW_KEY,               /* signals a new key received from terminal */
   ES_LOCK,
@@ -309,7 +310,7 @@ typedef enum
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST Check4Keystroke
+#define EVENT_CHECK_LIST Check4Keystroke, CheckButtonEvents
 
 /****************************************************************************/
 // These are the definitions for the post functions to be executed when the
@@ -326,7 +327,7 @@ typedef enum
 #define TIMER5_RESP_FUNC PostScreenService
 #define TIMER6_RESP_FUNC PostAnsibleTX
 #define TIMER7_RESP_FUNC PostAnsibleRX
-#define TIMER8_RESP_FUNC TIMER_UNUSED
+#define TIMER8_RESP_FUNC PostButton
 #define TIMER9_RESP_FUNC TIMER_UNUSED
 #define TIMER10_RESP_FUNC TIMER_UNUSED
 #define TIMER11_RESP_FUNC TIMER_UNUSED
@@ -342,15 +343,16 @@ typedef enum
 // the timer number matches where the timer event will be routed
 // These symbolic names should be changed to be relevant to your application
 
-#define IMU_TIMER 0
-#define PAIR_ATTEMPT_TIMER 1
-#define PAIR_TIMEOUT_TIMER 2
-#define SENSOR_UPDATE_TIMER 3
-#define DEBOUNCE_TIMER 4
-#define SCREEN_UPDATE_TIMER 5
-#define TX_ATTEMPT_TIMER 6
-#define RX_ATTEMPT_TIMER 7
-#define SERVICE0_TIMER 15
+#define IMU_TIMER               0
+#define PAIR_ATTEMPT_TIMER      1
+#define PAIR_TIMEOUT_TIMER      2
+#define SENSOR_UPDATE_TIMER     3
+#define DEBOUNCE_TIMER          4
+#define SCREEN_UPDATE_TIMER     5
+#define TX_ATTEMPT_TIMER        6
+#define RX_ATTEMPT_TIMER        7
+#define BUTTON_DEBOUNCE_TIMER   8
+#define SERVICE0_TIMER          15
 /**************************************************************************/
 // uncomment this ine to get some basic framework operation debugging on
 // PF1 & PF2

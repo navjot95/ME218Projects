@@ -23,5 +23,6 @@
 
 bool Check4Keystroke(void);
 bool CheckKey(void); 
+bool CheckButtonEvents( void ); 
 
 #endif /* EventCheckers_H */

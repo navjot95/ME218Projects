@@ -19,6 +19,10 @@ first pass   Sai Koppaka 5/13/18
 /* include header files for this state machine as well as any machines at the
    next lower level in the hierarchy that are sub-machines to this machine
 */
+
+#include "SensorUpdate.h"
+
+
 #include "ES_Configure.h"
 #include "ES_Framework.h"
 
@@ -51,16 +55,16 @@ first pass   Sai Koppaka 5/13/18
 
 /*----------------------------- Module Defines ----------------------------*/
 #define BitsPerNibble 4
-#define UART2_RX_PIN GPIO_PIN_6 //Port D6
-#define UART2_TX_PIN GPIO_PIN_7 //Port D7
-#define ATTEMPT_TIME 2000 //200ms
-#define PAIRING_TIME 10000 //1 sec time 
+#define UART2_RX_PIN            GPIO_PIN_6 //Port D6
+#define UART2_TX_PIN            GPIO_PIN_7 //Port D7
+#define ATTEMPT_TIME            2000        //200ms
+#define PAIRING_TIME            10000       //1 sec time 
 
 //Defines for Class Packets 
-#define REQ_2_PAIR 0x01
-#define CTRL 0x03 
-#define PAIR_ACK 0x02
-#define STATUS 0x04
+#define REQ_2_PAIR              0x01
+#define CTRL                    0x03 
+#define PAIR_ACK                0x02
+#define STATUS                  0x04
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -75,6 +79,7 @@ static AnsibleMainState_t CurrentState;
 
 //Module Level Variables 
 static bool pair_var; 
+static uint8_t currentBoat = 6; 
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -195,6 +200,8 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
              ThisEvent.EventType = ES_BEGIN_TX;
              ThisEvent.EventParam = REQ_2_PAIR;
              PostAnsibleTX(ThisEvent); 
+              
+              currentBoat = getBoatNumber(); 
               
              printf("\n \r ES_PairButtonPressed");
              printf("\n \r EventParam = %x", ThisEvent.EventParam);
@@ -334,6 +341,11 @@ AnsibleMainState_t QueryAnsible(void)
   return CurrentState;
 }
 
+
+uint8_t getCurrentBoat( void )
+{
+    return currentBoat; 
+}
 /***************************************************************************
  private functions
  ***************************************************************************/

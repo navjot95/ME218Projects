@@ -46,6 +46,7 @@
 #include "AnsibleMain.h"
 #include "AnsibleReceive.h"
 
+
 /*----------------------------- Module Defines ----------------------------*/
 #define TX_TIME 500 //sending bits at 500ms time interval 
 #define BitsPerNibble 4
@@ -90,6 +91,7 @@ static uint8_t DestAddressMSB_val;
 static uint8_t IDX; 
 
 //Arrays
+static uint16_t DestAddress[11];
 static uint8_t Message_Packet[100]; //***setting initial large value of array*** needs change
 uint8_t RXMessage_Packet[100]; //not static because I want to access from AnsibleRX 
 
@@ -117,29 +119,41 @@ static uint8_t MyPriority;
 ****************************************************************************/
 bool InitAnsibleTX(uint8_t Priority)
 {
-  ES_Event_t ThisEvent;
+    DestAddress[0] = 0x2086; // = DestAddressMSB(); //= 0x20; 
+    DestAddress[1] = 0x2086;
+    DestAddress[2] = 0x2086;
+    DestAddress[3] = 0x2086;
+    DestAddress[4] = 0x2086;
+    DestAddress[5] = 0x2086;
+    DestAddress[6] = 0x2086;
+    DestAddress[7] = 0x2086;
+    DestAddress[8] = 0x2086;
+    DestAddress[9] = 0x2086;
+    DestAddress[10] = 0x2086;
+    
+    ES_Event_t ThisEvent;
 
-  MyPriority = Priority;
-  // put us into the Initial state
+    MyPriority = Priority;
+    // put us into the Initial state
     CurrentState = InitTX;  
 
    //Initialize UART HW
    // UARTHardwareInit();  
   
-  //Disable UART TX Interrupt so that default is RX 
+    //Disable UART TX Interrupt so that default is RX 
     HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_TXIM); 
   
-  // post the initial transition event
+    // post the initial transition event
     ThisEvent.EventType = ES_INIT;
   
-  if (ES_PostToService(MyPriority, ThisEvent) == true)
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+    if (ES_PostToService(MyPriority, ThisEvent) == true)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 /****************************************************************************
@@ -197,8 +211,11 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
         CurrentState = WaitingToTX;
         
         //Get SHIPTeamSelect, Initialized to SHIP Ansible 
-       DestAddressMSB_val = 0x20; // = DestAddressMSB(); //= 0x20; 
-       DestAddressLSB_val = 0x86;//DestAddressLSB(); // = 0x86; 
+    //   DestAddressMSB_val = 0x20; // = DestAddressMSB(); //= 0x20; 
+      // DestAddressLSB_val = 0x86;//DestAddressLSB(); // = 0x86; 
+          uint8_t boat_number = getCurrentBoat(); 
+          DestAddressMSB_val = DestAddress[boat_number - 1] >> 8;
+          DestAddressLSB_val = DestAddress[boat_number - 1] & 0x00FF; 
         
         //enable timer (testing only)
         //ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 

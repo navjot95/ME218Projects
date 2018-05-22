@@ -17,13 +17,15 @@
 typedef enum{InitAnsible, WaitingForPair, WaitingForPairResp, CommunicatingSHIP} AnsibleMainState_t; 
 
 // Public Function Prototypes
-void UARTHardwareInit(void); //initialize the UART hardware
-uint8_t DestAddressLSB(void); //get dest address
-uint8_t DestAddressLSB(void);  //get dest address
+void UARTHardwareInit( void ); //initialize the UART hardware
+uint8_t getCurrentBoat( void ); 
+
 
 bool InitAnsibleMain(uint8_t Priority);
 bool PostAnsibleMain(ES_Event_t ThisEvent);
 ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent);
 
-#endif 
 
+
+
+#endif 

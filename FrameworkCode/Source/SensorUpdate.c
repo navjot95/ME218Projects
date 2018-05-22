@@ -14,27 +14,32 @@
 
 #include "SensorUpdate.h"
 
-#define MAX_AD 4095                     // for AD readings 
-#define DEBOUNCE_TIME 100                 // ms 
+#define MAX_AD              4095                // for AD readings 
+#define DEBOUNCE_TIME        100                // ms 
+#define THROTTLE_MIN          10
+#define MAX_8BIT             255
 
 // Port A 
-#define ENCODER_A BIT6HI                // encoder channel A
-#define ENCODER_B BIT7HI                // encoder channel B 
-#define PUMP_MIN 10
+#define ENCODER_A         BIT6HI                // encoder channel A
+#define ENCODER_B         BIT7HI                // encoder channel B 
 
-
+// Port B
+#define SHOOT_PIN         BIT2HI                // for shooting water 
+    
 static uint8_t MyPriority;
 static uint8_t updateInterval = 100;    // milliseconds (10 Hz refresh rate)
 
 static uint8_t boatNumber = 6;          // start at 6 (our team)
 static const uint8_t maxBoatNumber = 11; 
 
-static uint8_t throttle = 0;            // 0 to 100 
-static uint8_t pumpSpeed = 0;           // 0 to 100 
-
+static uint8_t throttle = 0;            // 0 to 255 
+static uint8_t yaw = 127;               // 0 to 255 
+static uint8_t pitch = 127;             // 0 to 255 
+static bool shoot = false;
 
 // ------------- Private Functions ------------
 static void InitIOC( void );
+
 
 
 
@@ -60,6 +65,15 @@ bool InitSensorUpdate( uint8_t Priority )
     bool returnValue = false;
 
     InitIOC();      // initialize IOC
+    
+    // Will use port B 
+    HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R1; // PORT B
+    while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R1) != SYSCTL_PRGPIO_R1)
+        ;
+    HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= SHOOT_PIN; // Digital Enable
+    HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) &= SHOOT_PIN; // Set output (clear bit)
+    HWREG(GPIO_PORTB_BASE+GPIO_O_PUR) |= SHOOT_PIN; // enable pullup 
+
   
 	//Initialize one Analog Input (on PE0) with ADC_MultiInit
     // PE0 - throttle input 
@@ -119,23 +133,24 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
 		ES_Timer_InitTimer(SENSOR_UPDATE_TIMER, updateInterval);
 
         //read AD value 
-        uint32_t analogIn[2]; // to store AD value      
+        uint32_t analogIn[3]; // to store AD value      
         ADC_MultiRead(analogIn);
 
-        throttle =  ((100 * analogIn[0])/MAX_AD);   
-        pumpSpeed = 130 * ((MAX_AD - analogIn[1])/(MAX_AD + 0.0));    
+        throttle = 255*((MAX_8BIT * analogIn[0])/MAX_AD);   
+        yaw = 255*((MAX_AD - analogIn[1])/(MAX_AD + 0.0));   
+        pitch = 255*((MAX_AD - analogIn[1])/(MAX_AD + 0.0));   
 
-        if (pumpSpeed < PUMP_MIN)
+        if (throttle < THROTTLE_MIN)
         {
-            pumpSpeed = 0;
+            throttle = 0;
         } 
-        else if (pumpSpeed > 100)
+        else if (throttle > 255)
         {
-            pumpSpeed = 100;
+            throttle = 255;
         }
         
         #ifdef SENSOR_DEBUG
-            printf("\r\n Boat Number: %i, Throttle: %i, Pump: %i", boatNumber, throttle, pumpSpeed);
+            printf("\r\n Boat Number: %i, Throttle: %i, Yaw: %i, Pitch: %i", boatNumber, throttle, yaw, pitch);
         #endif 
 
 
@@ -174,11 +189,25 @@ uint8_t getThrottle( void )
     return throttle; 
 }
 
-uint8_t getPumpSpeed( void )
+uint8_t getPitch( void )
 {
-    return pumpSpeed; 
+    return pitch; 
 } 
 
+uint8_t getYaw( void )
+{
+    return yaw; 
+} 
+
+uint8_t getSteering( void )
+{
+    return 127; // TODO -- fill in with IMU data 
+}
+
+bool getShooting( void )
+{
+    return (HWREG(GPIO_PORTB_BASE+(GPIO_O_DATA + ALL_BITS)) & SHOOT_PIN); // NOT could move this to the update 
+}
 
 /****************************************************************************
  Function
