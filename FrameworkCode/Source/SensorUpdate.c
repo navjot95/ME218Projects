@@ -23,7 +23,7 @@
 #define ENCODER_A         BIT6HI                // encoder channel A
 #define ENCODER_B         BIT7HI                // encoder channel B 
 
-// Port B
+// Port D
 #define SHOOT_PIN         BIT2HI                // for shooting water 
     
 static uint8_t MyPriority;
@@ -67,12 +67,12 @@ bool InitSensorUpdate( uint8_t Priority )
     InitIOC();      // initialize IOC
     
     // Will use port B 
-    HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R1; // PORT B
-    while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R1) != SYSCTL_PRGPIO_R1)
+    HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R3; // PORT D
+    while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R3) != SYSCTL_PRGPIO_R3)
         ;
-    HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= SHOOT_PIN; // Digital Enable
-    HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) &= SHOOT_PIN; // Set output (clear bit)
-    HWREG(GPIO_PORTB_BASE+GPIO_O_PUR) |= SHOOT_PIN; // enable pullup 
+    HWREG(GPIO_PORTD_BASE+GPIO_O_DEN) |= SHOOT_PIN; // Digital Enable
+    HWREG(GPIO_PORTD_BASE+GPIO_O_DIR) &= SHOOT_PIN; // Set output (clear bit)
+    HWREG(GPIO_PORTD_BASE+GPIO_O_PUR) |= SHOOT_PIN; // enable pullup 
 
   
 	//Initialize one Analog Input (on PE0) with ADC_MultiInit

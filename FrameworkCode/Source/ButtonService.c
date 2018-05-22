@@ -24,7 +24,7 @@ Date:
 #include "AnsibleMain.h"
 
 /*----------------------------- Defines ------------------------------------*/
-#define INPUT_PORT_BASE GPIO_PORTB_BASE // using port B for button
+#define INPUT_PORT_BASE GPIO_PORTD_BASE // using port B for button
 #define BUTTON_PIN BIT0HI
 #define BUTTON_DEBOUNCE_TIME 50 // 50 msec for debouncing 
 
@@ -59,13 +59,13 @@ bool InitButton( uint8_t Priority)
     bool returnValue = false;
     MyPriority = Priority; // assign to static variable 
 
-    // Will use port B 
-    HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R1; // PORT B
-    while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R1) != SYSCTL_PRGPIO_R1)
+    // Will use port D
+    HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R3; // PORT D
+    while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R3) != SYSCTL_PRGPIO_R3)
         ;
     HWREG(INPUT_PORT_BASE+GPIO_O_DEN) |= BUTTON_PIN; // Digital Enable
     HWREG(INPUT_PORT_BASE+GPIO_O_DIR) &= ~BUTTON_PIN; // Set output (clear bit)
-    HWREG(GPIO_PORTB_BASE+GPIO_O_PUR) |= BUTTON_PIN; // enable pullup 
+    HWREG(INPUT_PORT_BASE+GPIO_O_PUR) |= BUTTON_PIN; // enable pullup 
 
 
     // Read the state of the input 
