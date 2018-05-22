@@ -65,6 +65,7 @@
 #define PAIR_ACK 0x02
 #define STATUS 0x04
 
+
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
@@ -208,6 +209,11 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
        DestAddressMSB_val = 0x20; // = DestAddressMSB(); //= 0x20; 
        DestAddressLSB_val = 0x86;//DestAddressLSB(); // = 0x86; 
         
+       //Set Team Color 
+        TeamColor = (HWREG(GPIO_PORTD_BASE+(GPIO_O_DATA+ALL_BITS) & BIT1HI)); 
+         // 0 = blue 
+         // 1 = red 
+
         //enable timer (testing only)
         //ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
       }
@@ -509,7 +515,6 @@ static void BuildTXPacket(uint8_t Packet)
       //decrement BytesRemaining 
        BytesRemaining--;
       //Red or Blue state 
-       TeamColor = 0x00; 
        Message_Packet[index] = TeamColor; 
       //increment index
        index++; 
