@@ -40,6 +40,9 @@
 #include "driverlib/gpio.h"
 
 #include "LCD_Write.h"
+#include "SensorUpdate.h"
+#include "AnsibleMain.h"
+#include "AnsibleReceive.h"
 
 /*----------------------------- Module Defines ----------------------------*/
 // these times assume a 1.000mS/tick timing

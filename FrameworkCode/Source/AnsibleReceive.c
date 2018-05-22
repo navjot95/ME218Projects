@@ -51,7 +51,7 @@
 #define BitsPerNibble 4
 #define UART2_RX_PIN GPIO_PIN_6 //Port D6
 #define UART2_TX_PIN GPIO_PIN_7 //Port D7
-
+#define FUEL_IDX            6       // byte position in packet 
 
 //Defines for XBee
 #define Start_Delimiter 0x7E
@@ -92,7 +92,7 @@ static uint16_t index = 0;
 
 static uint16_t Data_Length;  //number of bytes (**arbitrarily set") 
 static uint8_t Computed_CheckSum; //initialize check sum to 0xFF
-
+static uint8_t fuelStatus; 
 
 //static bool receiving; 
 
@@ -330,10 +330,12 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
                         //PostAnsibleMaster(ThisEvent); 
                         CurrentState = WaitingForStart; //Go back to waiting 
                     }
-                   /* if((RXData_Packet[API_PACKET_HEADER] = STATUS))
+                    
+                    if((RXData_Packet[API_PACKET_HEADER] = STATUS))
                     {
                        //call different functions to deal with this    
-                    }*/
+                       fuelStatus = RXData_Packet[FUEL_IDX]; 
+                    }
                 }
             }
             else
@@ -379,7 +381,10 @@ AnsibleRXState_t QueryAnsibleRX(void)
 /***************************************************************************
  public functions
  ***************************************************************************/
-
+uint8_t getFuelStatus ( void )
+{
+  return fuelStatus; 
+}
 ///PUBLIC FUNCTIONS//
  /***************************************************************************
  private functions

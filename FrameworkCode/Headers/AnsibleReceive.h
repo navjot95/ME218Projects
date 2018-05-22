@@ -21,6 +21,7 @@ typedef enum{WaitingForStart, WaitingForMSBLen, WaitingForLSBLen,ReceivingData,R
 bool InitAnsibleRX(uint8_t Priority);
 bool PostAnsibleRX(ES_Event_t ThisEvent);
 ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent);
+uint8_t getFuelStatus ( void ); 
 
 #endif 
 
