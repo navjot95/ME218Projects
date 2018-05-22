@@ -77,7 +77,6 @@ static uint8_t CheckSum(void);
 // type of state variable should match htat of enum in header file
 static AnsibleTXState_t CurrentState;
 //static PacketType_t  PacketType; 
-
 static bool Ready2TX = false; 
 static uint8_t BytesRemaining = 0; 
 static uint16_t index = 0; 

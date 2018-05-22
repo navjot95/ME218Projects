@@ -447,6 +447,26 @@
               <FileType>1</FileType>
               <FilePath>.\Source\AnsibleMain.c</FilePath>
             </File>
+            <File>
+              <FileName>SensorUpdate.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\SensorUpdate.c</FilePath>
+            </File>
+            <File>
+              <FileName>IMU_SPI.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\IMU_SPI.c</FilePath>
+            </File>
+            <File>
+              <FileName>ScreenService.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\ScreenService.c</FilePath>
+            </File>
+            <File>
+              <FileName>ADMulti.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\ADMulti.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -571,6 +591,36 @@
               <FileName>AnsibleMain.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\AnsibleMain.h</FilePath>
+            </File>
+            <File>
+              <FileName>IMU_SPI.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\IMU_SPI.h</FilePath>
+            </File>
+            <File>
+              <FileName>SensorUpdate.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\SensorUpdate.h</FilePath>
+            </File>
+            <File>
+              <FileName>ADMulti.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\ADMulti.h</FilePath>
+            </File>
+            <File>
+              <FileName>ScreenService.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\ScreenService.h</FilePath>
+            </File>
+            <File>
+              <FileName>LCD_Write.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\LCD_Write.c</FilePath>
+            </File>
+            <File>
+              <FileName>LCD_Write.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\LCD_Write.h</FilePath>
             </File>
           </Files>
         </Group>

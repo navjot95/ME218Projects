@@ -92,8 +92,8 @@ static uint16_t index = 0;
 
 static uint16_t Data_Length;  //number of bytes (**arbitrarily set") 
 static uint8_t Computed_CheckSum; //initialize check sum to 0xFF
-static uint8_t SourceAddressLSB = 0x00;
-static uint8_t SourceAddressMSB = 0x00; 
+static uint8_t SourceAddressLSB;
+static uint8_t SourceAddressMSB; 
 
 //static bool receiving; 
 

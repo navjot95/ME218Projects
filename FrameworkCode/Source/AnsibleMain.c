@@ -74,7 +74,7 @@ static AnsibleMainState_t CurrentState;
 
 
 //Module Level Variables 
-static bool pair_var = false; 
+static bool pair_var; 
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;

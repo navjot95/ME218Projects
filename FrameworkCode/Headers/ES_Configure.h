@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 3
+#define NUM_SERVICES 6
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -57,19 +57,11 @@
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public function prototypes
-<<<<<<< HEAD
 #define SERV_1_HEADER "IMU_SPI.h"
 // the name of the Init function
 #define SERV_1_INIT InitIMU
 // the name of the run function
 #define SERV_1_RUN RunIMU
-=======
-#define SERV_1_HEADER "AnsibleTransmit.h"
-// the name of the Init function
-#define SERV_1_INIT InitAnsibleTX
-// the name of the run function
-#define SERV_1_RUN RunAnsibleTXSM
->>>>>>> AnsibleMain
 // How big should this services Queue be?
 #define SERV_1_QUEUE_SIZE 10
 #endif
@@ -117,11 +109,12 @@
 // These are the definitions for Service 5
 #if NUM_SERVICES > 5
 // the header file with the public function prototypes
-#define SERV_5_HEADER "TestHarnessService5.h"
+
+#define SERV_5_HEADER "AnsibleTransmit.h"
 // the name of the Init function
-#define SERV_5_INIT InitTestHarnessService5
+#define SERV_5_INIT InitAnsibleTX
 // the name of the run function
-#define SERV_5_RUN RunTestHarnessService5
+#define SERV_5_RUN RunAnsibleTXSM
 // How big should this services Queue be?
 #define SERV_5_QUEUE_SIZE 3
 #endif
@@ -325,23 +318,14 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
-<<<<<<< HEAD
-#define TIMER0_RESP_FUNC TIMER_UNUSED
-#define TIMER1_RESP_FUNC TIMER_UNUSED
-#define TIMER2_RESP_FUNC TIMER_UNUSED
+#define TIMER0_RESP_FUNC PostIMU
+#define TIMER1_RESP_FUNC PostAnsibleMain
+#define TIMER2_RESP_FUNC PostAnsibleMain
 #define TIMER3_RESP_FUNC PostSensorUpdate
 #define TIMER4_RESP_FUNC PostSensorUpdate
 #define TIMER5_RESP_FUNC PostScreenService
-=======
-#define TIMER0_RESP_FUNC TIMER_UNUSED  //Imu timer
-#define TIMER1_RESP_FUNC PostAnsibleMain //200ms 
-#define TIMER2_RESP_FUNC PostAnsibleMain //1sec 
-#define TIMER3_RESP_FUNC PostAnsibleTX
-#define TIMER4_RESP_FUNC PostAnsibleRX
-#define TIMER5_RESP_FUNC TIMER_UNUSED
->>>>>>> AnsibleMain
-#define TIMER6_RESP_FUNC TIMER_UNUSED
-#define TIMER7_RESP_FUNC TIMER_UNUSED
+#define TIMER6_RESP_FUNC PostAnsibleTX
+#define TIMER7_RESP_FUNC PostAnsibleRX
 #define TIMER8_RESP_FUNC TIMER_UNUSED
 #define TIMER9_RESP_FUNC TIMER_UNUSED
 #define TIMER10_RESP_FUNC TIMER_UNUSED
@@ -359,14 +343,14 @@ typedef enum
 // These symbolic names should be changed to be relevant to your application
 
 #define IMU_TIMER 0
+#define PAIR_ATTEMPT_TIMER 1
+#define PAIR_TIMEOUT_TIMER 2
 #define SENSOR_UPDATE_TIMER 3
 #define DEBOUNCE_TIMER 4
 #define SCREEN_UPDATE_TIMER 5
+#define TX_ATTEMPT_TIMER 6
+#define RX_ATTEMPT_TIMER 7
 #define SERVICE0_TIMER 15
-#define PAIR_ATTEMPT_TIMER 1
-#define PAIR_TIMEOUT_TIMER 2
-#define TX_ATTEMPT_TIMER 3
-#define RX_ATTEMPT_TIMER 4
 /**************************************************************************/
 // uncomment this ine to get some basic framework operation debugging on
 // PF1 & PF2

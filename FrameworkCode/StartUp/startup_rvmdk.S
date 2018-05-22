@@ -81,11 +81,8 @@ __heap_limit
         EXTERN  SysTickIntHandler
         EXTERN  ShortTimerAHandler
         EXTERN  ShortTimerBHandler
-<<<<<<< HEAD
         EXTERN SPI_IntResponse
-=======
         EXTERN  AnsibleTXRXISR 
->>>>>>> AnsibleMain
 ;        EXTERN  UARTStdioIntHandler
         EXTERN Encoder_IOC_Response
 

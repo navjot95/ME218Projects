@@ -109,7 +109,7 @@ bool Check4Keystroke(void)
   if (IsNewKeyReady())   // new key waiting?
   {
     ES_Event_t ThisEvent;
-    ES_Event_t ByteEvent;
+//    ES_Event_t ByteEvent;
     ThisEvent.EventType   = ES_NEW_KEY;
     ThisEvent.EventParam  = GetNewKey();
     // test distribution list functionality by sending the 'L' key out via
