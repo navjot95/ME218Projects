@@ -1,23 +1,19 @@
 /****************************************************************************
  Module
-   TemplateFSM.c
+ AnsibleMain.c
 
  Revision
    1.0.1
 
  Description
-   This is a template file for implementing flat state machines under the
-   Gen2 Events and Services Framework.
+  Service to interface with the controller 
 
  Notes
 
  History
  When           Who     What/Why
  -------------- ---     --------
- 01/15/12 11:12 jec      revisions for Gen2 framework
- 11/07/11 11:26 jec      made the queue static
- 10/30/11 17:59 jec      fixed references to CurrentEvent in RunTemplateSM()
- 10/23/11 18:20 jec      began conversion from SMTemplate.c (02/20/07 rev)
+first pass      s koppaka 
 ****************************************************************************/
 /*----------------------------- Include Files -----------------------------*/
 /* include header files for this state machine as well as any machines at the
@@ -123,6 +119,7 @@ ES_Event_t RunTemplateFSM(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
+  
 
   switch (CurrentState)
   {

@@ -433,34 +433,19 @@
               <FilePath>.\Source\TemplateFSM.c</FilePath>
             </File>
             <File>
-              <FileName>IMU_SPI.c</FileName>
+              <FileName>AnsibleTransmit.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Source\IMU_SPI.c</FilePath>
+              <FilePath>.\Source\AnsibleTransmit.c</FilePath>
             </File>
             <File>
-              <FileName>ES_Framework.c</FileName>
+              <FileName>AnsibleReceive.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Source\ES_Framework.c</FilePath>
+              <FilePath>.\Source\AnsibleReceive.c</FilePath>
             </File>
             <File>
-              <FileName>LCD_Write.c</FileName>
+              <FileName>AnsibleMain.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Source\LCD_Write.c</FilePath>
-            </File>
-            <File>
-              <FileName>MotorModule.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\MotorModule.c</FilePath>
-            </File>
-            <File>
-              <FileName>ScreenService.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\ScreenService.c</FilePath>
-            </File>
-            <File>
-              <FileName>SensorUpdate.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\SensorUpdate.c</FilePath>
+              <FilePath>.\Source\AnsibleMain.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -573,34 +558,19 @@
               <FilePath>.\Headers\ES_ShortTimer.h</FilePath>
             </File>
             <File>
-              <FileName>IMU_SPI.h</FileName>
+              <FileName>AnsibleTransmit.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Headers\IMU_SPI.h</FilePath>
+              <FilePath>.\Headers\AnsibleTransmit.h</FilePath>
             </File>
             <File>
-              <FileName>MPU9250_RegisterMap.h</FileName>
+              <FileName>AnsibleReceive.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Headers\MPU9250_RegisterMap.h</FilePath>
+              <FilePath>.\Headers\AnsibleReceive.h</FilePath>
             </File>
             <File>
-              <FileName>LCD_Write.h</FileName>
+              <FileName>AnsibleMain.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Headers\LCD_Write.h</FilePath>
-            </File>
-            <File>
-              <FileName>MotorModule.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Headers\MotorModule.h</FilePath>
-            </File>
-            <File>
-              <FileName>ScreenService.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Headers\ScreenService.h</FilePath>
-            </File>
-            <File>
-              <FileName>SensorUpdate.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\Headers\SensorUpdate.h</FilePath>
+              <FilePath>.\Headers\AnsibleMain.h</FilePath>
             </File>
           </Files>
         </Group>

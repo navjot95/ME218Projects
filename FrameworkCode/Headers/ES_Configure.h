@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 1
+#define NUM_SERVICES 3
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -41,11 +41,11 @@
 // services are added in numeric sequence (1,2,3,...) with increasing
 // priorities
 // the header file with the public function prototypes
-#define SERV_0_HEADER "TestHarnessService0.h"
+#define SERV_0_HEADER "AnsibleMain.h"
 // the name of the Init function
-#define SERV_0_INIT InitTestHarnessService0
+#define SERV_0_INIT InitAnsibleMain
 // the name of the run function
-#define SERV_0_RUN RunTestHarnessService0
+#define SERV_0_RUN RunAnsibleMainSM
 // How big should this services Queue be?
 #define SERV_0_QUEUE_SIZE 5
 
@@ -57,24 +57,32 @@
 // These are the definitions for Service 1
 #if NUM_SERVICES > 1
 // the header file with the public function prototypes
+<<<<<<< HEAD
 #define SERV_1_HEADER "IMU_SPI.h"
 // the name of the Init function
 #define SERV_1_INIT InitIMU
 // the name of the run function
 #define SERV_1_RUN RunIMU
+=======
+#define SERV_1_HEADER "AnsibleTransmit.h"
+// the name of the Init function
+#define SERV_1_INIT InitAnsibleTX
+// the name of the run function
+#define SERV_1_RUN RunAnsibleTXSM
+>>>>>>> AnsibleMain
 // How big should this services Queue be?
-#define SERV_1_QUEUE_SIZE 3
+#define SERV_1_QUEUE_SIZE 10
 #endif
 
 /****************************************************************************/
 // These are the definitions for Service 2
 #if NUM_SERVICES > 2
 // the header file with the public function prototypes
-#define SERV_2_HEADER "TestHarnessService2.h"
+#define SERV_2_HEADER "AnsibleReceive.h"
 // the name of the Init function
-#define SERV_2_INIT InitTestHarnessService2
+#define SERV_2_INIT InitAnsibleRX
 // the name of the run function
-#define SERV_2_RUN RunTestHarnessService2
+#define SERV_2_RUN RunAnsibleRXSM
 // How big should this services Queue be?
 #define SERV_2_QUEUE_SIZE 3
 #endif
@@ -261,6 +269,15 @@ typedef enum
   ES_TIMEOUT,               /* signals that the timer has expired */
   ES_SHORT_TIMEOUT,         /* signals that a short timer has expired */
   /* User-defined events start here */
+  ES_STATUSRECEIVED,
+  ES_PAIRBUTTONPRESSED,
+  ES_CONNECTIONEST,
+  ES_TX_COMPLETE,
+  ES_BEGIN_TX,
+  BYTE_RECEIVED, 
+  STATUS_RX, 
+  
+  
   ES_NEW_KEY,               /* signals a new key received from terminal */
   ES_LOCK,
   ES_UNLOCK,
@@ -273,10 +290,10 @@ typedef enum
 // services are on that distribution list.
 #define NUM_DIST_LISTS 0
 #if NUM_DIST_LISTS > 0
-#define DIST_LIST0 PostTestHarnessService0, PostTestHarnessService0
+#define DIST_LIST0 PostAnsibleRX
 #endif
 #if NUM_DIST_LISTS > 1
-#define DIST_LIST1 PostTestHarnessService1, PostTestHarnessService1
+#define DIST_LIST1 PostAnsibleRX
 #endif
 #if NUM_DIST_LISTS > 2
 #define DIST_LIST2 PostTemplateFSM
@@ -308,12 +325,21 @@ typedef enum
 // Unlike services, any combination of timers may be used and there is no
 // priority in servicing them
 #define TIMER_UNUSED ((pPostFunc)0)
+<<<<<<< HEAD
 #define TIMER0_RESP_FUNC TIMER_UNUSED
 #define TIMER1_RESP_FUNC TIMER_UNUSED
 #define TIMER2_RESP_FUNC TIMER_UNUSED
 #define TIMER3_RESP_FUNC PostSensorUpdate
 #define TIMER4_RESP_FUNC PostSensorUpdate
 #define TIMER5_RESP_FUNC PostScreenService
+=======
+#define TIMER0_RESP_FUNC TIMER_UNUSED  //Imu timer
+#define TIMER1_RESP_FUNC PostAnsibleMain //200ms 
+#define TIMER2_RESP_FUNC PostAnsibleMain //1sec 
+#define TIMER3_RESP_FUNC PostAnsibleTX
+#define TIMER4_RESP_FUNC PostAnsibleRX
+#define TIMER5_RESP_FUNC TIMER_UNUSED
+>>>>>>> AnsibleMain
 #define TIMER6_RESP_FUNC TIMER_UNUSED
 #define TIMER7_RESP_FUNC TIMER_UNUSED
 #define TIMER8_RESP_FUNC TIMER_UNUSED
@@ -337,7 +363,10 @@ typedef enum
 #define DEBOUNCE_TIMER 4
 #define SCREEN_UPDATE_TIMER 5
 #define SERVICE0_TIMER 15
-
+#define PAIR_ATTEMPT_TIMER 1
+#define PAIR_TIMEOUT_TIMER 2
+#define TX_ATTEMPT_TIMER 3
+#define RX_ATTEMPT_TIMER 4
 /**************************************************************************/
 // uncomment this ine to get some basic framework operation debugging on
 // PF1 & PF2

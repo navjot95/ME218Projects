@@ -37,7 +37,6 @@
 // include our own prototypes to insure consistency between header &
 // actual functionsdefinition
 #include "EventCheckers.h"
-#include "ScreenService.h"
 
 // This is the event checking function sample. It is not intended to be
 // included in the module. It is only here as a sample to guide you in writing
@@ -109,49 +108,49 @@ bool Check4Keystroke(void)
 {
   if (IsNewKeyReady())   // new key waiting?
   {
-//    ES_Event_t ThisEvent;
-//    ThisEvent.EventType   = ES_NEW_KEY;
-//    ThisEvent.EventParam  = GetNewKey();
-      /*
-    static bool pairStatus = 0;
-    static bool addrStatus = 0; 
-    static bool fuelStatus = 0;   
-     */
-    
+    ES_Event_t ThisEvent;
+    ES_Event_t ByteEvent;
+    ThisEvent.EventType   = ES_NEW_KEY;
+    ThisEvent.EventParam  = GetNewKey();
     // test distribution list functionality by sending the 'L' key out via
     // a distribution list.
-//    if (ThisEvent.EventParam == 'L')
-//    {
-//      ES_PostList00(ThisEvent);
-//    }
-//    else     // otherwise post to Service 0 for processing
-//    {
-//      PostTestHarnessService0(ThisEvent);
-//    }
-    
-    /*
-    if(ThisEvent.EventParam == 'p'){
-      pairStatus ^= 1; 
-      updateConnection(pairStatus); 
-      printf("Status updated\n\r"); 
+  /*  if (ThisEvent.EventParam == 'b')
+    {
+      
+      ThisEvent.EventType = BYTE_RECEIVED; 
+      ThisEvent.EventParam = 0x7E; 
+      PostAnsibleRX(ThisEvent);
+    } */ 
+      if (ThisEvent.EventParam == 'p')   // otherwise post to Service 0 for processing
+    {
+        ThisEvent.EventType = ES_PAIRBUTTONPRESSED; 
+        PostAnsibleMain(ThisEvent);
+      //  ES_PostList00(ThisEvent);
     }
-    else if(ThisEvent.EventParam == 'a'){
-      printf("Address updated\n\r"); 
-      addrStatus ^= 1; 
-      if(addrStatus)
-        updateAddr(" 11");
-      else
-        updateAddr(" 5 "); 
-    }
-    else if(ThisEvent.EventParam == 'f'){
-      printf("Fuel updated\n\r"); 
-      fuelStatus ^= 1;
-      updateFuel(fuelStatus); 
-    }
-   */
-    
+    /* else if (ThisEvent.EventParam == 'c')
+    {
+      ThisEvent.EventType = ES_CONNECTIONEST; 
+      PostAnsibleMain(ThisEvent);  
+    } */ 
+   /*  else if (ThisEvent.EventParam == 't')
+    {
+      ByteEvent.EventType = ES_BEGIN_TX; 
+      PostAnsibleTX(ByteEvent);  
+    } */ 
+ /*     else if (ThisEvent.EventParam == 's')
+    {
+      ThisEvent.EventType = STATUS_RX; 
+      PostAnsibleMain(ThisEvent);  
+    } */ 
+    else
+      
+    {}; 
+
     return true;
   }
+  else
+  {
   return false;
+  }
 }
 
