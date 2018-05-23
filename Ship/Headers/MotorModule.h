@@ -29,7 +29,8 @@ void StopFanMotors(void);
 
 void MoveFanMotors(uint32_t LeftSpeed, uint32_t RightSpeed); 
 void SetPumpSpeed(uint32_t pumpDuty); 
-
+void toggleTankValve(bool closeValve); //set closeValve to true to close the flow running to the tank
+void toggleShootValve(bool closeValve); //set closeValve to true to close the flow running to the shooter 
 
 #endif //MOTOR_MODULE
 

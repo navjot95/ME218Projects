@@ -41,7 +41,6 @@
 #include "ES_DeferRecall.h"
 #include "ES_ShortTimer.h"
 
-#include "CommunicationSM.h" 
 
 /*----------------------------- Module Defines ----------------------------*/
 // these times assume a 1.000mS/tick timing
@@ -218,7 +217,7 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
           printf("Refueled event posted\n\r\n"); 
           NewEvent.EventType = ES_REFUELED; 
       }
-      PostCommunicationSM(NewEvent); 
+      
     }
     break;
     default:

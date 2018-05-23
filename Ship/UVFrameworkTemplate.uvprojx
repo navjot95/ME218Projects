@@ -433,19 +433,9 @@
               <FilePath>.\Source\MotorModule.c</FilePath>
             </File>
             <File>
-              <FileName>Init_UART.c</FileName>
+              <FileName>SHIP_MASTER.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Source\Init_UART.c</FilePath>
-            </File>
-            <File>
-              <FileName>SHIP_RX.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\SHIP_RX.c</FilePath>
-            </File>
-            <File>
-              <FileName>SHIP_TX.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\SHIP_TX.c</FilePath>
+              <FilePath>.\Source\SHIP_MASTER.c</FilePath>
             </File>
             <File>
               <FileName>SHIP_PIC_RX.c</FileName>
@@ -458,9 +448,19 @@
               <FilePath>.\Source\SHIP_PIC_TX.c</FilePath>
             </File>
             <File>
-              <FileName>SHIP_MASTER.c</FileName>
+              <FileName>SHIP_RX.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\Source\SHIP_MASTER.c</FilePath>
+              <FilePath>.\Source\SHIP_RX.c</FilePath>
+            </File>
+            <File>
+              <FileName>SHIP_TX.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\SHIP_TX.c</FilePath>
+            </File>
+            <File>
+              <FileName>Init_UART.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\Init_UART.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -563,14 +563,24 @@
               <FilePath>.\Headers\termio.h</FilePath>
             </File>
             <File>
+              <FileName>TestHarnessService0.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\TestHarnessService0.h</FilePath>
+            </File>
+            <File>
               <FileName>ES_ShortTimer.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\ES_ShortTimer.h</FilePath>
             </File>
             <File>
-              <FileName>MotorModule.h</FileName>
+              <FileName>IMU_SPI.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Headers\MotorModule.h</FilePath>
+              <FilePath>.\Headers\IMU_SPI.h</FilePath>
+            </File>
+            <File>
+              <FileName>MPU9250_RegisterMap.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\MPU9250_RegisterMap.h</FilePath>
             </File>
             <File>
               <FileName>Init_UART.h</FileName>
@@ -578,14 +588,14 @@
               <FilePath>.\Headers\Init_UART.h</FilePath>
             </File>
             <File>
-              <FileName>SHIP_RX.h</FileName>
+              <FileName>MotorModule.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Headers\SHIP_RX.h</FilePath>
+              <FilePath>.\Headers\MotorModule.h</FilePath>
             </File>
             <File>
-              <FileName>SHIP_TX.h</FileName>
+              <FileName>SHIP_MASTER.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Headers\SHIP_TX.h</FilePath>
+              <FilePath>.\Headers\SHIP_MASTER.h</FilePath>
             </File>
             <File>
               <FileName>SHIP_PIC_RX.h</FileName>
@@ -598,9 +608,14 @@
               <FilePath>.\Headers\SHIP_PIC_TX.h</FilePath>
             </File>
             <File>
-              <FileName>SHIP_MASTER.h</FileName>
+              <FileName>SHIP_RX.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Headers\SHIP_MASTER.h</FilePath>
+              <FilePath>.\Headers\SHIP_RX.h</FilePath>
+            </File>
+            <File>
+              <FileName>SHIP_TX.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\SHIP_TX.h</FilePath>
             </File>
           </Files>
         </Group>

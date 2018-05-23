@@ -65,8 +65,8 @@ static bool homeTeamColor;
 // Control Data
 static uint8_t Control_FB;
 static uint8_t Control_LR; 
-static uint8_t Control_TurretR;
-static uint8_t Control_TurretP;
+//static uint8_t Control_TurretR;
+//static uint8_t Control_TurretP;
 static uint8_t Control_CTRL; 
 
 // SHIP_YAW PWM DC

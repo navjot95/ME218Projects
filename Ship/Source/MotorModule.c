@@ -74,7 +74,6 @@
 ****************************************************************************/
 void InitFanPumpPWM()
 {
-  printf("Setting up PWM hw for fans and pump\n\r\n"); 
     
   //enable clock to PWM module (PWM0)  
   HWREG(SYSCTL_RCGCPWM) |= SYSCTL_RCGCPWM_R0; 
@@ -85,7 +84,7 @@ void InitFanPumpPWM()
   //select PWM clock as System Clock/32
   HWREG(SYSCTL_RCC) = (HWREG(SYSCTL_RCC) & ~SYSCTL_RCC_PWMDIV_M) | (SYSCTL_RCC_USEPWMDIV | SYSCTL_RCC_PWMDIV_32); 
   
-  //make sure PWM module clock has gotten goign
+  //make sure PWM module clock has gotten going
   while((HWREG(SYSCTL_PRPWM) & SYSCTL_PRPWM_R0) != SYSCTL_PRPWM_R0) {
    
   }
@@ -133,6 +132,10 @@ void InitFanPumpPWM()
   
   StopFanMotors(); 
   SetPumpSpeed(0); 
+  
+  
+  //Set up direction pin for fans
+  
 }
 
 void MoveForward(uint32_t ForwardSpeed){
@@ -220,6 +223,30 @@ void SetPumpSpeed(uint32_t pumpDuty){
     HWREG(PWM0_BASE + PWM_O_1_GENA) = (PWM_1_GENA_ACTCMPAU_ONE | PWM_1_GENA_ACTCMPAD_ZERO); 
     HWREG(PWM0_BASE + PWM_O_1_CMPA) = compVal;
   } 
+}
+
+//powering valves closes them, 
+//if closing a valve, have to make sure the other is open so flow isn't clogged 
+void toggleTankValve(bool closeValve){
+  if(closeValve){
+    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT3HI; //close tank valve 
+    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT4LO; //open shoot valve
+  }
+  else{
+    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT3LO; //open tank valve
+    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT4HI; //close shoot valve
+  }
+}
+
+void toggleShootValve(bool closeValve){
+  if(closeValve){
+    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT4HI; //close shoot valve
+    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT3LO; //open tank valve
+  }
+  else{
+    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT3HI; //open shoot valve
+    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT4LO; //close tank valve
+  }
 }
 
 /***************************************************************************

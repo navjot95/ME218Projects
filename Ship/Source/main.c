@@ -110,10 +110,13 @@ void InitGPIO(void){
   while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R0) != SYSCTL_PRGPIO_R0) 
   {
   } 
-  //Initialize bit 2 on Port A to be a digital bit
-  HWREG(GPIO_PORTA_BASE+GPIO_O_DEN) |= BIT2HI; 
-  //Initialize bit 2 on Port A to be an input
-  HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) &= BIT2LO; 
-
+  //Initialize bit 2(team switch), 3(valve), 4(valve) on Port A to be a digital bit
+  HWREG(GPIO_PORTA_BASE+GPIO_O_DEN) |= (BIT2HI | BIT3HI | BIT4HI); 
+  
+  //Initialize bit 2 (team switch) on Port A to be an input
+  HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) &= BIT2LO;
+  //Initialize bit 3,4 to be digital output  
+  HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) |= (BIT3HI | BIT4HI);
+  
 }
 
