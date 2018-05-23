@@ -50,7 +50,7 @@
 #define HALF_SEC (ONE_SEC/2)
 #define TWO_SEC (ONE_SEC*2)
 #define FIVE_SEC (ONE_SEC*5)
-#define LCD_REFRESH_TIME HALF_SEC
+#define LCD_REFRESH_TIME 100
 
 //Screen location defines 
 #define BEG_SEC_LINE 0xC0  //beginning of second line 
@@ -62,11 +62,6 @@
    relevant to the behavior of this service
 */
 static char getNextChar(void);
-
-//These three are for DEBUG only, need to be replaced by other services
-static bool getCurrConStatus(void);
-static bool getCurrFuelStatus(void);
-static uint8_t getCurrTeamNum(void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // with the introduction of Gen2, we need a module level Priority variable
@@ -202,12 +197,19 @@ ES_Event_t RunScreenService( ES_Event_t ThisEvent )
 
     case Waiting2Write :
         if(ThisEvent.EventType == ES_TIMEOUT && (ThisEvent.EventParam == SCREEN_UPDATE_TIMER)){           
-            char fuel = getCurrFuelStatus()? 'F' : 'E'; 
-            char *connection = getCurrConStatus()? "PAIRED  " : "UNPAIRED";  
+            uint8_t fuel = 0;   
             LCD_WriteCommand8(BEG_FIR_LINE); //move to start of line 1
             
-            sprintf(stringBuffer, "Team #:%02d  Fl:%c                         Status: %s", getCurrTeamNum(), fuel, connection);
-            
+            char connectionStatus[17]; 
+            if(getpairStatus()){
+              sprintf(connectionStatus, "PAIRED with %02d", getCurrentBoat());             
+              fuel = getFuelStatus(); 
+            }
+            else
+              strcpy(connectionStatus, "    UNPAIRED");  
+          
+            sprintf(stringBuffer, "Boat:%02d Fuel:%d/8                        %s", getBoatNumber(), fuel, connectionStatus);
+                        
             ES_Timer_InitTimer(SCREEN_UPDATE_TIMER, LCD_REFRESH_TIME); //restart the refresh timer
             
             ThisEvent.EventType = ES_LCD_PUTCHAR; //So next part of Waiting2Write executes     
@@ -308,21 +310,7 @@ static char getNextChar(void){
   return returnChar;
 }
 
-/*FOR DEBUG ONLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY*/
-static bool getCurrFuelStatus(void){
-    return false; 
-}
 
-
-/*FOR DEBUG ONLYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY*/
-static bool getCurrConStatus(void){
-    return false; 
-}
-
-
-static uint8_t getCurrTeamNum(void){
-    return 5; 
-}
 
 /*------------------------------- Footnotes -------------------------------*/
 /*------------------------------ End of file ------------------------------*/

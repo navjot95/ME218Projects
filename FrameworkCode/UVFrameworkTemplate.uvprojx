@@ -418,6 +418,11 @@
           <GroupName>Source</GroupName>
           <Files>
             <File>
+              <FileName>LCD_Write.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\LCD_Write.c</FilePath>
+            </File>
+            <File>
               <FileName>EventCheckers.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\Source\EventCheckers.c</FilePath>
@@ -616,11 +621,6 @@
               <FileName>ScreenService.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\ScreenService.h</FilePath>
-            </File>
-            <File>
-              <FileName>LCD_Write.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\Source\LCD_Write.c</FilePath>
             </File>
             <File>
               <FileName>LCD_Write.h</FileName>

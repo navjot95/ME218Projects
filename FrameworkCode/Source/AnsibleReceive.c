@@ -92,7 +92,7 @@ static uint16_t index = 0;
 
 static uint16_t Data_Length;  //number of bytes (**arbitrarily set") 
 static uint8_t Computed_CheckSum; //initialize check sum to 0xFF
-static uint8_t fuelStatus; 
+static uint8_t fuelStatus = 0; 
 
 //static bool receiving; 
 
@@ -331,7 +331,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
                         CurrentState = WaitingForStart; //Go back to waiting 
                     }
                     
-                    if((RXData_Packet[API_PACKET_HEADER] = STATUS))
+                    if(RXData_Packet[API_PACKET_HEADER] == STATUS)
                     {
                        //call different functions to deal with this    
                        fuelStatus = RXData_Packet[FUEL_IDX]; 
