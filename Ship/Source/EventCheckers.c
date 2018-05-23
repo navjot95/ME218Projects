@@ -38,6 +38,7 @@
 // actual functionsdefinition
 #include "EventCheckers.h"
 
+
 // This is the event checking function sample. It is not intended to be
 // included in the module. It is only here as a sample to guide you in writing
 // your own event checkers
@@ -108,19 +109,15 @@ bool Check4Keystroke(void)
 {
   if (IsNewKeyReady())   // new key waiting?
   {
-    ES_Event_t ThisEvent;
-    ThisEvent.EventType   = ES_NEW_KEY;
-    ThisEvent.EventParam  = GetNewKey();
+    //ES_Event_t ThisEvent;
+    //ThisEvent.EventType   = ES_NEW_KEY;
+    //ThisEvent.EventParam  = GetNewKey();
+    
     // test distribution list functionality by sending the 'L' key out via
     // a distribution list.
-    if (ThisEvent.EventParam == 'L')
-    {
-      ES_PostList00(ThisEvent);
-    }
-    else     // otherwise post to Service 0 for processing
-    {
-      PostTestHarnessService0(ThisEvent);
-    }
+    
+    //PostTestHarnessService0(ThisEvent); 
+    
     return true;
   }
   return false;

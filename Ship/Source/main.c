@@ -26,9 +26,16 @@
 #include "termio.h"
 #include "EnablePA25_PB23_PD7_PF0.h"
 
+#include "MotorModule.h"
+
 #define clrScrn() printf("\x1b[2J")
 #define goHome() printf("\x1b[1,1H")
 #define clrLine() printf("\x1b[K")
+
+//Initilize general purpose I/O pins 
+void InitGPIO(void); 
+
+
 
 int main(void)
 {
@@ -42,13 +49,11 @@ int main(void)
 
   // When doing testing, it is useful to announce just which program
   // is running.
-  puts("\rStarting Test Harness for \r");
-  printf( "the 2nd Generation Events & Services Framework V2.4\r\n");
+  
+  printf( "2nd Generation Events & Services Framework V2.4\r\n");
   printf( "%s %s\n", __TIME__, __DATE__);
   printf( "\n\r\n");
-  printf( "Press any key to post key-stroke events to Service 0\n\r");
-  printf( "Press 'd' to test event deferral \n\r");
-  printf( "Press 'r' to test event recall \n\r");
+  
 
   // reprogram the ports that are set as alternate functions or
   // locked coming out of reset. (PA2-5, PB2-3, PD7, PF0)
@@ -58,6 +63,8 @@ int main(void)
   PortFunctionInit();
 
   // Your hardware initialization function calls go here
+  InitFanPumpPWM(); 
+  InitGPIO(); 
 
   // now initialize the Events and Services Framework and start it running
   ErrorType = ES_Initialize(ES_Timer_RATE_1mS);
@@ -93,5 +100,23 @@ int main(void)
   {
     ;
   }
+}
+
+/*PRIVATE FUNCTIONS */
+
+void InitGPIO(void){
+  HWREG(SYSCTL_RCGCGPIO) |= BIT0HI; //enable Port A
+  //wait for Port A to be ready
+  while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R0) != SYSCTL_PRGPIO_R0) 
+  {
+  } 
+  //Initialize bit 2(team switch), 3(valve), 4(valve) on Port A to be a digital bit
+  HWREG(GPIO_PORTA_BASE+GPIO_O_DEN) |= (BIT2HI | BIT3HI | BIT4HI); 
+  
+  //Initialize bit 2 (team switch) on Port A to be an input
+  HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) &= BIT2LO;
+  //Initialize bit 3,4 to be digital output  
+  HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) |= (BIT3HI | BIT4HI);
+  
 }
 
