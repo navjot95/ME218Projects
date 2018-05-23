@@ -82,7 +82,7 @@ __heap_limit
         EXTERN  ShortTimerAHandler
         EXTERN  ShortTimerBHandler
 		EXTERN	SHIP_XBEE_ISR
-		;EXTERN	SHIP_PIC_ISR
+		EXTERN	SHIP_PIC_ISR
 ;        EXTERN  UARTStdioIntHandler
 
 ;******************************************************************************
@@ -114,7 +114,7 @@ __Vectors
         DCD     IntDefaultHandler           ; GPIO Port D
         DCD     IntDefaultHandler           ; GPIO Port E
         DCD     IntDefaultHandler         	; UART0 Rx and Tx
-        DCD     IntDefaultHandler	            ; UART1 Rx and Tx
+        DCD     SHIP_PIC_ISR	            ; UART1 Rx and Tx
         DCD     IntDefaultHandler           ; SSI0 Rx and Tx
         DCD     IntDefaultHandler           ; I2C0 Master and Slave
         DCD     IntDefaultHandler           ; PWM Fault

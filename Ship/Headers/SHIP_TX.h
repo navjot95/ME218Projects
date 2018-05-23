@@ -23,5 +23,9 @@ bool PostSHIP_TX ( ES_Event_t ThisEvent );
 ES_Event_t RunSHIP_TX( ES_Event_t ThisEvent);
 
 void SHIP_XBEE_ISR(void);
+               
+// EventParam 
+#define PAIR_ACK_EVENT  0
+#define STATUS_EVENT    1
 
 #endif /* SHIP_TX_H */

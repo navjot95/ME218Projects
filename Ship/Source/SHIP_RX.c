@@ -190,7 +190,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
     case WaitingForStart :
       if((ThisEvent.EventType == BYTE_RECEIVED) && (ThisEvent.EventParam == START_DELIMITER))
       {
-        printf("\r\n%X",ThisEvent.EventParam);
+        //printf("\r\n%X",ThisEvent.EventParam);
         ES_Timer_InitTimer(BYTE_TIMER, RX_PERIOD);
         DataLength = 0;
         CurrentState = WaitingForMSBLen;
@@ -208,7 +208,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
       else if (ThisEvent.EventType == BYTE_RECEIVED)
       { 
         // Received byte in time
-        printf("\r\n%X",ThisEvent.EventParam);
+        //printf("\r\n%X",ThisEvent.EventParam);
         // Start BYTE_TIMER again
         ES_Timer_InitTimer(BYTE_TIMER, RX_PERIOD);
         
@@ -229,11 +229,12 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
       }
       else if (ThisEvent.EventType == BYTE_RECEIVED) 
       {
-        printf("\r\n%X",ThisEvent.EventParam);
+        //printf("\r\n%X",ThisEvent.EventParam);
         
         ES_Timer_InitTimer(BYTE_TIMER, RX_PERIOD);
 
         DataLength |= ThisEvent.EventParam;
+        //printf("\r\n DataLength = %04X", DataLength);
 
         CheckSum = 0xFF;
 
@@ -250,13 +251,14 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
       }
       else if (ThisEvent.EventType == BYTE_RECEIVED)
       {
-        printf("\r\n%X",ThisEvent.EventParam);
+        //printf("\r\n%X",ThisEvent.EventParam);
         
         ES_Timer_InitTimer(BYTE_TIMER, RX_PERIOD);
         
         // First will be API Identifier (0x81), then Source Address (0x20 and 0x8_)
         // then RSSI (signal strength), then Options (0x00), then data
         RX_FrameData[IDX] = ThisEvent.EventParam;
+        //printf("\r\nIDX: %d BYTE: %X", IDX, ThisEvent.EventParam);
         IDX++;
         CheckSum -= ThisEvent.EventParam;
         
@@ -278,58 +280,62 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
 
         if (ThisEvent.EventParam == CheckSum)
         {
-          printf("\r\n%X",ThisEvent.EventParam);
-          printf("\r\n ");
+          //printf("\r\n%X",ThisEvent.EventParam);
+          //printf("\r\n ");
           // If message is TX_STATUS (MIGHT BE UNNESSARY)
-          if (RX_FrameData[API_IDENTIFIER_IDX] == TX_STATUS_API_IDENTIFIER)
-          {
-            // If message failed (MIGHT BE UNNESSARY)
-            if ( (RX_FrameData[TX_STATUS_IDX] == TX_NO_ACK) || (RX_FrameData[TX_STATUS_IDX] == TX_CCA_FAIL))
-            {
-              // Send failed message event
-              ThisEvent.EventType = ES_TX_FAIL;
-              
-              // UNCOMMENT
-              PostSHIP_MASTER(ThisEvent);
-            }
-          }
+//          if (RX_FrameData[API_IDENTIFIER_IDX] == TX_STATUS_API_IDENTIFIER)
+//          {
+//            // If message failed (MIGHT BE UNNESSARY)
+//            if ( (RX_FrameData[TX_STATUS_IDX] == TX_NO_ACK) || (RX_FrameData[TX_STATUS_IDX] == TX_CCA_FAIL))
+//            {
+//              // Send failed message event
+//              ThisEvent.EventType = ES_TX_FAIL;
+//              
+//              // UNCOMMENT
+//              PostSHIP_MASTER(ThisEvent);
+//            }
+//          }
           // If message is data packet
-          else if (RX_FrameData[API_IDENTIFIER_IDX] == API_IDENTIFIER)
+          if (RX_FrameData[API_IDENTIFIER_IDX] == API_IDENTIFIER)
           {
             if (RX_FrameData[DATA_HEADER_IDX] == CTRL_HEADER)
             {
-              // Save source address
-              SourceAddress |= ((uint16_t) RX_FrameData[SOURCE_ADDRESS_MSB_IDX])<<8;
-              SourceAddress |= (uint16_t) RX_FrameData[SOURCE_ADDRESS_LSB_IDX];
+              printf("\r\nCTRL RXed");
               
               static uint8_t i;
-              
-              // Build array containing just the control data 
-              for (i=0;i<5;i++)
-              {
-                RX_ControlData[i] = RX_FrameData[i+9];
-              }
-              
+                           
               // Post to MasterSM that control packet was received
               
               // UNCOMMENT
               ThisEvent.EventType = ES_CONTROL_PACKET;
               PostSHIP_MASTER(ThisEvent);
+                
+              // Build array containing just the control data 
+              for (i=0;i<5;i++)
+              {
+                RX_ControlData[i] = RX_FrameData[i+9];
+              }
             }
 
             // if req_2_pair packet, save ansible colour
-            if (RX_FrameData[DATA_HEADER_IDX] == REQ_2_PAIR_HEADER)
+            else if (RX_FrameData[DATA_HEADER_IDX] == REQ_2_PAIR_HEADER)
             {
+              printf("\r\nREQ_2_PAIR RXed");
+                
+              // Save source address
+              SourceAddress |= ((uint16_t) RX_FrameData[SOURCE_ADDRESS_MSB_IDX])<<8;
+              SourceAddress |= (uint16_t) RX_FrameData[SOURCE_ADDRESS_LSB_IDX];
+                
               ANSIBLEColour = RX_FrameData[9];
               
               // UNCOMMENT
               ThisEvent.EventType = ES_PAIR_REQUEST;
               PostSHIP_MASTER(ThisEvent);
             }
-              
+                         
             // Send packet received event, param = message header
             ThisEvent.EventType = PACKET_RECEIVED;
-            
+          
             // UNCOMMENT
             PostSHIP_MASTER(ThisEvent);
           }
@@ -365,6 +371,7 @@ uint16_t QuerySourceAddress(void)
 
 uint8_t Query_ANSIBLEColour (void)
 {
+  //return true;
   return ANSIBLEColour;
 }
 

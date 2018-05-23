@@ -82,9 +82,6 @@ Notes
 #define LENGTH_MSB_STATUS       0x00
 #define LENGTH_LSB_STATUS       0x08
 
-// EventParam 
-#define PAIR_ACK_EVENT  0
-#define STATUS_EVENT    1
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -260,6 +257,7 @@ Description
 void SHIP_XBEE_ISR(void)
 {
   static ES_Event_t ThisEvent;
+  //printf("\r\nISR Bitch");
   
   // XBee TX
   if(HWREG(UART5_BASE + UART_O_MIS) & UART_MIS_TXMIS)
@@ -281,8 +279,8 @@ void SHIP_XBEE_ISR(void)
 			
 			ThisEvent.EventType = BYTE_SENT;
 			PostSHIP_TX(ThisEvent);
-		}	
-	}
+	}	
+  }
   
   // XBee RX
   if (HWREG(UART5_BASE + UART_O_MIS) & UART_MIS_RXMIS)
