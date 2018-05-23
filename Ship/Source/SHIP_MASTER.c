@@ -39,6 +39,9 @@
 #define PAIR_ATTEMPT_TIME 200
 #define PAIR_TIMEOUT_TIME ONE_SEC
 
+// Control Commands
+#define PUMP_DC 70
+
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
@@ -65,6 +68,10 @@ static uint8_t Control_LR;
 static uint8_t Control_TurretR;
 static uint8_t Control_TurretP;
 static uint8_t Control_CTRL; 
+
+// SHIP_YAW PWM DC
+static uint8_t Yaw_Left_DC;
+static uint8_t Yaw_Right_DC;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -326,11 +333,52 @@ static void executeControlPacketCommands(void)
   printf("\r\nControl commands executed");
   Control_FB = Query_FB();
   Control_LR = Query_LR();
-  Control_TurretR = Query_TurretR();
-  Control_TurretP = Query_TurretP();
+//  Control_TurretR = Query_TurretR();
+//  Control_TurretP = Query_TurretP();
   Control_CTRL = Query_CTRL();
   
   // TODO: USE VARIABLES ABOVE TO MOVE BOAT
   
+  // BYTE 1: ANALOG FORWARD/BACK
+  
+  // BYTE 2: ANALOG SHIP YAW (LEFT/RIGHT)
+  if (Control_LR > 127) // Turn Right
+  {
+  }
+  else if (Control_LR < 127) // Turn Left
+  {
+  }
+  else  // Straight
+  {
+    
+  }
+  
+  // BYTE 3: N/A (ANALOG TURRET YAW)
+  
+  // BYTE 4: N/A (ANALOG TURRET PITCH)
+  
+  // BYTE 5: DIGITAL CONTROL
+  if (Control_CTRL & 0x01)  // Bit 0: Shoot Water
+  {
+    SetPumpSpeed(PUMP_DC);
+  }
+  else if (!(Control_CTRL & 0x01))
+  {
+    SetPumpSpeed(0);
+  }
+  
+  if (Control_CTRL & 0x02)  // Bit 1: Valve/Refuel
+  {
+  }
+  else if (!(Control_CTRL & 0x02))
+  {
+  }
+  
+  if (Control_CTRL & 0x04)  // Bit 2: Special Function
+  {
+  }
+  else if (!(Control_CTRL & 0x04))
+  {
+  }
 }
 

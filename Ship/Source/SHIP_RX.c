@@ -387,15 +387,15 @@ uint8_t Query_LR (void)
   return RX_ControlData[1];
 }
 
-uint8_t Query_TurretR (void)
-{
-  return RX_ControlData[2];
-}
+//uint8_t Query_TurretR (void)
+//{
+//  return RX_ControlData[2];
+//}
 
-uint8_t Query_TurretP (void)
-{
-  return RX_ControlData[3];
-}
+//uint8_t Query_TurretP (void)
+//{
+//  return RX_ControlData[3];
+//}
 
 uint8_t Query_CTRL (void)
 {
