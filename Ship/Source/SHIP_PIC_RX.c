@@ -44,6 +44,10 @@ Notes
 #include "SHIP_PIC_TX.h"
 #include "Init_UART.h"
 
+/*----------------------------- Module Defines ----------------------------*/
+#define FUEL_EMPTY_MASK 0x08
+#define FUEL_LEVEL_MASK 0x07
+
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
@@ -53,7 +57,6 @@ static uint8_t  MyPriority;
 static SHIP_PIC_RX_State_t CurrentState;
 
 static uint8_t  FuelStatus;
-
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
 Function
@@ -83,6 +86,10 @@ bool InitSHIP_PIC_RX ( uint8_t Priority )
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   // any other initializations
+  
+  int i = 0xA5;
+  
+  printf("\r\n%X", i&FUEL_LEVEL_MASK);
 
   if (ES_PostToService( MyPriority, ThisEvent) == true)
   {
@@ -141,8 +148,15 @@ ES_Event_t RunSHIP_PIC_RX( ES_Event_t ThisEvent)
     case WaitingForData_PIC :
       if(ThisEvent.EventType == BYTE_RECEIVED)
       {
-        FuelStatus = ThisEvent.EventParam;
-        CurrentState = WaitingForData_PIC;
+        if (ThisEvent.EventParam == 0xAA)
+        {
+          break;
+        }
+        else
+        {
+          FuelStatus = ThisEvent.EventParam;
+          CurrentState = WaitingForData_PIC;
+        }
       }     
       break;
            
@@ -151,12 +165,21 @@ ES_Event_t RunSHIP_PIC_RX( ES_Event_t ThisEvent)
 }
 
 
-uint8_t QueryFuelStatus(void)
+uint8_t QueryFuelEmpty(void)
 {
-  // %%%%% TEST %%%%%
-  return true;
-  //return FuelStatus;
+  if (FuelStatus & FUEL_EMPTY_MASK)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+
 }
 
-
+uint8_t QueryFuelStatus(void)
+{
+  return FuelStatus;
+}
 

@@ -282,6 +282,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
         {
           //printf("\r\n%X",ThisEvent.EventParam);
           //printf("\r\n ");
+          
           // If message is TX_STATUS (MIGHT BE UNNESSARY)
 //          if (RX_FrameData[API_IDENTIFIER_IDX] == TX_STATUS_API_IDENTIFIER)
 //          {
@@ -295,6 +296,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
 //              PostSHIP_MASTER(ThisEvent);
 //            }
 //          }
+          
           // If message is data packet
           if (RX_FrameData[API_IDENTIFIER_IDX] == API_IDENTIFIER)
           {

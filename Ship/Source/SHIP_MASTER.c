@@ -170,7 +170,7 @@ ES_Event_t RunSHIP_MASTER(ES_Event_t ThisEvent)
     {
       if(ThisEvent.EventType == ES_PAIR_REQUEST){  /*received 0x01 packet*/
         //guard: if fueled, then only the home team can connect 
-        if(QueryFuelStatus() && (Query_ANSIBLEColour() == homeTeamColor)){
+        if(QueryFuelEmpty() && (Query_ANSIBLEColour() == homeTeamColor)){
           //start pairing timer (1sec)
           ES_Timer_InitTimer(PAIR_TIMEOUT_SHIP_TIMER, PAIR_TIMEOUT_TIME);
           //start attempt timer (200ms)
@@ -180,7 +180,7 @@ ES_Event_t RunSHIP_MASTER(ES_Event_t ThisEvent)
           CurrentState = Trying2Pair; 
           printf("\r\nIn Trying2Pair now"); 
         }
-        else if(!QueryFuelStatus() && (lastAnsAddr != QuerySourceAddress())){
+        else if(!QueryFuelEmpty() && (lastAnsAddr != QuerySourceAddress())){
           //start pairing timer (1sec)
           ES_Timer_InitTimer(PAIR_TIMEOUT_SHIP_TIMER, PAIR_TIMEOUT_TIME);
           //start attempt timer (200ms) 

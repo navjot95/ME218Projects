@@ -22,6 +22,7 @@ bool InitSHIP_PIC_RX ( uint8_t Priority );
 bool PostSHIP_PIC_RX ( ES_Event_t ThisEvent );
 ES_Event_t RunSHIP_PIC_RX( ES_Event_t ThisEvent);
 
+uint8_t QueryFuelEmpty(void);
 uint8_t QueryFuelStatus(void);
 
 #endif /* SHIP_PIC_RX_H */
