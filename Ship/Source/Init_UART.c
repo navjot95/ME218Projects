@@ -95,60 +95,60 @@ void Init_UART_PIC(void)
 
 void Init_UART_XBee(void)
 {
-  // Enable the UART module (Module 5)
-  HWREG(SYSCTL_RCGCUART) |= SYSCTL_RCGCUART_R5;
+  // Enable the UART module (Module 3)
+  HWREG(SYSCTL_RCGCUART) |= SYSCTL_RCGCUART_R3;
 
   // Wait for the UART to be ready
-  while((HWREG(SYSCTL_PRUART) & SYSCTL_PRUART_R5)!= SYSCTL_PRUART_R5)
+  while((HWREG(SYSCTL_PRUART) & SYSCTL_PRUART_R3)!= SYSCTL_PRUART_R3)
   {
   }
   
-  // Enable Port E clock
-  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R4;
+  // Enable Port C clock
+  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R2;
   
   // Wait for the GPIO module to be ready
-  while((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R4)!= SYSCTL_PRGPIO_R4)
+  while((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R2)!= SYSCTL_PRGPIO_R2)
   {
   }  
   
-  // Set PE4 and PE5 to digital 
-  HWREG(GPIO_PORTE_BASE + GPIO_O_DEN) |= (BIT4HI | BIT5HI); 
+  // Set PC6 and PC7 to digital 
+  HWREG(GPIO_PORTC_BASE + GPIO_O_DEN) |= (BIT6HI | BIT7HI); 
   
   // PE4 input (RX), PE5 output (TX)
-  HWREG(GPIO_PORTE_BASE + GPIO_O_DIR) |= BIT5HI; 
-  HWREG(GPIO_PORTE_BASE + GPIO_O_DIR) &= ~BIT4HI; 
+  HWREG(GPIO_PORTC_BASE + GPIO_O_DIR) |= BIT7HI; 
+  HWREG(GPIO_PORTC_BASE + GPIO_O_DIR) &= ~BIT6HI; 
   
-  // Select the Alternate function for PE4 and PE5
-  HWREG(GPIO_PORTE_BASE + GPIO_O_AFSEL) |= (BIT4HI | BIT5HI);
+  // Select the Alternate function for PC6 and PC7
+  HWREG(GPIO_PORTC_BASE + GPIO_O_AFSEL) |= (BIT6HI | BIT7HI);
   
   // Configure PMCn fields in the GPIO_PCTL register to assign the UART pins
-  // (pg 1351) Write 1 for PE4 and PB5 for U5Rx and U5Tx 
-  HWREG(GPIO_PORTE_BASE + GPIO_O_PCTL) |= (HWREG(GPIO_PORTE_BASE +  GPIO_O_PCTL) & 0xff00ffff) | 0x00110000;
+  // (pg 1351) Write 1 for PC6 and PC7 for U3Rx and U3Tx 
+  HWREG(GPIO_PORTC_BASE + GPIO_O_PCTL) |= (HWREG(GPIO_PORTC_BASE +  GPIO_O_PCTL) & 0xff00ffff) | 0x00110000;
 
 
   // Disable UART by clearing the UARTEN bit in the UART_CTL register
-  HWREG(UART5_BASE + UART_O_CTL) &= ~UART_CTL_UARTEN;
+  HWREG(UART3_BASE + UART_O_CTL) &= ~UART_CTL_UARTEN;
   
   // Set to 9600 Baud (pg 896)
   // BRD = BRDI + BRDF = UARTSysClk/(ClkDiv * BaudRate) = 260 + 0.41667
   // IBRD: 260 = 0x104
   // FBRD: int(BRDF * 64 + 0.5) = 27 = 0x1B
-  HWREG(UART5_BASE + UART_O_IBRD) = 0x104;
-  HWREG(UART5_BASE + UART_O_FBRD) = 0x1B;
+  HWREG(UART3_BASE + UART_O_IBRD) = 0x104;
+  HWREG(UART3_BASE + UART_O_FBRD) = 0x1B;
   
   // Write the desired serial parameters to the UART_LCRH register
   // We want 8 bits
-  HWREG(UART5_BASE + UART_O_LCRH) |= UART_LCRH_WLEN_8;
+  HWREG(UART3_BASE + UART_O_LCRH) |= UART_LCRH_WLEN_8;
   
   // Set Recieve, Transmit, and End of Transmission bits
   // Enable UART
-  HWREG(UART5_BASE + UART_O_CTL) |= ( UART_CTL_RXE |UART_CTL_TXE | UART_CTL_UARTEN);
+  HWREG(UART3_BASE + UART_O_CTL) |= ( UART_CTL_RXE |UART_CTL_TXE | UART_CTL_UARTEN);
   
   // Enable Interrupts for TX and RX
-  HWREG(UART5_BASE + UART_O_IM) |= (UART_IM_RXIM | UART_IM_TXIM);
+  HWREG(UART3_BASE + UART_O_IM) |= (UART_IM_RXIM | UART_IM_TXIM);
   
   // Enable NVIC interrupts
-  HWREG(NVIC_EN1) |= BIT29HI;
+  HWREG(NVIC_EN1) |= BIT27HI;
   
   // Global enable
   __enable_irq();

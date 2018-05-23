@@ -195,14 +195,14 @@ ES_Event_t RunSHIP_TX( ES_Event_t ThisEvent)
         // Construct Data Packet
         BuildPacket(ThisEvent);
 
-        if (HWREG(UART5_BASE + UART_O_FR) & UART_FR_TXFE) // (Room to TX byte)
+        if (HWREG(UART3_BASE + UART_O_FR) & UART_FR_TXFE) // (Room to TX byte)
         {
           // TX Byte
-          HWREG(UART5_BASE + UART_O_DR) = Packet[IDX];
+          HWREG(UART3_BASE + UART_O_DR) = Packet[IDX];
           
           // Disable RX and Enable TX Interrupt
-          HWREG(UART5_BASE + UART_O_IM) &= ~UART_IM_RXIM;  
-          HWREG(UART5_BASE + UART_O_IM) |= UART_IM_TXIM;        
+          HWREG(UART3_BASE + UART_O_IM) &= ~UART_IM_RXIM;  
+          HWREG(UART3_BASE + UART_O_IM) |= UART_IM_TXIM;        
           IDX++;
           
           CurrentState = SendingTX;    
@@ -243,13 +243,13 @@ void SHIP_XBEE_ISR(void)
   //printf("\r\nISR Bitch");
   
   // XBee TX
-  if(HWREG(UART5_BASE + UART_O_MIS) & UART_MIS_TXMIS)
+  if(HWREG(UART3_BASE + UART_O_MIS) & UART_MIS_TXMIS)
   {
     // Clear interrupt
-		HWREG(UART5_BASE + UART_O_ICR) |= UART_ICR_TXIC;
+		HWREG(UART3_BASE + UART_O_ICR) |= UART_ICR_TXIC;
 		
 		//Write next byte to DR
-		HWREG(UART5_BASE + UART_O_DR) = Packet[IDX];
+		HWREG(UART3_BASE + UART_O_DR) = Packet[IDX];
     
 		//Increment the index
 		IDX++;
@@ -257,8 +257,8 @@ void SHIP_XBEE_ISR(void)
     if(IDX == DataLength)
     { 
       // End of packet, Disable TX and Enable RX
-			HWREG(UART5_BASE + UART_O_IM) &= ~UART_IM_TXIM;
-      HWREG(UART5_BASE + UART_O_IM) |= UART_IM_RXIM;
+			HWREG(UART3_BASE + UART_O_IM) &= ~UART_IM_TXIM;
+      HWREG(UART3_BASE + UART_O_IM) |= UART_IM_RXIM;
 			
 			ThisEvent.EventType = BYTE_SENT;
 			PostSHIP_TX(ThisEvent);
@@ -266,12 +266,12 @@ void SHIP_XBEE_ISR(void)
   }
   
   // XBee RX
-  if (HWREG(UART5_BASE + UART_O_MIS) & UART_MIS_RXMIS)
+  if (HWREG(UART3_BASE + UART_O_MIS) & UART_MIS_RXMIS)
   {
-    HWREG(UART5_BASE + UART_O_ICR) |= UART_ICR_RXIC;
+    HWREG(UART3_BASE + UART_O_ICR) |= UART_ICR_RXIC;
     
     ThisEvent.EventType = BYTE_RECEIVED;
-    ThisEvent.EventParam = HWREG(UART5_BASE + UART_O_DR);
+    ThisEvent.EventParam = HWREG(UART3_BASE + UART_O_DR);
     PostSHIP_RX(ThisEvent);
   }
 }

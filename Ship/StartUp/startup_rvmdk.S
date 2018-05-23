@@ -167,9 +167,9 @@ __Vectors
         DCD     IntDefaultHandler           ; GPIO Port L
         DCD     IntDefaultHandler           ; SSI2 Rx and Tx
         DCD     IntDefaultHandler           ; SSI3 Rx and Tx
-        DCD     IntDefaultHandler           ; UART3 Rx and Tx
+        DCD     SHIP_XBEE_ISR     	        ; UART3 Rx and Tx
         DCD     IntDefaultHandler           ; UART4 Rx and Tx
-        DCD     SHIP_XBEE_ISR	            ; UART5 Rx and Tx
+        DCD     IntDefaultHandler	        ; UART5 Rx and Tx
         DCD     IntDefaultHandler           ; UART6 Rx and Tx
         DCD     IntDefaultHandler           ; UART7 Rx and Tx
         DCD     0                           ; Reserved
