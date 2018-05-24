@@ -18,6 +18,9 @@
 #define DEBOUNCE_TIME        100                // ms 
 #define THROTTLE_MIN          10
 #define MAX_8BIT             255
+#define THROTTLE_DEAD_LOW    125                // setting deadband
+#define THROTTLE_DEAD_HIGH   132
+
 
 // Port A 
 #define ENCODER_A         BIT6HI                // encoder channel A
@@ -159,12 +162,25 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         uint32_t analogIn[3]; // to store AD value      
         ADC_MultiRead(analogIn);
 
-        throttle = 255*((MAX_8BIT * analogIn[0])/MAX_AD);  
+        throttle = (127*analogIn[0])/MAX_AD;
 
+        if ( HWREG(GPIO_PORTC_BASE+(GPIO_O_DATA + ALL_BITS)) & MOTOR_DIR_PIN )
+        {
+            throttle += 127;
+        }
+        else
+        {
+            throttle -= 127;
+        }
         
-        yaw = 255*((MAX_AD - analogIn[1])/(MAX_AD + 0.0));   
-        pitch = 255*((MAX_AD - analogIn[1])/(MAX_AD + 0.0));   
-
+        
+        // set throttle deadband 
+        if ((throttle < THROTTLE_DEAD_HIGH) && (throttle > THROTTLE_DEAD_LOW))
+        {
+            throttle = 127; 
+        }
+        
+        // cap throttle values 
         if (throttle < THROTTLE_MIN)
         {
             throttle = 0;
@@ -173,9 +189,11 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         {
             throttle = 255;
         }
-        
-        // fill up control byte
-        
+           
+        yaw = 255*((MAX_AD - analogIn[1])/(MAX_AD + 0.0));   
+        pitch = 255*((MAX_AD - analogIn[1])/(MAX_AD + 0.0));   
+
+        // fill up control byte        
         control = 0x00; 
         if (HWREG(GPIO_PORTC_BASE+(GPIO_O_DATA + ALL_BITS)) & SHOOT_PIN)
         {
@@ -183,8 +201,10 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         }
         
         // BIT1 Self refuel -- if momentary, may want to be posting event 
-        
-        // TODO add in these two bits 
+        if (HWREG(GPIO_PORTD_BASE+(GPIO_O_DATA + ALL_BITS)) & REFUEL_PIN)
+        {
+            control |= BIT1HI; 
+        }
     
         // Bit 2 special function 
         if (HWREG(GPIO_PORTE_BASE+(GPIO_O_DATA + ALL_BITS)) & SF_PIN)
@@ -330,6 +350,9 @@ static void InitIOC( void )
 
     //set up encoder inputs as digital inputs 
     HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) &= ~(ENCODER_A | ENCODER_B); 
+    
+    // enable pull down resistors 
+    HWREG(GPIO_PORTA_BASE+GPIO_O_PDR) |= (ENCODER_A | ENCODER_B);
 
     // For int pins see page 664 - 666 
     // use pa 7 and pa 6 
