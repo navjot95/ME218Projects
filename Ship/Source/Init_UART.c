@@ -123,7 +123,7 @@ void Init_UART_XBee(void)
   
   // Configure PMCn fields in the GPIO_PCTL register to assign the UART pins
   // (pg 1351) Write 1 for PC6 and PC7 for U3Rx and U3Tx 
-  HWREG(GPIO_PORTC_BASE + GPIO_O_PCTL) |= (HWREG(GPIO_PORTC_BASE +  GPIO_O_PCTL) & 0xff00ffff) | 0x00110000;
+  HWREG(GPIO_PORTC_BASE + GPIO_O_PCTL) |= (HWREG(GPIO_PORTC_BASE +  GPIO_O_PCTL) & 0x00ffffff) | 0x11000000;
 
 
   // Disable UART by clearing the UARTEN bit in the UART_CTL register
