@@ -196,7 +196,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
         if(ThisEvent.EventType == ES_PAIRBUTTONPRESSED)  // only respond if the button is pressed to pair to a specific team 
           {  
              currentBoat = getBoatNumber(); 
-            printf("\n \r in waiting for pair state");
+         //   printf("\n \r in waiting for pair state");
             //set ship address (**getter function that determines ship destination address and sends dest address to ansibletx)  
             //send packet to SHIP (0x01)
              ThisEvent.EventType = ES_BEGIN_TX;
@@ -235,20 +235,20 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
              ThisEvent.EventType = ES_BEGIN_TX;
              ThisEvent.EventParam = REQ_2_PAIR;
              PostAnsibleTX(ThisEvent); 
-             printf("\n \r es_begin_tX");
+          //   printf("\n \r es_begin_tX");
           }
           else if (ThisEvent.EventParam == PAIR_TIMEOUT_TIMER)
           {
             //ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); 
             //set nextstaate to WaitingForPair
-            printf("\n \r going bACK TO waiting for pair"); 
+         //   printf("\n \r going bACK TO waiting for pair"); 
             NextState = WaitingForPair; 
           }
         }
         break;
         case ES_CONNECTIONEST:  //if this event is a timeout 
         {  
-          printf("\n \r connection established event"); 
+       //   printf("\n \r connection established event"); 
          //local variable paired = true
           pair_var = true; 
           //Start Pairing Timer (1sec)
@@ -296,7 +296,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
              ThisEvent.EventType = ES_BEGIN_TX;
              ThisEvent.EventParam = CTRL; //add cntrl data
              PostAnsibleTX(ThisEvent); 
-             printf("\n \r timed out pair attempt"); 
+         //    printf("\n \r timed out pair attempt"); 
            
             //reset PAIR_ATTEMPT_TIMER
             ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset 200 timer
@@ -308,7 +308,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
           //local bool paired = false
            pair_var = false; 
            NextState = WaitingForPair;  //NextState
-            printf("\n \r timed out"); 
+         //   printf("\n \r timed out"); 
           }
         }
         

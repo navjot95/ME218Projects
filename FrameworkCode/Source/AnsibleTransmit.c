@@ -365,7 +365,7 @@ void AnsibleTXRXISR (void)
       HWREG(UART2_BASE+UART_O_ICR) |= UART_ICR_TXIC;
     //Write the new data to register (UARTDR)
       HWREG(UART2_BASE+UART_O_DR) = Message_Packet[IDX]; 
-    //  printf("\n \r PacketTransmit = %x", Message_Packet[(IDX)]); 
+     // printf("\n \r tx = %x", Message_Packet[(IDX)]); 
       IDX++; 
       
   //    printf("\n \r MessagePacket = %i",Message_Packet[BytesRemaining-1]);
