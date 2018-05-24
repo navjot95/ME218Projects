@@ -93,6 +93,7 @@ static uint16_t index = 0;
 static uint16_t Data_Length;  //number of bytes (**arbitrarily set") 
 static uint8_t Computed_CheckSum; //initialize check sum to 0xFF
 static uint8_t fuelStatus = 0; 
+static uint8_t Sum; 
 
 //static bool receiving; 
 
@@ -195,7 +196,7 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
          
         if((ThisEvent.EventType == BYTE_RECEIVED) && (ThisEvent.EventParam == Start_Delimiter))
         {
-           //  printf("\r \n Start_Delimiter %X", ThisEvent.EventParam);
+            // printf("\r \n Start_Delimiter %X", ThisEvent.EventParam);
              //Enable Timer 
               ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
     
@@ -252,10 +253,10 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
           
         //Record length of LSB 
           Data_Length |= (ThisEvent.EventParam); //byte is the length of the LSB 
-  //        printf("\n \r Datalength = %04X", Data_Length);
+      // printf("\n \r Datalength = %04X", Data_Length);
 
          //Set initial variables 
-          Computed_CheckSum = 0xFF; 
+          Sum = 0; 
           index = 0;  
           
         //set next state to ReceivingData  
@@ -282,15 +283,16 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
           //API Identifier (0x81), Source Address (0x20 and 0x8_), RSSI, and Options, data   
           RXData_Packet[index] = ThisEvent.EventParam; //frame data packet
          //   printf("\n \r rx_data =%X", RXData_Packet[index]); 
-          index ++; //increment the index by the size of the data packet
+          index++; //increment the index by the size of the data packet
           //Compute resultant (oxff - sum) 
-          Computed_CheckSum -= ThisEvent.EventParam; 
-
+           Sum +=ThisEvent.EventParam; 
+         // Computed_CheckSum -= ThisEvent.EventParam; 
+           
        //  printf("\n \r chksum = %x" , Computed_CheckSum); 
            if (index == 6) //DataLength)
            {
           //set next state to WaitingforLSB  
-          CurrentState = ReceivingCheckSum; 
+              CurrentState = ReceivingCheckSum; 
            }
         } 
      }        
@@ -298,18 +300,22 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
      
         case ReceivingCheckSum:        // If current state is state one
     {
- 
-        if((ThisEvent.EventType == ES_TIMEOUT) && (ThisEvent.EventParam == RX_ATTEMPT_TIMER))
+         CurrentState = WaitingForStart; //Go back to waiting  
+
+        if (ThisEvent.EventType == BYTE_RECEIVED)
         {
-          CurrentState = WaitingForStart; //Go back to waiting   
-        }
-        else if (ThisEvent.EventType == BYTE_RECEIVED)
-        {
-          //  printf("\r \n Arbitrary_CHK SUM %X", ThisEvent.EventParam);
+           printf("\n \r SUM =  %x", Sum);
+
+         //   printf("\r \n RX_BYTE = %X", ThisEvent.EventParam);
+          
           //  printf("\r \n        "); 
+            Computed_CheckSum = 0xFF - Sum; 
+          
+            printf("\r \n Computed SUM %X", Computed_CheckSum);
+
             if (ThisEvent.EventParam  == Computed_CheckSum) // process data only for good check sum
             {
- //              printf("\n \r chk sum is RX"); 
+           //   printf("\n \r chk sum is RX"); 
              //Loook at the aPI_ID to see that it was indeed for transmit
                 if (RXData_Packet[API_Identifier_Index] == API_Identifier)
                 {
@@ -343,12 +349,17 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
                //Send a fail message
                //ThisEvent.EventType == ES_TX_FAIL; //the transmit from SHIP-> ANSIBLE failed
               //PostAnsibleMaster(ThisEvent); 
-              CurrentState = WaitingForStart; //Go back to waiting   
+              //CurrentState = WaitingForStart; //Go back to waiting   
+               printf("\r\n what do here too?");
             }
-            CurrentState = WaitingForStart; //Go back to waiting
-
+           
+      
         }
-        
+        else
+        {
+          printf("\r\n what do?");
+        }
+      
       
     }
     break;    

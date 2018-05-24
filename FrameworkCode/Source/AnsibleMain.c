@@ -185,35 +185,35 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
         //set bool paired to false 
          pair_var = false; 
         //Set next state to WaitingforPair
-        NextState = WaitingForPair; 
-        printf("ES_INIT"); 
-       
+        NextState = WaitingForPair;  
       }
     }
     break; //break out of InitAnsible
 
     case WaitingForPair:        // If current state is state one
     {
-       printf("waiting for pair"); 
+       
         if(ThisEvent.EventType == ES_PAIRBUTTONPRESSED)  // only respond if the button is pressed to pair to a specific team 
           {  
+             currentBoat = getBoatNumber(); 
+            printf("\n \r in waiting for pair state");
             //set ship address (**getter function that determines ship destination address and sends dest address to ansibletx)  
             //send packet to SHIP (0x01)
              ThisEvent.EventType = ES_BEGIN_TX;
              ThisEvent.EventParam = REQ_2_PAIR; //CTRL;//REQ_2_PAIR; //// REQ_2_PAIR;
              PostAnsibleTX(ThisEvent); 
               
-              currentBoat = getBoatNumber(); 
+             // currentBoat = getBoatNumber(); 
               
-             printf("\n \r ES_PairButtonPressed");
-             printf("\n \r EventParam = %x", ThisEvent.EventParam);
+            // printf("\n \r ES_PairButtonPressed");
+             //printf("\n \r EventParam = %x", ThisEvent.EventParam);
             
             //Start attempt time to 200ms to keep trying at a rate of 5 Hz 
             ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); 
             
           //Start Pairing Timer to 1sec 
             ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); 
-            
+             
             NextState = WaitingForPairResp;  //Decide what the next state will be
         }
     }
@@ -227,7 +227,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
         {  
           if (ThisEvent.EventParam == PAIR_ATTEMPT_TIMER)
           { 
-             
+             //currentBoat = getBoatNumber(); 
              ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset timer
              //Self transition and send packet (0x01) again to the SHIP
               NextState = WaitingForPairResp; 
@@ -239,8 +239,9 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
           }
           else if (ThisEvent.EventParam == PAIR_TIMEOUT_TIMER)
           {
-            ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); 
+            //ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); 
             //set nextstaate to WaitingForPair
+            printf("\n \r going bACK TO waiting for pair"); 
             NextState = WaitingForPair; 
           }
         }
@@ -255,7 +256,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
           //Start Attempt Timer (200ms)
           ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset timer 
           
-                       ThisEvent.EventType = ES_BEGIN_TX;
+              ThisEvent.EventType = ES_BEGIN_TX;
              ThisEvent.EventParam = CTRL; //add cntrl data
              PostAnsibleTX(ThisEvent); 
           
@@ -295,6 +296,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
              ThisEvent.EventType = ES_BEGIN_TX;
              ThisEvent.EventParam = CTRL; //add cntrl data
              PostAnsibleTX(ThisEvent); 
+             printf("\n \r timed out pair attempt"); 
            
             //reset PAIR_ATTEMPT_TIMER
             ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset 200 timer
@@ -306,6 +308,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
           //local bool paired = false
            pair_var = false; 
            NextState = WaitingForPair;  //NextState
+            printf("\n \r timed out"); 
           }
         }
         

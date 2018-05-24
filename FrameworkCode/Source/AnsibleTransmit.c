@@ -565,7 +565,7 @@ static void BuildTXPacket(uint8_t Packet)
        BytesRemaining--;
       
       //Forward/Back
-       Message_Packet[index] =  getThrottle(); 
+       Message_Packet[index] =  80; //getThrottle(); 
       //increment index
         index++; 
       //decrement BytesRemaining 
