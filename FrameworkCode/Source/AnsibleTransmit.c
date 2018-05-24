@@ -51,8 +51,8 @@
 /*----------------------------- Module Defines ----------------------------*/
 #define TX_TIME 500 //sending bits at 500ms time interval 
 #define BitsPerNibble 4
-#define UART2_RX_PIN GPIO_PIN_6 //Port D6
-#define UART2_TX_PIN GPIO_PIN_7 //Port D7
+#define UART5_RX_PIN GPIO_PIN_4 //Port E4
+#define UART5_TX_PIN GPIO_PIN_5 //Port E5
 
 
 //Defines for XBee
@@ -147,7 +147,7 @@ bool InitAnsibleTX(uint8_t Priority)
    // UARTHardwareInit();  
   
     //Disable UART TX Interrupt so that default is RX 
-    HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_TXIM); 
+    HWREG(UART5_BASE + UART_O_IM) &= ~(UART_IM_TXIM); 
   
     // post the initial transition event
     ThisEvent.EventType = ES_INIT;
@@ -217,12 +217,14 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
         CurrentState = WaitingToTX;
     
        //Set Team Color 
-        TeamColor = 0x00; //(HWREG(GPIO_PORTD_BASE+(GPIO_O_DATA+ALL_BITS) & BIT1HI)); 
-         // 0 = blue 
+        if(HWREG(GPIO_PORTC_BASE+(GPIO_O_DATA+ALL_BITS) & BIT6HI) == 0) 
+        {// 0 = blue 
+          TeamColor = 0x00;
+        }
+        else {
+          TeamColor = 0x01; 
          // 1 = red 
-
-        //enable timer (testing only)
-        //ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
+        }
       }
     }
     break;
@@ -263,11 +265,11 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
              // printf("\n \r PacketTX = %X", ThisEvent.EventParam);
             //Transmiting this packet 
            
-          if((HWREG(UART2_BASE+UART_O_FR)) & ((UART_FR_TXFE)))//If TXFE is set (empty)
+          if((HWREG(UART5_BASE+UART_O_FR)) & ((UART_FR_TXFE)))//If TXFE is set (empty)
           {
          //   printf("\r\nwriting to DR");
             //Write the new data to the UARTDR (first byte)
-             HWREG(UART2_BASE+UART_O_DR) = Message_Packet[(IDX)];  
+             HWREG(UART5_BASE+UART_O_DR) = Message_Packet[(IDX)];  
               //decremet Bytes Remaining 
                 BytesRemaining--;
               //Increment index 
@@ -284,8 +286,8 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
 //               index++; 
 //             }
 //            //Enable TXIM (Note: also enabled in UARTInit)
-               HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_RXIM);
-               HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_TXIM); 
+               HWREG(UART5_BASE + UART_O_IM) &= ~(UART_IM_RXIM);
+               HWREG(UART5_BASE + UART_O_IM) |= (UART_IM_TXIM); 
 
             //Enable Interrupts globally  (also enabled in UARTinit) 
                __enable_irq();
@@ -358,13 +360,13 @@ void AnsibleTXRXISR (void)
   //Read the Masked Interrupt Status (UARTMIS)
   
   //If TXMIS Is Set 
-  if ((HWREG(UART2_BASE + UART_O_MIS)) & (UART_MIS_TXMIS)) //if bit is set, then an interrupt has occured
+  if ((HWREG(UART5_BASE + UART_O_MIS)) & (UART_MIS_TXMIS)) //if bit is set, then an interrupt has occured
   {
   //  printf("\r\nISRbitch");
      //clear the source of the interrupt
-      HWREG(UART2_BASE+UART_O_ICR) |= UART_ICR_TXIC;
+      HWREG(UART5_BASE+UART_O_ICR) |= UART_ICR_TXIC;
     //Write the new data to register (UARTDR)
-      HWREG(UART2_BASE+UART_O_DR) = Message_Packet[IDX]; 
+      HWREG(UART5_BASE+UART_O_DR) = Message_Packet[IDX]; 
      // printf("\n \r tx = %x", Message_Packet[(IDX)]); 
       IDX++; 
       
@@ -372,9 +374,9 @@ void AnsibleTXRXISR (void)
     if (IDX == (TXPacket_Length))
     {
       //clear the source of the interrupt
-        HWREG(UART2_BASE+UART_O_ICR) |= UART_ICR_TXIC;
-        HWREG(UART2_BASE + UART_O_IM) &= ~(UART_IM_TXIM); //disable interrupt on TX by clearing TXIM 
-        HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_RXIM); //enable rx
+        HWREG(UART5_BASE+UART_O_ICR) |= UART_ICR_TXIC;
+        HWREG(UART5_BASE + UART_O_IM) &= ~(UART_IM_TXIM); //disable interrupt on TX by clearing TXIM 
+        HWREG(UART5_BASE + UART_O_IM) |= (UART_IM_RXIM); //enable rx
       //Post the ES_TX_COMPLETE (note: TX complete does not mean that that the Packet has been sent) 
       ES_Event_t ReturnEvent; 
       ReturnEvent.EventType = ES_TX_COMPLETE; 
@@ -397,15 +399,15 @@ void AnsibleTXRXISR (void)
   
   
   //If RXMIS Is Set 
-  if ((HWREG(UART2_BASE + UART_O_MIS)) & (UART_MIS_RXMIS)) //if bit is set, then an interrupt has occured
+  if ((HWREG(UART5_BASE + UART_O_MIS)) & (UART_MIS_RXMIS)) //if bit is set, then an interrupt has occured
   {
        //clear the source of the interrupt
-        HWREG(UART2_BASE+UART_O_ICR) |= UART_ICR_RXIC;
+        HWREG(UART5_BASE+UART_O_ICR) |= UART_ICR_RXIC;
 //        receiving = true; 
       //Read the new data  register (UARTDR)
           ES_Event_t ThisEvent; 
           ThisEvent.EventType = BYTE_RECEIVED;  
-          ThisEvent.EventParam = HWREG(UART2_BASE+UART_O_DR); 
+          ThisEvent.EventParam = HWREG(UART5_BASE+UART_O_DR); 
           PostAnsibleRX(ThisEvent);
        //  printf("\n \r RX = %X", ThisEvent.EventParam); 
    
@@ -425,52 +427,49 @@ void UARTHardwareInit(void){
 //Setting up the registers for UART-XBee communications
   
   //Enable the clock to the UART module using the RCGCUART (run time gating clock control) register
-   HWREG(SYSCTL_RCGCUART) |= SYSCTL_RCGCUART_R2; //UART2 Clock
+   HWREG(SYSCTL_RCGCUART) |= SYSCTL_RCGCUART_R5;   //UART5 Clock
   
   //Wait for the UART to be ready (PRUART)
-   while ((HWREG(SYSCTL_PRUART) & SYSCTL_PRUART_R2) != SYSCTL_PRUART_R2); 
-  
-  //Enable the clock to the GPIO port D
-   HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R3;
+   while((HWREG(SYSCTL_PRUART) & SYSCTL_PRUART_R5)!= SYSCTL_PRUART_R5);
+
+  //Enable the clock to the GPIO port E
+   HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R4;  
   
   //Wait for the GPIO module to be ready  (PRGPIO)
-   while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_RCGCGPIO_R3) != SYSCTL_RCGCGPIO_R3); 
+     while((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R4)!= SYSCTL_PRGPIO_R4)
+  {
+  }  
   
   //Configure the GPIO pine for in/out/drive-level/drive-type 
-     HWREG(GPIO_PORTD_BASE+GPIO_O_DEN) |= (UART2_TX_PIN|UART2_RX_PIN); //setting pins as digital
-     HWREG(GPIO_PORTD_BASE+GPIO_O_DIR) &= ~(UART2_RX_PIN); //setting RX as input 
-     HWREG(GPIO_PORTD_BASE+GPIO_O_DIR) |= (UART2_RX_PIN); //setting TX as output
+     HWREG(GPIO_PORTE_BASE+GPIO_O_DEN) |= (UART5_TX_PIN|UART5_RX_PIN); //setting pins as digital
+     HWREG(GPIO_PORTE_BASE+GPIO_O_DIR) &= ~(UART5_RX_PIN); //setting RX as input 
+     HWREG(GPIO_PORTD_BASE+GPIO_O_DIR) |= (UART5_TX_PIN); //setting TX as output
   
   //Select the Alternative functions for the UART pins (AFSEL)(AFSEL Table pg.1351)
-   HWREG(GPIO_PORTD_BASE+GPIO_O_AFSEL) |= (UART2_TX_PIN|UART2_RX_PIN); 
+   HWREG(GPIO_PORTD_BASE+GPIO_O_AFSEL) |= (UART5_TX_PIN|UART5_RX_PIN); 
     
   //Configure the PMCn fields in the GPPIOPCTL (p.689) register to assign the UART pins
-    HWREG(GPIO_PORTD_BASE+GPIO_O_PCTL) = (HWREG(GPIO_PORTD_BASE+GPIO_O_PCTL) & 0xf00fffff)+(1<<(6*BitsPerNibble))+(1<<(7*BitsPerNibble)); //Write 1 to select U2RX as alternative function and to select U2TX as alt fun 
+    HWREG(GPIO_PORTE_BASE + GPIO_O_PCTL) |= (HWREG(GPIO_PORTE_BASE +  GPIO_O_PCTL) & 0xff00ffff) | 0x00110000; //Write 1 to select U5RX as alternative function and to select U5TX as alt fun 
 
   //Disable the UART by clearning the UARTEN bits in the UARTCTL register
-    HWREG(UART2_BASE+UART_O_CTL) &= ~(UART_CTL_UARTEN); 
+    HWREG(UART5_BASE + UART_O_CTL) &= ~UART_CTL_UARTEN;
   
   //Write the inter portion of the URTIBRD register (setting baud rate) 
-    HWREG(UART2_BASE+UART_O_IBRD) = 0x104;  
+    HWREG(UART5_BASE+UART_O_IBRD) = 0x104;  
   
   //Write the fractional portion of the BRD to the UARTIBRD register
-    HWREG(UART2_BASE+UART_O_FBRD) = 0x1B;  
+    HWREG(UART5_BASE+UART_O_FBRD) = 0x1B;  
 
   //Write the desired serial parameters to the UARTLCRH registers to set word length to 8
-     HWREG (UART2_BASE + UART_O_LCRH) = (UART_LCRH_WLEN_8); 
+     HWREG(UART5_BASE + UART_O_LCRH) |= UART_LCRH_WLEN_8;
 
   //Configure the UART operation using the UARTCTL register 
-   //UART Data Registers should be cleared by default (RXE and TXE are already enabled) **
-     HWREG(UART2_BASE + UART_O_CTL) |= (UART_CTL_TXE); 
-     HWREG(UART2_BASE + UART_O_CTL) |= (UART_CTL_RXE); 
+  //UART Data Registers should be cleared by default (RXE and TXE are already enabled) 
+   //Enable the UART by setting the UARTEN bit in the UARTCTL register 
+    HWREG(UART5_BASE + UART_O_CTL) |= ( UART_CTL_RXE |UART_CTL_TXE | UART_CTL_UARTEN);
 
-  //Enable the UART by setting the UARTEN bit in the UARTCTL register 
-    HWREG(UART2_BASE + UART_O_CTL) |= (UART_CTL_UARTEN); 
-    
-   // HWREG(UART2_BASE + UART_O_CTL) |= UART_CTL_LBE;
-        
   //Enable UART RX Interrupt (p.924)
-    HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_RXIM | UART_IM_TXIM); 
+   HWREG(UART5_BASE + UART_O_IM) |= (UART_IM_RXIM | UART_IM_TXIM);
   
   //Enable UART TX Interrupt
    //HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_TXIM); 
