@@ -185,7 +185,8 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
         //set bool paired to false 
          pair_var = false; 
         //Set next state to WaitingforPair
-        NextState = WaitingForPair;
+        NextState = WaitingForPair; 
+        printf("ES_INIT"); 
        
       }
     }
@@ -193,6 +194,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
 
     case WaitingForPair:        // If current state is state one
     {
+       printf("waiting for pair"); 
         if(ThisEvent.EventType == ES_PAIRBUTTONPRESSED)  // only respond if the button is pressed to pair to a specific team 
           {  
             //set ship address (**getter function that determines ship destination address and sends dest address to ansibletx)  
@@ -235,7 +237,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
              PostAnsibleTX(ThisEvent); 
              printf("\n \r es_begin_tX");
           }
-          if (ThisEvent.EventParam == PAIR_TIMEOUT_TIMER)
+          else if (ThisEvent.EventParam == PAIR_TIMEOUT_TIMER)
           {
             ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); 
             //set nextstaate to WaitingForPair
@@ -268,7 +270,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
     {
       switch (ThisEvent.EventType)
       {
-    /*(   case ES_PAIRBUTTONPRESSED:  //if connection established event is posted
+       case ES_PAIRBUTTONPRESSED:  //if connection established event is posted
         {  
            //send packet to SHIP (0x01)
              ThisEvent.EventType = ES_BEGIN_TX;
@@ -283,7 +285,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
          // now put the machine into the actual initial state
           NextState = WaitingForPairResp;  //Decide what the next state will be
         }
-        break; */
+        break;
         case ES_TIMEOUT:  //if connection established event is posted
         {  
           if (ThisEvent.EventParam == PAIR_ATTEMPT_TIMER)

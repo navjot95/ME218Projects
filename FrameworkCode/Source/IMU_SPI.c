@@ -8,7 +8,7 @@
  Author
 	E. Krimsky, ME218C
 ****************************************************************************/
-#define IMU_DEBUG   // Unccoment to stop printing 
+//#define IMU_DEBUG   // Unccoment to stop printing 
 #include "IMU_SPI.h"
 
 #define PDIV                4       // SSI clock divisor 

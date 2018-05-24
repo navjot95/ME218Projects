@@ -125,17 +125,17 @@ static uint8_t MyPriority;
 ****************************************************************************/
 bool InitAnsibleTX(uint8_t Priority)
 {
-    DestAddress[0] = 0x2086; // = DestAddressMSB(); //= 0x20; 
-    DestAddress[1] = 0x2086;
-    DestAddress[2] = 0x2086;
-    DestAddress[3] = 0x2086;
-    DestAddress[4] = 0x2086;
-    DestAddress[5] = 0x2086;
-    DestAddress[6] = 0x2086;
-    DestAddress[7] = 0x2086;
-    DestAddress[8] = 0x2086;
-    DestAddress[9] = 0x2086;
-    DestAddress[10] = 0x2086;
+    DestAddress[0] = 0x2181; // = DestAddressMSB(); //= 0x20; 
+    DestAddress[1] = 0x2182;
+    DestAddress[2] = 0x2183;
+    DestAddress[3] = 0x2184;
+    DestAddress[4] = 0x2185;
+    DestAddress[5] = 0x2186;
+    DestAddress[6] = 0x2187;
+    DestAddress[7] = 0x2188;
+    DestAddress[8] = 0x2189;
+    DestAddress[9] = 0x218A;
+    DestAddress[10] = 0x218B;
     
     ES_Event_t ThisEvent;
 
@@ -215,16 +215,9 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
       {
         //Set the initial state 
         CurrentState = WaitingToTX;
-        
-        //Get SHIPTeamSelect, Initialized to SHIP Ansible 
-    //   DestAddressMSB_val = 0x20; // = DestAddressMSB(); //= 0x20; 
-      // DestAddressLSB_val = 0x86;//DestAddressLSB(); // = 0x86; 
-          uint8_t boat_number = getCurrentBoat(); 
-          DestAddressMSB_val = DestAddress[boat_number - 1] >> 8;
-          DestAddressLSB_val = DestAddress[boat_number - 1] & 0x00FF; 
-        
+    
        //Set Team Color 
-        TeamColor = (HWREG(GPIO_PORTD_BASE+(GPIO_O_DATA+ALL_BITS) & BIT1HI)); 
+        TeamColor = 0x00; //(HWREG(GPIO_PORTD_BASE+(GPIO_O_DATA+ALL_BITS) & BIT1HI)); 
          // 0 = blue 
          // 1 = red 
 
@@ -243,6 +236,14 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
                  
            //reset timer (testing only)
            // ES_Timer_InitTimer (TX_ATTEMPT_TIMER,TX_TIME); 
+        
+              
+        //Get SHIPTeamSelect, Initialized to SHIP Ansible 
+      //   DestAddressMSB_val = 0x20; // = DestAddressMSB(); //= 0x20; 
+      // DestAddressLSB_val = 0x86;//DestAddressLSB(); // = 0x86; 
+          uint8_t boat_number = getCurrentBoat(); 
+          DestAddressMSB_val = DestAddress[boat_number - 1] >> 8;
+          DestAddressLSB_val = DestAddress[boat_number - 1] & 0x00FF; 
         
             //Initialize IDX;
              IDX=0; 
@@ -318,7 +319,11 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
       }  // end switch on CurrentEvent
     }
     break;
-  }                                   // end switch on Current State
+    
+        //default:
+        //  printf("\r\n state machine bug, ansible tx");
+  }                 
+  // end switch on Current State
   return ReturnEvent;
 }
 

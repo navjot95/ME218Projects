@@ -29,7 +29,7 @@ Date:
 #define BUTTON_DEBOUNCE_TIME 50 // 50 msec for debouncing 
 
 // Assuming an input pulldown button configuration 
-#define BUTTON_DOWN true
+#define BUTTON_DOWN false
 
 /*--------------------------- Module Variables -----------------------------*/
 static uint8_t MyPriority;
@@ -75,7 +75,7 @@ bool InitButton( uint8_t Priority)
     CurrentState = Debouncing;
 
     // If debounce timer is set correctly
-    if (ES_Timer_InitTimer(DEBOUNCE_TIMER, BUTTON_DEBOUNCE_TIME) == ES_Timer_OK)
+    if (ES_Timer_InitTimer(BUTTON_DEBOUNCE_TIMER, BUTTON_DEBOUNCE_TIME) == ES_Timer_OK)
     {
         returnValue = true; 
     }
@@ -116,7 +116,7 @@ ES_Event_t RunButton( ES_Event_t ThisEvent )
         case Debouncing :
         	/* if we are done debouncing */
 			if ( (ThisEvent.EventType == ES_TIMEOUT) && 
-				(ThisEvent.EventParam == DEBOUNCE_TIMER) ) 
+				(ThisEvent.EventParam == BUTTON_DEBOUNCE_TIMER) ) 
 			{
 				NextState = Ready2Sample; 
 			}

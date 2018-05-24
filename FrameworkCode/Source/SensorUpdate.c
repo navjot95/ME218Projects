@@ -10,7 +10,7 @@
 ****************************************************************************/
 
 
-#define SENSOR_DEBUG     // comment out when not debugging 
+//#define SENSOR_DEBUG     // comment out when not debugging 
 
 #include "SensorUpdate.h"
 
