@@ -24,9 +24,9 @@ Date:
 #include "AnsibleMain.h"
 
 /*----------------------------- Defines ------------------------------------*/
-#define INPUT_PORT_BASE GPIO_PORTD_BASE // using port B for button
-#define BUTTON_PIN BIT0HI
-#define BUTTON_DEBOUNCE_TIME 50 // 50 msec for debouncing 
+#define INPUT_PORT_BASE GPIO_PORTC_BASE      // using port C for button
+#define BUTTON_PIN                BIT4HI
+#define BUTTON_DEBOUNCE_TIME          50     // 50 msec for debouncing 
 
 // Assuming an input pulldown button configuration 
 #define BUTTON_DOWN false
@@ -59,9 +59,9 @@ bool InitButton( uint8_t Priority)
     bool returnValue = false;
     MyPriority = Priority; // assign to static variable 
 
-    // Will use port D
-    HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R3; // PORT D
-    while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R3) != SYSCTL_PRGPIO_R3)
+    // Will use port C
+    HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R2; // PORT C
+    while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R2) != SYSCTL_PRGPIO_R2)
         ;
     HWREG(INPUT_PORT_BASE+GPIO_O_DEN) |= BUTTON_PIN; // Digital Enable
     HWREG(INPUT_PORT_BASE+GPIO_O_DIR) &= ~BUTTON_PIN; // Set output (clear bit)
@@ -158,20 +158,19 @@ bool CheckButtonEvents(void)
 	bool CurrentButtonState = ReadButton(); // read the state
 	if (CurrentButtonState != LastButtonState) // check for change 
 	{	
-        returnValue = true;
+    returnValue = true;
 		if (CurrentButtonState == BUTTON_DOWN) //Check with defs 
 		{
-            ES_Event_t ButtonEvent;
-            ButtonEvent.EventType = ES_BUTTON_DOWN;
-            PostButton(ButtonEvent);  
+        ES_Event_t ButtonEvent;
+        ButtonEvent.EventType = ES_BUTTON_DOWN;
+        PostButton(ButtonEvent);  
 		} 
-        else 
-        {
-            ES_Event_t ButtonEvent;
-            ButtonEvent.EventType = ES_BUTTON_UP;
-            PostButton(ButtonEvent);           
-        }
-        // Could add implementation for button up if wanted 
+    else 
+    {
+        ES_Event_t ButtonEvent;
+        ButtonEvent.EventType = ES_BUTTON_UP;
+        PostButton(ButtonEvent);           
+    }
 	}
 	// Set last button state for next function call
 	LastButtonState = CurrentButtonState; // store away the last state 
@@ -195,24 +194,3 @@ static bool ReadButton(void)
     }
     return returnValue; 
 }
-
-/***************************** END SOURCE *********************************/
-
-/* --------------------------- Test Harness --------------------------------*/
-#ifdef TEST
-#include "termio.h"
-int main(void)
-{
-    TERMIO_Init();
-    puts("\r\n In test harness for ButtonService\r\n");
-    InitButtonService(0); // Incorporate into framework
-    while(!kbhit())
-    {
-        if (CheckButtonEvents())
-        {
-            printf("\n\rButton Event!")
-        } 
-    }
-    return 0;
-}
-#endif 

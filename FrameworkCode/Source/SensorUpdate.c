@@ -23,25 +23,31 @@
 #define ENCODER_A         BIT6HI                // encoder channel A
 #define ENCODER_B         BIT7HI                // encoder channel B 
 
+// Port C
+#define SHOOT_PIN         BIT5HI                // for shooting water 
+#define MOTOR_DIR_PIN     BIT7HI                // for forward/back     
+
 // Port D
-#define SHOOT_PIN         BIT2HI                // for shooting water 
+#define REFUEL_PIN        BIT6HI
+
+// Port E
+#define SF_PIN            BIT3HI                // special function
+    
     
 static uint8_t MyPriority;
-static uint8_t updateInterval = 100;    // milliseconds (10 Hz refresh rate)
+static uint8_t updateInterval = 100;      // milliseconds (10 Hz refresh rate)
 
-static uint8_t boatNumber = 6;          // start at 6 (our team)
+static uint8_t boatNumber = 6;            // start at 6 (our team)
 static const uint8_t maxBoatNumber = 11; 
 
-static uint8_t throttle = 0;            // 0 to 255 
-static uint8_t yaw = 127;               // 0 to 255 
-static uint8_t pitch = 127;             // 0 to 255 
+static uint8_t throttle = 127;            // 0 to 255 
+static uint8_t yaw = 127;                 // 0 to 255 
+static uint8_t pitch = 127;               // 0 to 255 
+static uint8_t control = 0x00; 
 
 
 // ------------- Private Functions ------------
 static void InitIOC( void );
-
-
-
 
 /****************************************************************************
  Function
@@ -66,23 +72,40 @@ bool InitSensorUpdate( uint8_t Priority )
 
     InitIOC();      // initialize IOC
     
-    // Will use port B 
+    // Will use port C, D and E 
+    HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R2; // PORT C
+    while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R2) != SYSCTL_PRGPIO_R2)
+        ;
+    HWREG(GPIO_PORTC_BASE+GPIO_O_DEN) |= SHOOT_PIN; // Digital Enable
+    HWREG(GPIO_PORTC_BASE+GPIO_O_DIR) &= SHOOT_PIN; // Set input (clear bit)
+    HWREG(GPIO_PORTC_BASE+GPIO_O_PUR) |= SHOOT_PIN; // enable pullup 
+    
+    HWREG(GPIO_PORTC_BASE+GPIO_O_DEN) |= MOTOR_DIR_PIN; // Digital Enable
+    HWREG(GPIO_PORTC_BASE+GPIO_O_DIR) &= MOTOR_DIR_PIN; // Set input (clear bit)
+    
     HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R3; // PORT D
     while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R3) != SYSCTL_PRGPIO_R3)
         ;
-    HWREG(GPIO_PORTD_BASE+GPIO_O_DEN) |= SHOOT_PIN; // Digital Enable
-    HWREG(GPIO_PORTD_BASE+GPIO_O_DIR) &= SHOOT_PIN; // Set output (clear bit)
-    HWREG(GPIO_PORTD_BASE+GPIO_O_PUR) |= SHOOT_PIN; // enable pullup 
+    HWREG(GPIO_PORTD_BASE+GPIO_O_DEN) |= REFUEL_PIN; // Digital Enable
+    HWREG(GPIO_PORTD_BASE+GPIO_O_DIR) &= REFUEL_PIN; // Set input (clear bit)
 
-  
-	//Initialize one Analog Input (on PE0) with ADC_MultiInit
-    // PE0 - throttle input 
-    // PE1 - shoot input (force sensor)
+
+    HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R4; // PORT E
+    while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R4) != SYSCTL_PRGPIO_R4)
+        ;
+    
+    HWREG(GPIO_PORTE_BASE+GPIO_O_DEN) |= SF_PIN; // Digital Enable
+    HWREG(GPIO_PORTE_BASE+GPIO_O_DIR) &= SF_PIN; // Set input (clear bit)
+    
+    //Initialize one Analog Input (on PE0) with ADC_MultiInit
+    // PE0 - throttle input (force sensor)
+    // PE1 - turret (pitch)
+    // PE2 - turret (yaw) 
     ADC_MultiInit(3);
 
-	if (ES_Timer_InitTimer(SENSOR_UPDATE_TIMER, updateInterval) == ES_Timer_OK)  
+	  if (ES_Timer_InitTimer(SENSOR_UPDATE_TIMER, updateInterval) == ES_Timer_OK)  
     {
-    	returnValue = true;
+        returnValue = true;
     } 
     return returnValue;   
 }
@@ -136,7 +159,9 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         uint32_t analogIn[3]; // to store AD value      
         ADC_MultiRead(analogIn);
 
-        throttle = 255*((MAX_8BIT * analogIn[0])/MAX_AD);   
+        throttle = 255*((MAX_8BIT * analogIn[0])/MAX_AD);  
+
+        
         yaw = 255*((MAX_AD - analogIn[1])/(MAX_AD + 0.0));   
         pitch = 255*((MAX_AD - analogIn[1])/(MAX_AD + 0.0));   
 
@@ -148,6 +173,25 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         {
             throttle = 255;
         }
+        
+        // fill up control byte
+        
+        control = 0x00; 
+        if (HWREG(GPIO_PORTC_BASE+(GPIO_O_DATA + ALL_BITS)) & SHOOT_PIN)
+        {
+            control |= BIT0HI; 
+        }
+        
+        // BIT1 Self refuel -- if momentary, may want to be posting event 
+        
+        // TODO add in these two bits 
+    
+        // Bit 2 special function 
+        if (HWREG(GPIO_PORTE_BASE+(GPIO_O_DATA + ALL_BITS)) & SF_PIN)
+        {
+            control |= BIT2HI; 
+        }
+        
         
         #ifdef SENSOR_DEBUG
             printf("\r\n Boat Number: %i, Throttle: %i, Yaw: %i, Pitch: %i", boatNumber, throttle, yaw, pitch);
@@ -206,16 +250,6 @@ uint8_t getSteering( void )
 
 uint8_t getControl( void )
 {
-    uint8_t control = 0x00; 
-    if (HWREG(GPIO_PORTB_BASE+(GPIO_O_DATA + ALL_BITS)) & SHOOT_PIN)
-    {
-      control |= BIT0HI; 
-    }
-      
-    // BIT1 Self refuel
-    // TODO add in these two bits 
-    
-    // Bit 2 special function 
     return control;
 }
 
