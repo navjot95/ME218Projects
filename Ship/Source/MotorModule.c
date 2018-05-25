@@ -104,6 +104,7 @@ void InitFanPumpPWM()
   //enable PWM outputs 
   HWREG(PWM0_BASE+PWM_O_ENABLE) |= (PWM_ENABLE_PWM0EN | PWM_ENABLE_PWM1EN); 
   
+  /*
   //Disable PWM0 (PB4 and PB5) while initializing
   HWREG(PWM0_BASE + PWM_O_1_CTL) = 0;
   // program generators to go to 1 at rising compare A/B, 0 on falling compare A/B
@@ -116,39 +117,40 @@ void InitFanPumpPWM()
   HWREG(PWM0_BASE + PWM_O_1_CMPB) = HWREG(PWM0_BASE+PWM_O_0_LOAD) >> 1;
   //Enable PWM output 
   HWREG(PWM0_BASE + PWM_O_ENABLE) |= (PWM_ENABLE_PWM2EN);
-  
+  */
   
   //select alternatue function on PWM pins for PB6, PB7, PB4, PB5
-  HWREG(GPIO_PORTB_BASE + GPIO_O_AFSEL) |= (BIT7HI | BIT6HI | BIT4HI | BIT5HI); //corresponds to PB6 and PB7
+  HWREG(GPIO_PORTB_BASE + GPIO_O_AFSEL) |= (BIT7HI | BIT6HI /* | BIT4HI | BIT5HI*/); //corresponds to PB6 and PB7
   //map PWM to PB6, PB7, PB4, PB5
-  HWREG(GPIO_PORTB_BASE + GPIO_O_PCTL) = (HWREG(GPIO_PORTB_BASE + GPIO_O_PCTL) & 0x00ffffff) + (4<<(7*BitsPerNibble)) + (4<<(6*BitsPerNibble)) + (4<<(4*BitsPerNibble)) + (4<<(5*BitsPerNibble)); 
+  HWREG(GPIO_PORTB_BASE + GPIO_O_PCTL) = (HWREG(GPIO_PORTB_BASE + GPIO_O_PCTL) & 0x00ffffff) + (4<<(7*BitsPerNibble)) + (4<<(6*BitsPerNibble)) /*+ (4<<(4*BitsPerNibble)) + (4<<(5*BitsPerNibble))*/; 
   //enable Pin 4, 5, 6 and 7 on Port B for digital I/O
-  HWREG(GPIO_PORTB_BASE + GPIO_O_DEN) |= (BIT7HI | BIT6HI | BIT4HI | BIT5HI); 
+  HWREG(GPIO_PORTB_BASE + GPIO_O_DEN) |= (BIT7HI | BIT6HI /*| BIT4HI | BIT5HI*/); 
   //make pin 4, 5, 6  and 7 on Port B into output
-  HWREG(GPIO_PORTB_BASE + GPIO_O_DIR) |= (BIT7HI | BIT6HI | BIT4HI | BIT5HI); 
+  HWREG(GPIO_PORTB_BASE + GPIO_O_DIR) |= (BIT7HI | BIT6HI /*| BIT4HI | BIT5HI*/); 
   //Set up/down count mode, enable PWM generator and make both generator updates locally synchronized to zero count
   HWREG(PWM0_BASE + PWM_O_0_CTL) = (PWM_0_CTL_MODE | PWM_0_CTL_ENABLE | PWM_0_CTL_GENAUPD_LS | PWM_0_CTL_GENBUPD_LS); 
-  HWREG(PWM0_BASE + PWM_O_1_CTL) = (PWM_1_CTL_MODE | PWM_1_CTL_ENABLE | PWM_1_CTL_GENAUPD_LS | PWM_1_CTL_GENBUPD_LS); 
+  //HWREG(PWM0_BASE + PWM_O_1_CTL) = (PWM_1_CTL_MODE | PWM_1_CTL_ENABLE | PWM_1_CTL_GENAUPD_LS | PWM_1_CTL_GENBUPD_LS); 
   
   StopFanMotors(); 
-  SetPumpSpeed(0); 
-  
-  
-  //Set up direction pin for fans
+  changePumpPower(false); 
   
 }
 
 void MoveForward(uint32_t ForwardSpeed){
-  MoveFanMotors(ForwardSpeed,ForwardSpeed); 
+  MoveFanMotors(ForwardSpeed,ForwardSpeed, true); 
 }
 
 
+void MoveBackward(uint32_t BackwardSpeed){
+    MoveFanMotors(BackwardSpeed, BackwardSpeed, false); 
+}
+
 void StopFanMotors(void){
-    MoveFanMotors(0,0); 
+    MoveFanMotors(0,0, true); 
 }
 
 //set pwm duty (0-100) for left fan and right fan 
-void MoveFanMotors(uint32_t LeftSpeed, uint32_t RightSpeed){
+void MoveFanMotors(uint32_t LeftSpeed, uint32_t RightSpeed, bool dir){
     //make sure input is between 0 and 100, corresponding to duty
   if(LeftSpeed <= MIN_DUTY_VAL) //negative u means have gone over desired value 
     LeftSpeed = MIN_DUTY_VAL; 
@@ -193,9 +195,23 @@ void MoveFanMotors(uint32_t LeftSpeed, uint32_t RightSpeed){
     HWREG(PWM0_BASE + PWM_O_0_GENB) = (PWM_0_GENB_ACTCMPBU_ONE | PWM_0_GENB_ACTCMPBD_ZERO); 
     HWREG(PWM0_BASE + PWM_O_0_CMPB) = compValR;
   }
+  
+  //NEED TO IMPLEMENT DIRECTION 
+  //for now IN2 for both motors set to low in main.c initialization 
+  
 }
 
+void changePumpPower(bool turnOn){
+    if(turnOn){
+        HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT2HI;  
+    }
+    else {
+        HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT2LO; 
+    }
+        
+}
 
+/* 
 //set the pwm duty (0-100) for the pump motor 
 void SetPumpSpeed(uint32_t pumpDuty){
      //make sure input is between 0 and 100, corresponding to duty
@@ -223,31 +239,22 @@ void SetPumpSpeed(uint32_t pumpDuty){
     HWREG(PWM0_BASE + PWM_O_1_GENA) = (PWM_1_GENA_ACTCMPAU_ONE | PWM_1_GENA_ACTCMPAD_ZERO); 
     HWREG(PWM0_BASE + PWM_O_1_CMPA) = compVal;
   } 
-}
+} */
 
-//powering valves closes them, 
+//powering valves closes them, (valves are normally open)
 //if closing a valve, have to make sure the other is open so flow isn't clogged 
-void toggleTankValve(bool closeValve){
-  if(closeValve){
-    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT3HI; //close tank valve 
-    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT4LO; //open shoot valve
-  }
-  else{
-    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT3LO; //open tank valve
-    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT4HI; //close shoot valve
-  }
+void changeFlow(bool toTank){
+    if(toTank){
+        HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT3LO; //open tank valve
+        HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT4HI; //close shoot valve
+    }
+    else {
+        HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT3HI; //close tank valve 
+        HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT4LO; //open shoot valve
+    }        
 }
 
-void toggleShootValve(bool closeValve){
-  if(closeValve){
-    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT4HI; //close shoot valve
-    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT3LO; //open tank valve
-  }
-  else{
-    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT3HI; //open shoot valve
-    HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT4LO; //close tank valve
-  }
-}
+
 
 /***************************************************************************
  private functions

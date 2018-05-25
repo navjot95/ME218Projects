@@ -110,13 +110,42 @@ void InitGPIO(void){
   while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R0) != SYSCTL_PRGPIO_R0) 
   {
   } 
-  //Initialize bit 2(team switch), 3(valve), 4(valve) on Port A to be a digital bit
-  HWREG(GPIO_PORTA_BASE+GPIO_O_DEN) |= (BIT2HI | BIT3HI | BIT4HI); 
+  //Initialize bit 2(team switch), 3(tank valve), 4(shoot valve), 6(LED - home blue), 7(LED - curr blue) on Port A to be a digital bit
+  HWREG(GPIO_PORTA_BASE+GPIO_O_DEN) |= (BIT2HI | BIT3HI | BIT4HI | BIT6HI | BIT7HI); 
   
   //Initialize bit 2 (team switch) on Port A to be an input
   HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) &= BIT2LO;
-  //Initialize bit 3,4 to be digital output  
-  HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) |= (BIT3HI | BIT4HI);
+  //Initialize bit 3,4,6,7 to be digital output  
+  HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) |= (BIT3HI | BIT4HI | BIT6HI | BIT7HI);
   
+  
+  
+  HWREG(SYSCTL_RCGCGPIO) |= BIT1HI; //enable Port B
+  //wait for Port B to be ready
+  while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R1) != SYSCTL_PRGPIO_R1) 
+  {
+  } 
+  //Initialize pin 2,3,4,5 on Port B to be a digital bit
+  HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (BIT2HI | BIT3HI | BIT4HI | BIT5HI); 
+  //Initialize bit 2,3,4,5 to be digital output  
+  HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) |= (BIT2HI | BIT3HI | BIT4HI | BIT5HI);
+  
+  
+  
+  HWREG(SYSCTL_RCGCGPIO) |= BIT2HI; //enable Port C
+  //wait for Port C to be ready
+  while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R2) != SYSCTL_PRGPIO_R2) 
+  {
+  } 
+  //Initialize pin 4,5 on Port C to be a digital bit
+  HWREG(GPIO_PORTC_BASE+GPIO_O_DEN) |= (BIT4HI | BIT5HI); 
+  //Initialize bit 4,5 to be digital output  
+  HWREG(GPIO_PORTC_BASE+GPIO_O_DIR) |= (BIT4HI | BIT5HI);
+  
+  
+  
+  HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT4LO; //IN2 on left motor set to low 
+  HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT5LO; //IN2 on right motor set to low
+    
 }
 
