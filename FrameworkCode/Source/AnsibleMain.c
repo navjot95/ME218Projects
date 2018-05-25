@@ -55,8 +55,8 @@ first pass   Sai Koppaka 5/13/18
 
 /*----------------------------- Module Defines ----------------------------*/
 #define BitsPerNibble 4
-#define UART2_RX_PIN GPIO_PIN_6 //Port D6
-#define UART2_TX_PIN        GPIO_PIN_7 //Port D7
+#define UART5_RX_PIN        GPIO_PIN_4 //Port e4
+#define UART5_TX_PIN        GPIO_PIN_5 //Port e5
 #define ATTEMPT_TIME              200     //200ms
 #define PAIRING_TIME            1000      //1 sec time 
 

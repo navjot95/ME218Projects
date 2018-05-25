@@ -49,8 +49,8 @@
 /*----------------------------- Module Defines ----------------------------*/
 #define RX_TIME 2000 //sending bits at 500ms time interval 
 #define BitsPerNibble 4
-#define UART2_RX_PIN GPIO_PIN_6 //Port D6
-#define UART2_TX_PIN GPIO_PIN_7 //Port D7
+#define UART5_RX_PIN GPIO_PIN_4 //Port E4
+#define UART5_TX_PIN GPIO_PIN_5 //Port E5
 #define FUEL_IDX            6       // byte position in packet 
 
 //Defines for XBee

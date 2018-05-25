@@ -142,7 +142,7 @@ __Vectors
         DCD     IntDefaultHandler           ; GPIO Port F
         DCD     IntDefaultHandler           ; GPIO Port G
         DCD     IntDefaultHandler           ; GPIO Port H
-        DCD     AnsibleTXRXISR              ; UART2 Rx and Tx
+        DCD     IntDefaultHandler              ; UART2 Rx and Tx
         DCD     IntDefaultHandler           ; SSI1 Rx and Tx
         DCD     IntDefaultHandler           ; Timer 3 subtimer A
         DCD     IntDefaultHandler           ; Timer 3 subtimer B
@@ -170,7 +170,7 @@ __Vectors
         DCD     IntDefaultHandler           ; SSI3 Rx and Tx
         DCD     IntDefaultHandler           ; UART3 Rx and Tx
         DCD     IntDefaultHandler           ; UART4 Rx and Tx
-        DCD     IntDefaultHandler           ; UART5 Rx and Tx
+        DCD     AnsibleTXRXISR               ; UART5 Rx and Tx
         DCD     IntDefaultHandler           ; UART6 Rx and Tx
         DCD     IntDefaultHandler           ; UART7 Rx and Tx
         DCD     0                           ; Reserved
