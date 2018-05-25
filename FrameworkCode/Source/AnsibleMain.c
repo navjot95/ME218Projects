@@ -113,7 +113,7 @@ bool InitAnsibleMain(uint8_t Priority)
 
   MyPriority = Priority;
   
-  UARTHardwareInit(); //Initialize HW for UART 
+
 
   // put us into the Initial PseudoState
   CurrentState = InitAnsible;

@@ -8,18 +8,23 @@
  Author
 	E. Krimsky, ME218C, Team 6 
 ****************************************************************************/
-
-
-//#define SENSOR_DEBUG     // comment out when not debugging 
+#define SENSOR_DEBUG     // comment out when not debugging 
 
 #include "SensorUpdate.h"
+#include "IMU_SPI.h"
 
 #define MAX_AD              4095                // for AD readings 
 #define DEBOUNCE_TIME        100                // ms 
-#define THROTTLE_MIN          10
+#define THROTTLE_MIN           0
 #define MAX_8BIT             255
 #define THROTTLE_DEAD_LOW    125                // setting deadband
 #define THROTTLE_DEAD_HIGH   132
+
+
+// For IMU processing 
+#define X_ACC_OFFSET        1400
+#define MAX16BIT          0xFFFF
+#define ROLLOVER_THRESH    34000
 
 
 // Port A 
@@ -35,6 +40,8 @@
 
 // Port E
 #define SF_PIN            BIT3HI                // special function
+    
+static const float IMU_scaler = 17000.0;    
     
     
 static uint8_t MyPriority;
@@ -69,6 +76,8 @@ static void InitIOC( void );
 ****************************************************************************/
 bool InitSensorUpdate( uint8_t Priority )
 {
+  
+    printf("\r\nSensor update init"); 
 	//Assign local priority variable MyPriority
     MyPriority = Priority;
     bool returnValue = false;
@@ -79,18 +88,19 @@ bool InitSensorUpdate( uint8_t Priority )
     HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R2; // PORT C
     while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R2) != SYSCTL_PRGPIO_R2)
         ;
+    
     HWREG(GPIO_PORTC_BASE+GPIO_O_DEN) |= SHOOT_PIN; // Digital Enable
-    HWREG(GPIO_PORTC_BASE+GPIO_O_DIR) &= SHOOT_PIN; // Set input (clear bit)
+    HWREG(GPIO_PORTC_BASE+GPIO_O_DIR) &= ~SHOOT_PIN; // Set input (clear bit)
     HWREG(GPIO_PORTC_BASE+GPIO_O_PUR) |= SHOOT_PIN; // enable pullup 
     
     HWREG(GPIO_PORTC_BASE+GPIO_O_DEN) |= MOTOR_DIR_PIN; // Digital Enable
-    HWREG(GPIO_PORTC_BASE+GPIO_O_DIR) &= MOTOR_DIR_PIN; // Set input (clear bit)
+    HWREG(GPIO_PORTC_BASE+GPIO_O_DIR) &= ~MOTOR_DIR_PIN; // Set input (clear bit)
     
     HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R3; // PORT D
     while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R3) != SYSCTL_PRGPIO_R3)
         ;
     HWREG(GPIO_PORTD_BASE+GPIO_O_DEN) |= REFUEL_PIN; // Digital Enable
-    HWREG(GPIO_PORTD_BASE+GPIO_O_DIR) &= REFUEL_PIN; // Set input (clear bit)
+    HWREG(GPIO_PORTD_BASE+GPIO_O_DIR) &= ~REFUEL_PIN; // Set input (clear bit)
   
     
     //Initialize one Analog Input (on PE0) with ADC_MultiInit
@@ -99,10 +109,10 @@ bool InitSensorUpdate( uint8_t Priority )
     // PE2 - turret (yaw) 
     ADC_MultiInit(3);    
     HWREG(GPIO_PORTE_BASE+GPIO_O_DEN) |= SF_PIN; // Digital Enable
-    HWREG(GPIO_PORTE_BASE+GPIO_O_DIR) &= SF_PIN; // Set input (clear bit)
+    HWREG(GPIO_PORTE_BASE+GPIO_O_DIR) &= ~SF_PIN; // Set input (clear bit)
     
 
-	  if (ES_Timer_InitTimer(SENSOR_UPDATE_TIMER, updateInterval) == ES_Timer_OK)  
+	if (ES_Timer_InitTimer(SENSOR_UPDATE_TIMER, updateInterval) == ES_Timer_OK)  
     {
         returnValue = true;
     } 
@@ -158,15 +168,20 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         uint32_t analogIn[3]; // to store AD value      
         ADC_MultiRead(analogIn);
 
-        throttle = (127*analogIn[0])/MAX_AD;
+        throttle = (155*analogIn[0])/MAX_AD; 
+      
+        if (throttle > 127)
+        {
+          throttle = 127; 
+        }
 
         if ( HWREG(GPIO_PORTC_BASE+(GPIO_O_DATA + ALL_BITS)) & MOTOR_DIR_PIN )
         {
-            throttle += 127;
+            throttle = 127 + throttle;
         }
         else
         {
-            throttle -= 127;
+            throttle = 127 - throttle;
         }
         
         
@@ -177,21 +192,17 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         }
         
         // cap throttle values 
-        if (throttle < THROTTLE_MIN)
-        {
-            throttle = 0;
-        } 
-        else if (throttle > 255)
+        if (throttle > 250)
         {
             throttle = 255;
         }
            
         yaw = 255*((MAX_AD - analogIn[1])/(MAX_AD + 0.0));   
-        pitch = 255*((MAX_AD - analogIn[1])/(MAX_AD + 0.0));   
+        pitch = 255*((MAX_AD - analogIn[2])/(MAX_AD + 0.0));   
 
         // fill up control byte        
         control = 0x00; 
-        if (HWREG(GPIO_PORTC_BASE+(GPIO_O_DATA + ALL_BITS)) & SHOOT_PIN)
+        if (!(HWREG(GPIO_PORTC_BASE+(GPIO_O_DATA + ALL_BITS)) & SHOOT_PIN))
         {
             control |= BIT0HI; 
         }
@@ -210,7 +221,7 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         
         
         #ifdef SENSOR_DEBUG
-            printf("\r\n Boat Number: %i, Throttle: %i, Yaw: %i, Pitch: %i", boatNumber, throttle, yaw, pitch);
+            printf("\r\n Boat Number: %i, Throttle: %i, Yaw: %i, Pitch: %i, Control: %x, Steering: %u", boatNumber, throttle, yaw, pitch, control, getSteering());
         #endif 
 
 
@@ -218,8 +229,7 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
     else if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == DEBOUNCE_TIMER)
     {
         HWREG(GPIO_PORTA_BASE+GPIO_O_ICR) |= ENCODER_A;         // W1C 
-        HWREG(GPIO_PORTA_BASE+GPIO_O_IM) |= ENCODER_A;         // unmask
-        printf("a");
+        HWREG(GPIO_PORTA_BASE+GPIO_O_IM) |= ENCODER_A;          // unmask
     }
     else
     {
@@ -261,7 +271,27 @@ uint8_t getYaw( void )
 
 uint8_t getSteering( void )
 {
-    return 127; // TODO -- fill in with IMU data 
+    int scaled_X = (int) get_accel_x(); 
+    if (scaled_X > ROLLOVER_THRESH)
+    {
+      scaled_X -= MAX16BIT;
+    }
+    scaled_X -= X_ACC_OFFSET;
+    int steering_int = 127 + (127 * (scaled_X/IMU_scaler));
+    uint8_t steering = 127; 
+    if (steering_int > 255)
+    {
+        steering = 255;
+    }
+    else if (steering_int < 0)
+    {
+        steering = 0; 
+    }
+    else
+    {
+        steering = (uint8_t) steering_int;
+    }
+    return steering;
 }
 
 uint8_t getControl( void )
@@ -298,11 +328,11 @@ void Encoder_IOC_Response( void )
         // read encoder channel B 
         if (HWREG(GPIO_PORTA_BASE+(GPIO_O_DATA + ALL_BITS)) & ENCODER_B)
         {
-            boatNumber--;
+            boatNumber++;
         }
         else
         {
-            boatNumber++;
+            boatNumber--;
         }
 
         if (boatNumber > maxBoatNumber)

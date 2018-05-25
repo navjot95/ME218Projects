@@ -53,7 +53,7 @@
 #define BitsPerNibble 4
 #define UART5_RX_PIN GPIO_PIN_4 //Port E4
 #define UART5_TX_PIN GPIO_PIN_5 //Port E5
-
+#define TEAM_PIN      BIT6HI    // Port C 
 
 //Defines for XBee
 #define Start_Delimiter 0x7E
@@ -74,6 +74,7 @@
 */
 static void BuildTXPacket(uint8_t PacketType); 
 static uint8_t CheckSum(void); 
+static void UARTHardwareInit(void);
 
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
@@ -125,6 +126,18 @@ static uint8_t MyPriority;
 ****************************************************************************/
 bool InitAnsibleTX(uint8_t Priority)
 {
+  
+      
+       // Will use port C, D and E 
+    HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R2; // PORT C
+    while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R2) != SYSCTL_PRGPIO_R2)
+        ;
+      
+    HWREG(GPIO_PORTC_BASE+GPIO_O_DEN) |= TEAM_PIN; // Digital Enable
+    HWREG(GPIO_PORTC_BASE+GPIO_O_DIR) &= ~TEAM_PIN; // Set input (clear bit)
+    
+    
+    UARTHardwareInit(); //Initialize HW for UART 
     DestAddress[0] = 0x2181; // = DestAddressMSB(); //= 0x20; 
     DestAddress[1] = 0x2182;
     DestAddress[2] = 0x2183;
@@ -148,6 +161,21 @@ bool InitAnsibleTX(uint8_t Priority)
   
     //Disable UART TX Interrupt so that default is RX 
     HWREG(UART5_BASE + UART_O_IM) &= ~(UART_IM_TXIM); 
+        
+    
+ 
+       //Set Team Color 
+    if(HWREG(GPIO_PORTC_BASE+(GPIO_O_DATA+ALL_BITS)) & TEAM_PIN) 
+    {// 0 = blue 
+      TeamColor = 0x00;
+      printf("\r\n WE ARE BLUE");
+    }
+    else 
+    {
+      TeamColor = 0x01; 
+      printf("\r\n WE ARE RED");
+     // 1 = red 
+    }
   
     // post the initial transition event
     ThisEvent.EventType = ES_INIT;
@@ -215,16 +243,7 @@ ES_Event_t RunAnsibleTXSM(ES_Event_t ThisEvent)
       {
         //Set the initial state 
         CurrentState = WaitingToTX;
-    
-       //Set Team Color 
-        if(HWREG(GPIO_PORTC_BASE+(GPIO_O_DATA+ALL_BITS) & BIT6HI) == 0) 
-        {// 0 = blue 
-          TeamColor = 0x00;
-        }
-        else {
-          TeamColor = 0x01; 
-         // 1 = red 
-        }
+   
       }
     }
     break;
@@ -423,8 +442,10 @@ void AnsibleTXRXISR (void)
 
 ///PUBLIC FUNCTIONS//
 
-void UARTHardwareInit(void){
+static void UARTHardwareInit(void){
 //Setting up the registers for UART-XBee communications
+  
+    printf("\r\nUART hardware init"); 
   
   //Enable the clock to the UART module using the RCGCUART (run time gating clock control) register
    HWREG(SYSCTL_RCGCUART) |= SYSCTL_RCGCUART_R5;   //UART5 Clock
@@ -432,21 +453,15 @@ void UARTHardwareInit(void){
   //Wait for the UART to be ready (PRUART)
    while((HWREG(SYSCTL_PRUART) & SYSCTL_PRUART_R5)!= SYSCTL_PRUART_R5);
 
-  //Enable the clock to the GPIO port E
-   HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R4;  
-  
-  //Wait for the GPIO module to be ready  (PRGPIO)
-     while((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R4)!= SYSCTL_PRGPIO_R4)
-  {
-  }  
+
   
   //Configure the GPIO pine for in/out/drive-level/drive-type 
      HWREG(GPIO_PORTE_BASE+GPIO_O_DEN) |= (UART5_TX_PIN|UART5_RX_PIN); //setting pins as digital
      HWREG(GPIO_PORTE_BASE+GPIO_O_DIR) &= ~(UART5_RX_PIN); //setting RX as input 
-     HWREG(GPIO_PORTD_BASE+GPIO_O_DIR) |= (UART5_TX_PIN); //setting TX as output
+     HWREG(GPIO_PORTE_BASE+GPIO_O_DIR) |= (UART5_TX_PIN); //setting TX as output
   
   //Select the Alternative functions for the UART pins (AFSEL)(AFSEL Table pg.1351)
-   HWREG(GPIO_PORTD_BASE+GPIO_O_AFSEL) |= (UART5_TX_PIN|UART5_RX_PIN); 
+   HWREG(GPIO_PORTE_BASE+GPIO_O_AFSEL) |= (UART5_TX_PIN|UART5_RX_PIN); 
     
   //Configure the PMCn fields in the GPPIOPCTL (p.689) register to assign the UART pins
     HWREG(GPIO_PORTE_BASE + GPIO_O_PCTL) |= (HWREG(GPIO_PORTE_BASE +  GPIO_O_PCTL) & 0xff00ffff) | 0x00110000; //Write 1 to select U5RX as alternative function and to select U5TX as alt fun 
@@ -650,7 +665,7 @@ static uint8_t CheckSum(void)
 }
 
 
-uint8_t getteamcolor (void)
+uint8_t getTeamColor (void)
 {
     return TeamColor; 
 }

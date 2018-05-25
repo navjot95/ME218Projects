@@ -17,7 +17,6 @@
 typedef enum{InitAnsible, WaitingForPair, WaitingForPairResp, CommunicatingSHIP} AnsibleMainState_t; 
 
 // Public Function Prototypes
-void UARTHardwareInit( void ); //initialize the UART hardware
 uint8_t getCurrentBoat( void ); 
 
 

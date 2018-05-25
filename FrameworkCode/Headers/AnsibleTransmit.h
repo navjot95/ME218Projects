@@ -14,9 +14,8 @@
 #include "ES_Events.h"
 
 // Public Function Prototypes
-void UARTHardwareInit(void);
 void AnsibleTXISR (void);
-uint8_t getteamcolor (void); 
+uint8_t getTeamColor (void); 
 
 
 //State definition for use with the query function 

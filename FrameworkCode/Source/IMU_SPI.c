@@ -17,6 +17,7 @@
 #define IMU_UPDATE_TIME     7       // ms     
 #define STARTUP_DELAY       100     // ms 
 
+
 // https://github.com/brianc118/MPU9250/blob/master/MPU9250.h
 #define BITS_DLPF_CFG_188HZ         0x01
 #define BITS_FS_250DPS              0x00
@@ -213,8 +214,10 @@ ES_Event_t RunIMU(ES_Event_t ThisEvent)
                     CurrentState = ACC_X_HIGH;                  // Set back to first state 
                     
                     #ifdef IMU_DEBUG
-                    printf("\r\nX_ACC: %x Y_ACC: %x Z_ACC: %i\n", accel_x, accel_y, accel_z); 
-                    printf("\rX_GYRO: %x Y_GYRO: %x Z_GYRO: %x\n\n", gyro_x, gyro_y,  gyro_z); 
+                      //printf("\r\nX_ACC: %i Y_ACC: %i Z_ACC: %i\n", (int) accel_x, (int) accel_y, (int) accel_z); 
+                      //printf("\rX_GYRO: %i Y_GYRO: %i Z_GYRO: %i\n\n", (int) gyro_x, (int) gyro_y,  (int) gyro_z); 
+                       printf("\r\nX_ACC: %i", (int) accel_x);
+                      //printf("\r\nY_GYRO: %i", (int) gyro_y); 
                     #endif 
                     
                 }
