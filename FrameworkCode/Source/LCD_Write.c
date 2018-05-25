@@ -118,10 +118,10 @@ void LCD_HWInit(void){
 	{
 	} 
 	
-	//Initialize bit 0,1,2,3,4,and 5 on Port B to be a digital bit
-	HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (BIT0HI | BIT1HI | BIT2HI | BIT3HI | BIT4HI | BIT5HI); 
-	//Initialize bit 0,1,2,3,4,and 5 on Port B to be an output
-	HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) |= (BIT0HI | BIT1HI | BIT2HI | BIT3HI | BIT4HI | BIT5HI);
+	//Initialize bit 0,1,2,3,4,5,6, and 7 on Port B to be a digital bit
+	HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (BIT0HI | BIT1HI | BIT2HI | BIT3HI | BIT4HI | BIT5HI | BIT6HI | BIT7HI); 
+	//Initialize bit 0,1,2,3,4,5,6,and 7 on Port B to be an output
+	HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) |= (BIT0HI | BIT1HI | BIT2HI | BIT3HI | BIT4HI | BIT5HI | BIT6HI | BIT7HI);
 	
 	
 }

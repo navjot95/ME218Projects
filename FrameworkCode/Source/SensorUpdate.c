@@ -91,20 +91,16 @@ bool InitSensorUpdate( uint8_t Priority )
         ;
     HWREG(GPIO_PORTD_BASE+GPIO_O_DEN) |= REFUEL_PIN; // Digital Enable
     HWREG(GPIO_PORTD_BASE+GPIO_O_DIR) &= REFUEL_PIN; // Set input (clear bit)
-
-
-    HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R4; // PORT E
-    while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R4) != SYSCTL_PRGPIO_R4)
-        ;
-    
-    HWREG(GPIO_PORTE_BASE+GPIO_O_DEN) |= SF_PIN; // Digital Enable
-    HWREG(GPIO_PORTE_BASE+GPIO_O_DIR) &= SF_PIN; // Set input (clear bit)
+  
     
     //Initialize one Analog Input (on PE0) with ADC_MultiInit
     // PE0 - throttle input (force sensor)
     // PE1 - turret (pitch)
     // PE2 - turret (yaw) 
-    ADC_MultiInit(3);
+    ADC_MultiInit(3);    
+    HWREG(GPIO_PORTE_BASE+GPIO_O_DEN) |= SF_PIN; // Digital Enable
+    HWREG(GPIO_PORTE_BASE+GPIO_O_DIR) &= SF_PIN; // Set input (clear bit)
+    
 
 	  if (ES_Timer_InitTimer(SENSOR_UPDATE_TIMER, updateInterval) == ES_Timer_OK)  
     {
