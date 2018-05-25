@@ -650,3 +650,7 @@ static uint8_t CheckSum(void)
 }
 
 
+uint8_t getteamcolor (void)
+{
+    return TeamColor; 
+}
