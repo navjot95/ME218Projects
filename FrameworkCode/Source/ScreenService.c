@@ -43,6 +43,7 @@
 #include "SensorUpdate.h"
 #include "AnsibleMain.h"
 #include "AnsibleReceive.h"
+#include "AnsibleTransmit.h" 
 
 /*----------------------------- Module Defines ----------------------------*/
 // these times assume a 1.000mS/tick timing
@@ -187,10 +188,22 @@ ES_Event_t RunScreenService( ES_Event_t ThisEvent )
 				else {
 					CurrentState = Waiting2Write;
                     
-                    ES_Event_t NewEvent; 
-                    NewEvent.EventType = ES_TIMEOUT; 
-                    NewEvent.EventParam = SCREEN_UPDATE_TIMER; 
-                    ES_PostToService( MyPriority, NewEvent);
+          ES_Event_t NewEvent; 
+          NewEvent.EventType = ES_TIMEOUT; 
+          NewEvent.EventParam = SCREEN_UPDATE_TIMER; 
+          ES_PostToService( MyPriority, NewEvent);
+          
+          //update screen color 
+          if(getTeamColor()){
+            //team color is red
+            HWREG(GPIO_PORTB_BASE+(GPIO_O_DATA + ALL_BITS)) |= BIT6LO;//set red low to make screen red 
+            HWREG(GPIO_PORTB_BASE+(GPIO_O_DATA + ALL_BITS)) &= BIT7HI;//set blue high so screen isn't blue 
+          }
+          else {
+            //team color is blue
+            HWREG(GPIO_PORTB_BASE+(GPIO_O_DATA + ALL_BITS)) |= BIT7LO;//set blue low to make screen red 
+            HWREG(GPIO_PORTB_BASE+(GPIO_O_DATA + ALL_BITS)) &= BIT6HI;//set red high so screen isn't blue 
+          }
 				}					
       }
       break;
@@ -206,13 +219,13 @@ ES_Event_t RunScreenService( ES_Event_t ThisEvent )
               fuel = getFuelStatus(); 
             }
             else
-              strcpy(connectionStatus, "    UNPAIRED");  
+              strcpy(connectionStatus, "    UNPAIRED    ");  
           
             sprintf(stringBuffer, "Boat:%02d Fuel:%d/8                        %s", getBoatNumber(), fuel, connectionStatus);
                         
             ES_Timer_InitTimer(SCREEN_UPDATE_TIMER, LCD_REFRESH_TIME); //restart the refresh timer
-            
             ThisEvent.EventType = ES_LCD_PUTCHAR; //So next part of Waiting2Write executes     
+                        
         }
       if (ThisEvent.EventType == ES_LCD_PUTCHAR ){
         // write the character to the LCD
