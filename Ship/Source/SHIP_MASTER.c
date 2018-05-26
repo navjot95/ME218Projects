@@ -36,7 +36,7 @@
 #define ONE_SEC 1000
 #define BLUE_TEAM 1
 #define RED_TEAM 0
-#define PAIR_ATTEMPT_TIME 200
+#define PAIR_ATTEMPT_TIME 150
 #define PAIR_TIMEOUT_TIME ONE_SEC
 
 // Control Commands
@@ -99,19 +99,8 @@ bool InitSHIP_MASTER(uint8_t Priority)
   MyPriority = Priority;
   // put us into the Initial PseudoState
   CurrentState = Waiting2Pair;
-  printf("\r\nIn Waiting2Pair now yee");
-  
-  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R0;
-  while((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R0)!= SYSCTL_PRGPIO_R0)
-  {
-  }  
-  
-  // Set PE4 and PE5 to digital 
-  HWREG(GPIO_PORTA_BASE + GPIO_O_DEN) |= (BIT2HI); 
-  
-  // PE4 input (RX), PE5 output (TX) 
-  HWREG(GPIO_PORTA_BASE + GPIO_O_DIR) &= ~BIT2HI; 
-  
+  printf("\r\nINIT STATE: Waiting2Pair");
+    
   //initialize all hw necessairy for the SHIP 
   homeTeamColor = getHomeTeamColor(); 
   
@@ -183,9 +172,9 @@ ES_Event_t RunSHIP_MASTER(ES_Event_t ThisEvent)
           //start attempt timer (200ms)
           ES_Timer_InitTimer(PAIR_ATTEMPT_SHIP_TIMER, PAIR_ATTEMPT_TIME);          
           //send Pair_Ack Packet (0x02) 
-          sendPairAck(); 
+          //sendPairAck(); 
           CurrentState = Trying2Pair; 
-          printf("\r\nIn Trying2Pair now"); 
+          printf("\r\nSTATE TRANSITION: Waiting2Pair - Trying2Pair"); 
         }
         else if(!QueryFuelEmpty() && (lastAnsAddr != QuerySourceAddress())){
           //start pairing timer (1sec)
@@ -193,9 +182,9 @@ ES_Event_t RunSHIP_MASTER(ES_Event_t ThisEvent)
           //start attempt timer (200ms) 
           ES_Timer_InitTimer(PAIR_ATTEMPT_SHIP_TIMER, PAIR_ATTEMPT_TIME);
           //send Pair_Ack Packet (0x02)
-          sendPairAck(); 
+          //sendPairAck(); 
           CurrentState = Trying2Pair; 
-          printf("\r\nIn Trying2Pair now"); 
+          printf("\r\nSTATE TRANSITION: Waiting2Pair - Trying2Pair"); 
         }
       }
     }
@@ -211,7 +200,7 @@ ES_Event_t RunSHIP_MASTER(ES_Event_t ThisEvent)
         }
         else if(ThisEvent.EventParam == PAIR_TIMEOUT_SHIP_TIMER){
           CurrentState = Waiting2Pair; 
-          printf("\r\nIn Waiting2Pair now"); 
+          printf("\r\nSTATE TRANSITION: Trying2Pair - Waiting2Pair");
         }
         
       }
@@ -222,7 +211,7 @@ ES_Event_t RunSHIP_MASTER(ES_Event_t ThisEvent)
         executeControlPacketCommands(); 
         
         CurrentState = Communicating;
-        printf("\r\nIn Communicating now"); 
+        printf("\r\nSTATE TRANSITION: Trying2Pair - Communicating");
       }
     }
     break;
@@ -240,14 +229,14 @@ ES_Event_t RunSHIP_MASTER(ES_Event_t ThisEvent)
         StopFanMotors(); 
         CurrentState = Waiting2Pair;
         printf("\r\nONE_SEC Timer Timeout");
-        printf("\r\nIn Waiting2Pair now");
+        printf("\r\nSTATE TRANSITION: Communicating - Waiting2Pair");
       } 
       else if(ThisEvent.EventType == ES_OUT_OF_FUEL){  /*Out of fuel event*/
         StopFanMotors();
         lastAnsAddr = Query_ANSIBLEColour(); 
         CurrentState = Waiting2Pair; 
         printf("\r\nOut of Fuel");
-        printf("\r\nIn Waiting2Pair now");
+        printf("\r\nSTATE TRANSITION: Communicating - Waiting2Pair");
       }
       else if(ThisEvent.EventType == ES_REFUELED && (Query_ANSIBLEColour() != homeTeamColor)){  /*Refueled Event*/
         StopFanMotors(); 
@@ -312,7 +301,7 @@ static void sendPairAck(void)
 {
   ES_Event_t ThisEvent;
   
-  printf("\r\nACK packet send"); 
+  printf("\r\nACK packet sent"); 
   ThisEvent.EventType = BEGIN_TX;
   ThisEvent.EventParam = PAIR_ACK_EVENT;
   PostSHIP_TX(ThisEvent);

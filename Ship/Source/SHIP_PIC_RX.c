@@ -87,10 +87,6 @@ bool InitSHIP_PIC_RX ( uint8_t Priority )
   ThisEvent.EventType = ES_INIT;
   // any other initializations
   
-  int i = 0xA5;
-  
-  printf("\r\n%X", i&FUEL_LEVEL_MASK);
-
   if (ES_PostToService( MyPriority, ThisEvent) == true)
   {
       return true;
