@@ -132,6 +132,7 @@ void InitFanPumpPWM()
   //HWREG(PWM0_BASE + PWM_O_1_CTL) = (PWM_1_CTL_MODE | PWM_1_CTL_ENABLE | PWM_1_CTL_GENAUPD_LS | PWM_1_CTL_GENBUPD_LS); 
   
   StopFanMotors(); 
+  //MoveForward(50); 
   changePumpPower(false); 
   
 }
@@ -252,6 +253,40 @@ void changeFlow(bool toTank){
         HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT3HI; //close tank valve 
         HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT4LO; //open shoot valve
     }        
+}
+
+
+
+//FUNCTIONS FOR LIGHTS  
+void powerFuelLEDs(bool turnOn){
+    if(turnOn){
+        HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT3HI;
+    }
+    else {
+        HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT3LO; 
+    }
+}
+
+void setHomeTeamLED(bool isRed){
+    if(isRed){
+        HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT4HI; //turn red on 
+        HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT6LO; //turn blue off
+    }
+    else {
+        HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT4LO; //turn red off
+        HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT6HI; //turn blue on 
+    }
+}
+
+void setCurrTeamLED(bool isRed){
+    if(isRed){
+        HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT5HI; //turn red on 
+        HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT7LO; //turn blue off
+    }
+    else {
+        HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT5LO; //turn red off
+        HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT7HI; //turn blue on 
+    }
 }
 
 

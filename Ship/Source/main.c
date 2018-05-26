@@ -125,7 +125,7 @@ void InitGPIO(void){
   while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R1) != SYSCTL_PRGPIO_R1) 
   {
   } 
-  //Initialize pin 2,3,4,5 on Port B to be a digital bit
+  //Initialize pin 2(pump),3(LED fuel),4(left motor IN2),5(right motor IN2) on Port B to be a digital bit
   HWREG(GPIO_PORTB_BASE+GPIO_O_DEN) |= (BIT2HI | BIT3HI | BIT4HI | BIT5HI); 
   //Initialize bit 2,3,4,5 to be digital output  
   HWREG(GPIO_PORTB_BASE+GPIO_O_DIR) |= (BIT2HI | BIT3HI | BIT4HI | BIT5HI);
@@ -137,15 +137,15 @@ void InitGPIO(void){
   while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R2) != SYSCTL_PRGPIO_R2) 
   {
   } 
-  //Initialize pin 4,5 on Port C to be a digital bit
+  //Initialize pin 4(LED home - red),5 (LED curr - red) on Port C to be a digital bit
   HWREG(GPIO_PORTC_BASE+GPIO_O_DEN) |= (BIT4HI | BIT5HI); 
   //Initialize bit 4,5 to be digital output  
   HWREG(GPIO_PORTC_BASE+GPIO_O_DIR) |= (BIT4HI | BIT5HI);
   
-  
-  
-  HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT4LO; //IN2 on left motor set to low 
-  HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) &= BIT5LO; //IN2 on right motor set to low
+  HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) |= BIT3HI; //turn tank valve on (closes)
+  HWREG(GPIO_PORTA_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT4LO & BIT6LO & BIT7LO); //turn shoot valve (open), home and curr team blue off
+  HWREG(GPIO_PORTB_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT2LO & BIT3LO & BIT4LO & BIT5LO); //pump, IN2 on right motor, IN2 on left motor, fuel LED set to low 
+  HWREG(GPIO_PORTC_BASE + (GPIO_O_DATA + ALL_BITS)) &= (BIT4LO & BIT5LO); //turn home and curr team red off
     
 }
 
