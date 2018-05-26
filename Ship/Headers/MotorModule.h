@@ -24,13 +24,20 @@
 #include <stdbool.h>
 
 void InitFanPumpPWM(void); 
-void MoveForward(uint32_t ForwardDuty); 
+void MoveForward(uint32_t ForwardDuty); //give value 0-100 
+void MoveBackward(uint32_t BackwardDuty); //give value 0-100
 void StopFanMotors(void); 
 
-void MoveFanMotors(uint32_t LeftSpeed, uint32_t RightSpeed); 
-void SetPumpSpeed(uint32_t pumpDuty); 
-void toggleTankValve(bool closeValve); //set closeValve to true to close the flow running to the tank
-void toggleShootValve(bool closeValve); //set closeValve to true to close the flow running to the shooter 
+void MoveFanMotors(uint32_t LeftSpeed, uint32_t RightSpeed, bool dir); 
+void changePumpPower(bool turnOn); //set param turnOn to true to turn pump on, false to turn pump off
+//void SetPumpSpeed(uint32_t pumpDuty); 
+void changeFlow(bool toTank); //set parameter to true to make flow go to tank, false goes to shooter 
+
+
+//FOR LIGHTS 
+void powerFuelLEDs(bool turnOn); 
+void setCurrTeamLED(bool isRed); 
+void setHomeTeamLED(bool isRed); 
 
 #endif //MOTOR_MODULE
 

@@ -34,6 +34,7 @@
 #include "inc/hw_types.h"
 #include "inc/hw_gpio.h"
 #include "inc/hw_sysctl.h"
+#include "MotorModule.h"
 
 // Event & Services Framework
 #include "ES_Configure.h"
@@ -216,6 +217,10 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
       {
           printf("Refueled event posted\n\r\n"); 
           NewEvent.EventType = ES_REFUELED; 
+      }
+      if ('r' == ThisEvent.EventParam){
+          printf("Running motor\n\r"); 
+          MoveForward(50); 
       }
       
     }

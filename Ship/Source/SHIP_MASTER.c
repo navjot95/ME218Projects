@@ -360,11 +360,11 @@ static void executeControlPacketCommands(void)
   // BYTE 5: DIGITAL CONTROL
   if (Control_CTRL & 0x01)  // Bit 0: Shoot Water
   {
-    SetPumpSpeed(PUMP_DC);
+    changePumpPower(PUMP_DC);
   }
   else if (!(Control_CTRL & 0x01))
   {
-    SetPumpSpeed(0);
+    changePumpPower(0);
   }
   
   if (Control_CTRL & 0x02)  // Bit 1: Valve/Refuel
