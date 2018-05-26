@@ -8,7 +8,7 @@
  Author
 	E. Krimsky, ME218C, Team 6 
 ****************************************************************************/
-#define SENSOR_DEBUG     // comment out when not debugging 
+//#define SENSOR_DEBUG     // comment out when not debugging 
 
 #include "SensorUpdate.h"
 #include "IMU_SPI.h"
@@ -18,7 +18,8 @@
 #define THROTTLE_MIN           0
 #define MAX_8BIT             255
 #define THROTTLE_DEAD_LOW    125                // setting deadband
-#define THROTTLE_DEAD_HIGH   132
+#define THROTTLE_DEAD_HIGH   130
+#define THROTTLE_DEAD_BAND     5
 
 
 // For IMU processing 
@@ -168,12 +169,18 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         uint32_t analogIn[3]; // to store AD value      
         ADC_MultiRead(analogIn);
 
-        throttle = (155*analogIn[0])/MAX_AD; 
+        throttle = (155*analogIn[0])/MAX_AD   - 7; 
       
-        if (throttle > 127)
+        if (throttle > 128)
         {
-          throttle = 127; 
+          throttle = 128; 
         }
+        
+        if (throttle < THROTTLE_DEAD_BAND)
+        {
+            throttle = 0;
+        }
+        
 
         if ( HWREG(GPIO_PORTC_BASE+(GPIO_O_DATA + ALL_BITS)) & MOTOR_DIR_PIN )
         {
@@ -181,9 +188,9 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         }
         else
         {
-            throttle = 127 - throttle;
+            throttle = 128 - throttle;
         }
-        
+         
         
         // set throttle deadband 
         if ((throttle < THROTTLE_DEAD_HIGH) && (throttle > THROTTLE_DEAD_LOW))
@@ -277,7 +284,7 @@ uint8_t getSteering( void )
       scaled_X -= MAX16BIT;
     }
     scaled_X -= X_ACC_OFFSET;
-    int steering_int = 127 + (127 * (scaled_X/IMU_scaler));
+    int steering_int = 127 - (127 * (scaled_X/IMU_scaler));
     uint8_t steering = 127; 
     if (steering_int > 255)
     {
