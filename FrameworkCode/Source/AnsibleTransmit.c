@@ -490,7 +490,7 @@ static void UARTHardwareInit(void){
    //HWREG(UART2_BASE + UART_O_IM) |= (UART_IM_TXIM); 
   
   //Enable NVIC (p.104) UART2 is Interrtupt Number 33, so it is EN1, BIT1 HI (p.141)
-    HWREG(NVIC_EN1) |= BIT1HI;
+    HWREG(NVIC_EN1) |= BIT29HI;
   
   //Enable Interrupts Globally 
   __enable_irq();
@@ -579,7 +579,7 @@ static void BuildTXPacket(uint8_t Packet)
        BytesRemaining--;
       
       //Forward/Back
-       Message_Packet[index] =  80; //getThrottle(); 
+       Message_Packet[index] =  getThrottle(); 
       //increment index
         index++; 
       //decrement BytesRemaining 

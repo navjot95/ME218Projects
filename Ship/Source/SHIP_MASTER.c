@@ -40,7 +40,9 @@
 #define PAIR_TIMEOUT_TIME ONE_SEC
 
 // Control Commands
-#define PUMP_DC 70
+#define PUMP_DC        70
+#define MAX_MOTOR_DC   90
+#define DEADBAND_VALUE 10
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -319,6 +321,10 @@ static void sendStatusPacket(void)
 
 static void executeControlPacketCommands(void)
 {
+  static uint8_t Motor_DC;
+  static uint8_t Right_Motor_DC;
+  static uint8_t Left_Motor_DC;
+  static bool    Direction;
   printf("\r\nControl commands executed");
   Control_FB = Query_FB();
   Control_LR = Query_LR();
@@ -326,25 +332,81 @@ static void executeControlPacketCommands(void)
 //  Control_TurretP = Query_TurretP();
   Control_CTRL = Query_CTRL();
   
+  printf("\r\nFB: %u, LR: %u", Control_FB, Control_LR);
+  
   // TODO: USE VARIABLES ABOVE TO MOVE BOAT
   
-  // BYTE 1: ANALOG FORWARD/BACK
-  
-  // BYTE 2: ANALOG SHIP YAW (LEFT/RIGHT)
+  // BYTE 1: ANALOG FORWARD/BACK && BYTE 2: ANALOG SHIP YAW (LEFT/RIGHT)
   if (Control_LR > 127) // Turn Right
   {
+    if (Control_FB > 127)
+    {
+      // Turning Right and Moving Forward
+      Right_Motor_DC = (100 * (Control_FB - 127))/127;
+      Left_Motor_DC = (Right_Motor_DC * (255 - Control_LR))/127;
+      Direction = true;
+      //MoveFanMotors(Left_Motor_DC, Right_Motor_DC, Direction);
+      MoveFanMotors(Right_Motor_DC, Left_Motor_DC, Direction);
+    }
+    else if (Control_FB < 127)
+    {
+      // Turning Right and Moving Backward
+      Right_Motor_DC = (100 * (Control_FB - 127))/127;
+      Left_Motor_DC = (Right_Motor_DC * (255 - Control_LR))/127;
+      Direction = false;
+      //MoveFanMotors(Left_Motor_DC, Right_Motor_DC, Direction);
+      MoveFanMotors(Right_Motor_DC, Left_Motor_DC, Direction);
+    }
+    else
+    {
+      StopFanMotors();
+    }
   }
   else if (Control_LR < 127) // Turn Left
   {
+    if (Control_FB > 127 )
+    {
+      // Turning Left and Moving Forward
+      Left_Motor_DC = (100 * (Control_FB - 127))/127;
+      Right_Motor_DC = (Left_Motor_DC * Control_LR)/127;      
+      Direction = true;
+      //MoveFanMotors(Left_Motor_DC, Right_Motor_DC, Direction);
+      MoveFanMotors(Right_Motor_DC, Left_Motor_DC, Direction);
+    }
+    else if (Control_FB < 127)
+    {
+      // Turning Left and Moving Backward
+      Left_Motor_DC = (100 * (Control_FB - 127))/127;
+      Right_Motor_DC = (Left_Motor_DC * Control_LR)/127;     
+      Direction = false;
+      //MoveFanMotors(Left_Motor_DC, Right_Motor_DC, Direction);
+      MoveFanMotors(Right_Motor_DC, Left_Motor_DC, Direction);
+    }
+    else
+    {
+      StopFanMotors();
+    }
   }
-  else  // Straight
+  else  // Not turning
   {
-    
+    if (Control_FB > 127)
+    {
+      Motor_DC = (100 * (Control_FB - 127))/127;
+      MoveForward(Motor_DC);
+    }
+    else if (Control_FB < 127)
+    {
+      Motor_DC = (100 * (Control_FB - 127))/127;
+      MoveBackward(Motor_DC);
+    }
+    else
+    {
+      StopFanMotors();
+    }
+        
   }
   
-  // BYTE 3: N/A (ANALOG TURRET YAW)
-  
-  // BYTE 4: N/A (ANALOG TURRET PITCH)
+  // BYTE 3: N/A (ANALOG TURRET YAW) && BYTE 4: N/A (ANALOG TURRET PITCH)
   
   // BYTE 5: DIGITAL CONTROL
   if (Control_CTRL & 0x01)  // Bit 0: Shoot Water

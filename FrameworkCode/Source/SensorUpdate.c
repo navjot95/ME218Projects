@@ -8,7 +8,7 @@
  Author
 	E. Krimsky, ME218C, Team 6 
 ****************************************************************************/
-//#define SENSOR_DEBUG     // comment out when not debugging 
+#define SENSOR_DEBUG     // comment out when not debugging 
 
 #include "SensorUpdate.h"
 #include "IMU_SPI.h"
@@ -51,7 +51,7 @@ static uint8_t updateInterval = 100;      // milliseconds (10 Hz refresh rate)
 static uint8_t boatNumber = 6;            // start at 6 (our team)
 static const uint8_t maxBoatNumber = 11; 
 
-static uint8_t throttle = 127;            // 0 to 255 
+static int throttle = 127;            // 0 to 255 
 static uint8_t yaw = 127;                 // 0 to 255 
 static uint8_t pitch = 127;               // 0 to 255 
 static uint8_t control = 0x00; 
@@ -168,8 +168,12 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         //read AD value 
         uint32_t analogIn[3]; // to store AD value      
         ADC_MultiRead(analogIn);
-
-        throttle = (155*analogIn[0])/MAX_AD   - 7; 
+      
+        uint8_t raw_throttle = (255 * analogIn[0])/MAX_AD;
+        printf("\r\n raw throttle: %i", raw_throttle);  
+        throttle = ((146*analogIn[0])/MAX_AD); 
+      
+        printf("\r\nthrottle: %i", (int) throttle);  
       
         if (throttle > 128)
         {
@@ -263,7 +267,7 @@ uint8_t getBoatNumber( void )
 
 uint8_t getThrottle( void )
 {
-    return throttle; 
+    return (uint8_t) throttle; 
 }
 
 uint8_t getPitch( void )

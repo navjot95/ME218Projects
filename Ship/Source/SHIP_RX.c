@@ -315,7 +315,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
               // Build array containing just the control data 
               for (i=0;i<5;i++)
               {
-                RX_ControlData[i] = RX_FrameData[i+9];
+                RX_ControlData[i] = RX_FrameData[i+6];
               }
             }
 
@@ -328,7 +328,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
               SourceAddress |= ((uint16_t) RX_FrameData[SOURCE_ADDRESS_MSB_IDX])<<8;
               SourceAddress |= (uint16_t) RX_FrameData[SOURCE_ADDRESS_LSB_IDX];
                 
-              ANSIBLEColour = RX_FrameData[9];
+              ANSIBLEColour = RX_FrameData[6];
               
               // UNCOMMENT
               ThisEvent.EventType = ES_PAIR_REQUEST;
