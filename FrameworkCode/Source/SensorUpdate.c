@@ -78,7 +78,7 @@ static void InitIOC( void );
 bool InitSensorUpdate( uint8_t Priority )
 {
   
-    printf("\r\nSensor update init"); 
+  //  printf("\r\nSensor update init"); 
 	//Assign local priority variable MyPriority
     MyPriority = Priority;
     bool returnValue = false;
@@ -170,10 +170,10 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         ADC_MultiRead(analogIn);
       
         uint8_t raw_throttle = (255 * analogIn[0])/MAX_AD;
-        printf("\r\n raw throttle: %i", raw_throttle);  
+       // printf("\r\n raw throttle: %i", raw_throttle);  
         throttle = ((146*analogIn[0])/MAX_AD); 
       
-        printf("\r\nthrottle: %i", (int) throttle);  
+      //  printf("\r\nthrottle: %i", (int) throttle);  
       
         if (throttle > 128)
         {
@@ -232,7 +232,7 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         
         
         #ifdef SENSOR_DEBUG
-            printf("\r\n Boat Number: %i, Throttle: %i, Yaw: %i, Pitch: %i, Control: %x, Steering: %u", boatNumber, throttle, yaw, pitch, control, getSteering());
+           // printf("\r\n Boat Number: %i, Throttle: %i, Yaw: %i, Pitch: %i, Control: %x, Steering: %u", boatNumber, throttle, yaw, pitch, control, getSteering());
         #endif 
 
 

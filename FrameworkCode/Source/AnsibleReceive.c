@@ -188,182 +188,159 @@ ES_Event_t RunAnsibleRXSM(ES_Event_t ThisEvent)
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
   
 
-  switch (CurrentState)
-  {
-    case WaitingForStart:        // If current state is initial Psedudo State
+    switch (CurrentState)
     {
-        //Set the initial state      
-         
-        if((ThisEvent.EventType == BYTE_RECEIVED) && (ThisEvent.EventParam == Start_Delimiter))
+        case WaitingForStart:        // If current state is initial Psedudo State
         {
-            // printf("\r \n Start_Delimiter %X", ThisEvent.EventParam);
-             //Enable Timer 
-              ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
-    
-              //Initialize DataLength to 0
-              Data_Length = 0; 
-            //  printf("\n \r FirstByte = %X", ThisEvent.EventParam );
-
-         //Get SHIPTeamSelect, Initialized to SHIP Ansible 
-
-          
-          CurrentState = WaitingForMSBLen;
-        
-        }
-    }
-    break;
-
-    case WaitingForMSBLen:        // If current state is state one
-    {
-        if((ThisEvent.EventType == ES_TIMEOUT) && (ThisEvent.EventParam == RX_ATTEMPT_TIMER)) //ES_BEGIN_TX:  //If event is event one
-        {  
-          //Go back to Waiting For Start
-          CurrentState = WaitingForStart;
-        }
-        else if (ThisEvent.EventType == BYTE_RECEIVED)  //0x7E received in time 
-        {     
-        // printf("\r \n Arbitrary_MSB %X", ThisEvent.EventParam);
-        //Reset timer 
-          ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
-          
-        //Record length of MSB (second byte) 
-          Data_Length |= (ThisEvent.EventParam <<8); //byte is length of msb
-        //  printf("\n \r DataLengthMSB = %x", ThisEvent.EventParam<<8);  
-          
-        //set next state to WaitingforLSB  
-          CurrentState = WaitingForLSBLen; 
-
-            
-        } 
-     }        
-        break;
-
-    case WaitingForLSBLen:        // If current state is state one
-    {
-        if((ThisEvent.EventType == ES_TIMEOUT) && (ThisEvent.EventParam == RX_ATTEMPT_TIMER)) //ES_BEGIN_TX:  //If event is event one
-        {  
-          //Go back to Waiting For Start
-          CurrentState = WaitingForStart;
-        }
-        else if (ThisEvent.EventType == BYTE_RECEIVED)
-        {            
-        // printf("\r \n Arbitary_LSB %X", ThisEvent.EventParam);
-        //Reset timer 
-          ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
-          
-        //Record length of LSB 
-          Data_Length |= (ThisEvent.EventParam); //byte is the length of the LSB 
-      // printf("\n \r Datalength = %04X", Data_Length);
-
-         //Set initial variables 
-          Sum = 0; 
-          index = 0;  
-          
-        //set next state to ReceivingData  
-          CurrentState = ReceivingData; 
-
-        } 
-     }        
-        break;
-     
-     
-    case ReceivingData:        // If current state is state one
-    {
-        if((ThisEvent.EventType == ES_TIMEOUT) && (ThisEvent.EventParam == RX_ATTEMPT_TIMER)) //ES_BEGIN_TX:  //If event is event one
-        {  
-          //Go back to Waiting For Start
-          CurrentState = WaitingForStart;
-        }
-        else if (ThisEvent.EventType == BYTE_RECEIVED)
-        {  
-         // printf("\r \n BYTE_RX %X", ThisEvent.EventParam);   
-        //Reset timer 
-          ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
+            //Set the initial state      
          
-          //API Identifier (0x81), Source Address (0x20 and 0x8_), RSSI, and Options, data   
-          RXData_Packet[index] = ThisEvent.EventParam; //frame data packet
-         //   printf("\n \r rx_data =%X", RXData_Packet[index]); 
-          index++; //increment the index by the size of the data packet
-          //Compute resultant (oxff - sum) 
-           Sum +=ThisEvent.EventParam; 
-         // Computed_CheckSum -= ThisEvent.EventParam; 
-           
-       //  printf("\n \r chksum = %x" , Computed_CheckSum); 
-           if (index == 6) //DataLength)
-           {
-          //set next state to WaitingforLSB  
-              CurrentState = ReceivingCheckSum; 
-           }
-        } 
-     }        
+            if((ThisEvent.EventType == BYTE_RECEIVED) && (ThisEvent.EventParam == Start_Delimiter))
+            {
+                // printf("\r \n Start_Delimiter %X", ThisEvent.EventParam);
+                //Enable Timer 
+                ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
+    
+                //Initialize DataLength to 0
+                Data_Length = 0; 
+                CurrentState = WaitingForMSBLen;
+            }
+        }
+        break;
+
+        case WaitingForMSBLen:        // If current state is state one
+        {
+            if((ThisEvent.EventType == ES_TIMEOUT) && (ThisEvent.EventParam == RX_ATTEMPT_TIMER)) //ES_BEGIN_TX:  //If event is event one
+            {  
+                //Go back to Waiting For Start
+                CurrentState = WaitingForStart;
+            }
+            else if (ThisEvent.EventType == BYTE_RECEIVED)  //0x7E received in time 
+            {     
+                // printf("\r \n Arbitrary_MSB %X", ThisEvent.EventParam);
+                //Reset timer 
+                ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
+          
+                //Record length of MSB (second byte) 
+                Data_Length |= (ThisEvent.EventParam <<8); //byte is length of msb
+                //  printf("\n \r DataLengthMSB = %x", ThisEvent.EventParam<<8);  
+          
+               //set next state to WaitingforLSB  
+                CurrentState = WaitingForLSBLen;            
+            } 
+        }        
+        break;
+
+        case WaitingForLSBLen:        // If current state is state one
+        {
+            if((ThisEvent.EventType == ES_TIMEOUT) && (ThisEvent.EventParam == RX_ATTEMPT_TIMER)) //ES_BEGIN_TX:  //If event is event one
+            {  
+                //Go back to Waiting For Start
+                CurrentState = WaitingForStart;
+            }
+            else if (ThisEvent.EventType == BYTE_RECEIVED)
+            {            
+                // printf("\r \n Arbitary_LSB %X", ThisEvent.EventParam);
+                //Reset timer 
+                ES_Timer_InitTimer (RX_ATTEMPT_TIMER,RX_TIME); 
+          
+                //Record length of LSB 
+                Data_Length |= (ThisEvent.EventParam); //byte is the LSB of length  
+
+                //Set initial variables 
+                Sum = 0; 
+                index = 0;  
+          
+                //set next state to ReceivingData  
+                CurrentState = ReceivingData; 
+            } 
+        }        
+        break;
+     
+     
+        case ReceivingData:        // If current state is state one
+        {
+            if((ThisEvent.EventType == ES_TIMEOUT) && (ThisEvent.EventParam == RX_ATTEMPT_TIMER)) //ES_BEGIN_TX:  //If event is event one
+            {  
+                //Go back to Waiting For Start
+                CurrentState = WaitingForStart;
+            }
+            else if (ThisEvent.EventType == BYTE_RECEIVED)
+            {    
+                //Reset timer 
+                ES_Timer_InitTimer (RX_ATTEMPT_TIMER, RX_TIME); 
+         
+                //API Identifier (0x81), Source Address (0x20 and 0x8_), RSSI, and Options, data   
+                RXData_Packet[index] = ThisEvent.EventParam; //frame data packet
+                
+                //Compute resultant (oxff - sum) 
+                Sum +=ThisEvent.EventParam; 
+          
+                if (index == (Data_Length - 1)) //DataLength)
+                {
+                    //set next state to WaitingforLSB  
+                    CurrentState = ReceivingCheckSum; 
+                }
+                index++; //increment the index by the size of the data packet
+            } 
+        }        
         break;
      
         case ReceivingCheckSum:        // If current state is state one
-    {
-         CurrentState = WaitingForStart; //Go back to waiting  
-
-        if (ThisEvent.EventType == BYTE_RECEIVED)
         {
-           printf("\n \r SUM =  %x", Sum);
+            CurrentState = WaitingForStart; //Go back to waiting  
 
-         //   printf("\r \n RX_BYTE = %X", ThisEvent.EventParam);
-          
-          //  printf("\r \n        "); 
-            Computed_CheckSum = 0xFF - Sum; 
-          
-            printf("\r \n Computed SUM %X", Computed_CheckSum);
-
-            if (ThisEvent.EventParam  == Computed_CheckSum) // process data only for good check sum
+            if (ThisEvent.EventType == BYTE_RECEIVED)
             {
-           //   printf("\n \r chk sum is RX"); 
-             //Loook at the aPI_ID to see that it was indeed for transmit
-                if (RXData_Packet[API_Identifier_Index] == API_Identifier)
+               Computed_CheckSum = 0xFF - Sum; 
+          
+
+                if (ThisEvent.EventParam  == Computed_CheckSum) // process data only for good check sum
                 {
-                 //if there was a ACK  
-                    if(RXData_Packet[API_PACKET_HEADER] == PAIR_ACK)
+                    //Loook at the aPI_ID to see that it was indeed for transmit
+                    if (RXData_Packet[API_Identifier_Index] == API_Identifier)
                     {
-                     printf("\n \r ACK RX"); 
-                      ThisEvent.EventType = ES_CONNECTIONEST; 
-                       PostAnsibleMain(ThisEvent); //post the Connection is established
-                       //ProcessData(); 
-                       
- 
-                    }
-                    else
-                    {
-                        //Send a fail message
-                        //ThisEvent.EventType == ES_TX_FAIL; //the transmit from SHIP-> ANSIBLE failed
-                        //PostAnsibleMaster(ThisEvent); 
-                        CurrentState = WaitingForStart; //Go back to waiting 
-                    }
-                    
-                    if(RXData_Packet[API_PACKET_HEADER] == STATUS)
-                    {
-                       //call different functions to deal with this    
-                       fuelStatus = RXData_Packet[FUEL_IDX]; 
+                        //if there was a ACK  
+                        if(RXData_Packet[API_PACKET_HEADER] == PAIR_ACK)
+                        {
+                            ThisEvent.EventType = ES_CONNECTIONEST; 
+                            PostAnsibleMain(ThisEvent); //post the Connection is established
+                            //ProcessData(); 
+                        }
+                        else if(RXData_Packet[API_PACKET_HEADER] == STATUS)
+                        {
+                            //call different functions to deal with this    
+                            fuelStatus = RXData_Packet[FUEL_IDX]; 
+                            ES_Event_t PostByte;
+                            PostByte.EventType = STATUS_RX; // assume no errors
+                            PostAnsibleMain(PostByte);
+  
+                        }
+                        else
+                        {
+                            //Send a fail message
+                            //ThisEvent.EventType == ES_TX_FAIL; //the transmit from SHIP-> ANSIBLE failed
+                            //PostAnsibleMaster(ThisEvent); 
+                            CurrentState = WaitingForStart; //Go back to waiting 
+                        }
                     }
                 }
+                else        // check sum did not match
+                {
+                    //Send a fail message
+                    //ThisEvent.EventType == ES_TX_FAIL; //the transmit from SHIP-> ANSIBLE failed
+                    //PostAnsibleMaster(ThisEvent); 
+                    //CurrentState = WaitingForStart; //Go back to waiting   
+                }
             }
-            else
+            else        // if this event is NOT of type Byte Received 
             {
-               //Send a fail message
-               //ThisEvent.EventType == ES_TX_FAIL; //the transmit from SHIP-> ANSIBLE failed
-              //PostAnsibleMaster(ThisEvent); 
-              //CurrentState = WaitingForStart; //Go back to waiting   
-               printf("\r\n what do here too?");
-            }
-           
-      
-        }
-        else
-        {
-          printf("\r\n what do?");
-        }
-      
-      
-    }
-    break;    
-  }                                   // end switch on Current State
+            }   
+        } // end case byte received 
+        break;    
+        
+        default:
+             printf("\r\nBug in state machine of ansible recevice"); 
+  } // end switch on Current State
   return ReturnEvent;
 }
 

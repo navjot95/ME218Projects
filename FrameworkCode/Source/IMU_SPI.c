@@ -216,7 +216,7 @@ ES_Event_t RunIMU(ES_Event_t ThisEvent)
                     #ifdef IMU_DEBUG
                       //printf("\r\nX_ACC: %i Y_ACC: %i Z_ACC: %i\n", (int) accel_x, (int) accel_y, (int) accel_z); 
                       //printf("\rX_GYRO: %i Y_GYRO: %i Z_GYRO: %i\n\n", (int) gyro_x, (int) gyro_y,  (int) gyro_z); 
-                       printf("\r\nX_ACC: %i", (int) accel_x);
+                   //    printf("\r\nX_ACC: %i", (int) accel_x);
                       //printf("\r\nY_GYRO: %i", (int) gyro_y); 
                     #endif 
                     

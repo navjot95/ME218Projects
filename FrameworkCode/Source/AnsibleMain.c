@@ -213,6 +213,7 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
             
           //Start Pairing Timer to 1sec 
             ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); 
+          //  printf("\n \r timed out pairing timer, going to waiting for pair"); 
              
             NextState = WaitingForPairResp;  //Decide what the next state will be
         }
@@ -300,16 +301,20 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
            
             //reset PAIR_ATTEMPT_TIMER
             ES_Timer_InitTimer (PAIR_ATTEMPT_TIMER,ATTEMPT_TIME); //reset 200 timer
-            ES_Timer_InitTimer (PAIR_TIMEOUT_TIMER,PAIRING_TIME); //reset 200 timer
             NextState = CommunicatingSHIP;  //Decide what the next state will be
-          }
-           if (ThisEvent.EventParam == PAIR_TIMEOUT_TIMER)
+          } 
+          else if (ThisEvent.EventParam == PAIR_TIMEOUT_TIMER)
           {
           //local bool paired = false
            pair_var = false; 
            NextState = WaitingForPair;  //NextState
-         //   printf("\n \r timed out"); 
+        //   printf("\n \r timed out pairing timer, going to waiting for pair"); 
           }
+          else
+          {
+              printf("\r\n bugs here"); 
+          }
+          
         }
         
         break;  
@@ -321,7 +326,10 @@ ES_Event_t RunAnsibleMainSM(ES_Event_t ThisEvent)
             NextState = CommunicatingSHIP;  //Decide what the next state will be
         }
         break;
+        default: 
+            printf("\n \r problem"); 
       }
+      
     }
       break; //break out of switch 
       
