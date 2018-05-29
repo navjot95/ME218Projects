@@ -8,7 +8,7 @@
  Author
 	E. Krimsky, ME218C, Team 6 
 ****************************************************************************/
-#define SENSOR_DEBUG     // comment out when not debugging 
+//#define SENSOR_DEBUG     // comment out when not debugging 
 
 #include "SensorUpdate.h"
 #include "IMU_SPI.h"
@@ -169,11 +169,10 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         uint32_t analogIn[3]; // to store AD value      
         ADC_MultiRead(analogIn);
       
-        uint8_t raw_throttle = (255 * analogIn[0])/MAX_AD;
        // printf("\r\n raw throttle: %i", raw_throttle);  
         throttle = ((146*analogIn[0])/MAX_AD); 
       
-      //  printf("\r\nthrottle: %i", (int) throttle);  
+        //  printf("\r\nthrottle: %i", (int) throttle);  
       
         if (throttle > 128)
         {
@@ -232,7 +231,7 @@ ES_Event_t RunSensorUpdate( ES_Event_t ThisEvent )
         
         
         #ifdef SENSOR_DEBUG
-           // printf("\r\n Boat Number: %i, Throttle: %i, Yaw: %i, Pitch: %i, Control: %x, Steering: %u", boatNumber, throttle, yaw, pitch, control, getSteering());
+           printf("\r\n Boat Number: %i, Throttle: %i, Yaw: %i, Pitch: %i, Control: %x, Steering: %u", boatNumber, getThrottle(), yaw, pitch, control, getSteering());
         #endif 
 
 
