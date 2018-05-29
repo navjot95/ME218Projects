@@ -371,7 +371,14 @@ AnsibleRXState_t QueryAnsibleRX(void)
  ***************************************************************************/
 uint8_t getFuelStatus ( void )
 {
-  return fuelStatus; 
+    uint8_t fuelOut = 0; 
+  if(fuelStatus & BIT3HI)
+  {
+    //if the empty bit is set, we have fuel
+    fuelOut = fuelStatus & (BIT0HI | BIT1HI| BIT2HI); 
+  }      
+  
+ return fuelOut; 
 }
 ///PUBLIC FUNCTIONS//
  /***************************************************************************

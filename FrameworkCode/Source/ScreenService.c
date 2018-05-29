@@ -221,7 +221,7 @@ ES_Event_t RunScreenService( ES_Event_t ThisEvent )
             else
               strcpy(connectionStatus, "    UNPAIRED    ");  
           
-            sprintf(stringBuffer, "Boat:%02d Fuel:%d/8                        %s", getBoatNumber(), fuel, connectionStatus);
+            sprintf(stringBuffer, "Boat:%02d Fuel:%d/7%s", getBoatNumber(), fuel, connectionStatus);
                         
             ES_Timer_InitTimer(SCREEN_UPDATE_TIMER, LCD_REFRESH_TIME); //restart the refresh timer
             ThisEvent.EventType = ES_LCD_PUTCHAR; //So next part of Waiting2Write executes     
