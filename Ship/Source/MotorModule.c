@@ -23,7 +23,7 @@
 /* include header files for this state machine as well as any machines at the
    next lower level in the hierarchy that are sub-machines to this machine
 */
-
+#include "PWMLibrary.h"
 #include "MotorModule.h"
 
 
@@ -44,6 +44,14 @@
 
 #define LED_PERIOD 3
 
+//PWM DEFINES
+#define FUEL_LED 10
+#define HOME_BLUE 2
+#define CURR_BLUE 3
+#define LEFT_MOTOR 0
+#define RIGHT_MOTOR 1
+#define HOME_RED 6
+#define CURR_RED 7
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -77,136 +85,202 @@
 void InitFanPumpPWM()
 {
     
-  //enable clock to PWM module (PWM0)  
-  HWREG(SYSCTL_RCGCPWM) |= SYSCTL_RCGCPWM_R0; 
-  // start by enabling the clock to the PWM Module (PWM1)
-  HWREG(SYSCTL_RCGCPWM) |=SYSCTL_RCGCPWM_R1;
-  
-  //enable the clock to port A
-  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R0;   // for fuel LED  
-  
-  
-  //enable the clock to port B
-  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R1; 
-  
-  //enable the clock to port C
-  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R2; 
-  
-  //select PWM clock as System Clock/32
-  HWREG(SYSCTL_RCC) = (HWREG(SYSCTL_RCC) & ~SYSCTL_RCC_PWMDIV_M) | (SYSCTL_RCC_USEPWMDIV | SYSCTL_RCC_PWMDIV_32); 
-  
-  //make sure PWM module clock has gotten going
-  while((HWREG(SYSCTL_PRPWM) & SYSCTL_PRPWM_R0) != SYSCTL_PRPWM_R0) {
-  }
+//  //enable clock to PWM module (PWM0)  - 
+//  HWREG(SYSCTL_RCGCPWM) |= SYSCTL_RCGCPWM_R0; 
+////  
+////  // start by enabling the clock to the PWM Module (PWM1)
+////  HWREG(SYSCTL_RCGCPWM) |=SYSCTL_RCGCPWM_R1;
+////  
+////  
+////  //enable the clock to port A
+////  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R0;   // for fuel LED  
+////  
+//  //enable the clock to port B
+//  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R1; 
+////  
+////  //enable the clock to port C
+////  HWREG(SYSCTL_RCGCGPIO) |= SYSCTL_RCGCGPIO_R2; 
+////  
+//  //select PWM clock as System Clock/32
+//  HWREG(SYSCTL_RCC) = (HWREG(SYSCTL_RCC) & ~SYSCTL_RCC_PWMDIV_M) | (SYSCTL_RCC_USEPWMDIV | SYSCTL_RCC_PWMDIV_32); 
+////  
+//  //make sure PWM module clock has gotten going
+//  while((HWREG(SYSCTL_PRPWM) & SYSCTL_PRPWM_R0) != SYSCTL_PRPWM_R0) {
+//  }
   // make sure that the PWM module clock has gotten going
-  while((HWREG(SYSCTL_PRPWM) & SYSCTL_PRPWM_R1) != SYSCTL_PRPWM_R1){             
-  }
+//  while((HWREG(SYSCTL_PRPWM) & SYSCTL_PRPWM_R1) != SYSCTL_PRPWM_R1){             
+//  }
+//    
+//  //disable the PWM0 (PB6 and PB7) while initializing
+//  HWREG(PWM0_BASE+PWM_O_0_CTL) = 0; 
+//  //program generators to go to 1 at rising compare A, 0 on falling compare A
+//  HWREG(PWM0_BASE+PWM_O_0_GENA) = (PWM_0_GENA_ACTCMPAU_ONE | PWM_0_GENA_ACTCMPAD_ZERO);
+//  //program generators to go to 1 at rising compare B, 0 on falling compare B
+//  HWREG(PWM0_BASE+PWM_O_0_GENB) = (PWM_0_GENB_ACTCMPBU_ONE | PWM_0_GENB_ACTCMPBD_ZERO);
+//  //Set PWM period
+//  HWREG(PWM0_BASE+PWM_O_0_LOAD) = PWM_5KHZ; // 5kHz at 125
+//  //Set initial Duty cycle to 50% by programming compare value to 1/2 period to count up (or down)
+//  HWREG(PWM0_BASE+PWM_O_0_CMPA) = HWREG(PWM0_BASE+PWM_O_0_LOAD) >> 1;  
+//  //Set initial Duty cycle to 25% by programming compare value to 75% period to count up (or down)
+//  HWREG(PWM0_BASE+PWM_O_0_CMPB) = HWREG(PWM0_BASE+PWM_O_0_LOAD) - (((PeriodInMS * PWMTicksPerMS))>>3); 
+//  //enable PWM outputs 
+//  HWREG(PWM0_BASE+PWM_O_ENABLE) |= (PWM_ENABLE_PWM0EN | PWM_ENABLE_PWM1EN); 
+//  
+  
+//  //Disable PWM0 (PB4 and PB5) while initializing
+//  HWREG(PWM0_BASE + PWM_O_1_CTL) = 0;
+//  // program generators to go to 1 at rising compare A/B, 0 on falling compare A/B
+//  HWREG(PWM0_BASE+PWM_O_1_GENA) = (PWM_0_GENA_ACTCMPAU_ONE | PWM_0_GENA_ACTCMPAD_ZERO);
+//  HWREG(PWM0_BASE+PWM_O_1_GENB) = (PWM_0_GENB_ACTCMPBU_ONE | PWM_0_GENB_ACTCMPBD_ZERO);
+//  //Set half the period (load = period/4/32 - adjusting for difference in clock to PWM and timers)
+//  HWREG(PWM0_BASE + PWM_O_1_LOAD) = LED_PERIOD; // 5kHz at 125
+//  //Set value at which pin changes state (50% duty cycle)
+//  HWREG(PWM0_BASE + PWM_O_1_CMPA) = HWREG(PWM0_BASE+PWM_O_0_LOAD) >> 1;
+//  HWREG(PWM0_BASE + PWM_O_1_CMPB) = HWREG(PWM0_BASE+PWM_O_0_LOAD) >> 1;
+//  //Enable PWM output 
+//  HWREG(PWM0_BASE + PWM_O_ENABLE) |= (PWM_ENABLE_PWM2EN | PWM_ENABLE_PWM3EN);
+//  
+// 
+//   // disable the PWM0 (PC4 and PC5) on gen3 while initializing
+//   HWREG( PWM0_BASE + PWM_O_3_CTL) =0;
+//   // program generators to go to 1 at rising compare A, 0 on falling compare A 
+//   // GenA_Normal = (PWM_0_GENA_ACTCMPAU_ONE | PWM_0_GENA_ACTCMPAD_ZERO )
+//   HWREG( PWM0_BASE+PWM_O_3_GENA) = (PWM_3_GENA_ACTCMPAU_ONE | PWM_3_GENA_ACTCMPAD_ZERO );
+//   HWREG( PWM0_BASE+PWM_O_3_GENB) = (PWM_3_GENB_ACTCMPBU_ONE | PWM_3_GENB_ACTCMPBD_ZERO );
+//   // Set the PWM period
+//   HWREG( PWM0_BASE+PWM_O_3_LOAD) = LED_PERIOD; 
+//   //Set value at which pin changes state (50% duty cycle)
+//   HWREG(PWM0_BASE + PWM_O_3_CMPA) = HWREG(PWM0_BASE+PWM_O_3_LOAD) >> 1;
+//   HWREG(PWM0_BASE + PWM_O_3_CMPB) = HWREG(PWM0_BASE+PWM_O_3_LOAD) >> 1;                 
+//   // enable the PWM outputs
+//   HWREG( PWM0_BASE+PWM_O_ENABLE) |= (PWM_ENABLE_PWM6EN | PWM_ENABLE_PWM7EN);         
+//       
+
+//  
+//  //select alternatue function on PWM pins for PB6, PB7, PB4, PB5
+//  HWREG(GPIO_PORTB_BASE + GPIO_O_AFSEL) |= (BIT7HI | BIT6HI /*| BIT4HI | BIT5HI*/); //corresponds to PB6 and PB7
+//  //map PWM to PB6, PB7, PB4, PB5
+//  HWREG(GPIO_PORTB_BASE + GPIO_O_PCTL) = (HWREG(GPIO_PORTB_BASE + GPIO_O_PCTL) & 0x00ffffff) + (4<<(7*BitsPerNibble)) + (4<<(6*BitsPerNibble)) /* + (4<<(4*BitsPerNibble)) + (4<<(5*BitsPerNibble))*/; 
+//  //enable Pin 4, 5, 6 and 7 on Port B for digital I/O
+//  HWREG(GPIO_PORTB_BASE + GPIO_O_DEN) |= (BIT7HI | BIT6HI /*| BIT4HI | BIT5HI*/); 
+//  //make pin 4, 5, 6  and 7 on Port B into output
+//  HWREG(GPIO_PORTB_BASE + GPIO_O_DIR) |= (BIT7HI | BIT6HI /*| BIT4HI | BIT5HI*/); 
+//  //Set up/down count mode, enable PWM generator and make both generator updates locally synchronized to zero count
+//  HWREG(PWM0_BASE + PWM_O_0_CTL) = (PWM_0_CTL_MODE | PWM_0_CTL_ENABLE | PWM_0_CTL_GENAUPD_LS | PWM_0_CTL_GENBUPD_LS); 
+//  //HWREG(PWM0_BASE + PWM_O_1_CTL) = (PWM_1_CTL_MODE | PWM_1_CTL_ENABLE | PWM_1_CTL_GENAUPD_LS | PWM_1_CTL_GENBUPD_LS); 
+  
+//  //select alternate function on PWM pins for PC4, PC5
+//  HWREG(GPIO_PORTC_BASE+GPIO_O_AFSEL) |= (BIT4HI | BIT5HI);
+//  // now choose to map PWM to those pins, this is a mux value of 4 that we
+//  HWREG(GPIO_PORTC_BASE+GPIO_O_PCTL) |= (HWREG(GPIO_PORTC_BASE+GPIO_O_PCTL) &0xfff0ffff) + (4<<(4*BitsPerNibble))+ (4<<(5*BitsPerNibble));
+//  // Enable pins 4 and 5 on Port C for digital I/O
+//  HWREG(GPIO_PORTC_BASE+GPIO_O_DEN) |= (BIT4HI | BIT5HI);
+//  // make pins 4 and 5 on Port C into outputs
+//  HWREG(GPIO_PORTC_BASE+GPIO_O_DIR) |= (BIT4HI | BIT5HI);
+//  // set the up/down countmode, enable the PWMgenerator and make
+//  // both generator updates locally synchronized to zero count
+//  HWREG(PWM0_BASE+ PWM_O_3_CTL) |= (PWM_3_CTL_MODE|PWM_3_CTL_ENABLE| PWM_3_CTL_GENAUPD_LS);
+
+
+
+////    // disable the PWM (PA6) while initializing
+////    HWREG( PWM1_BASE+PWM_O_1_CTL) =0;
+////    // program generators to go to 1 at rising compare A, 0 on falling compare A 
+////    HWREG( PWM1_BASE+PWM_O_1_GENA) = (PWM_1_GENA_ACTCMPAU_ONE | PWM_1_GENA_ACTCMPAD_ZERO );
+////    // Set the PWM period
+////    HWREG( PWM1_BASE+PWM_O_1_LOAD) = LED_PERIOD; 
+////    // Set the PWM duty
+////    HWREG(PWM1_BASE+PWM_O_1_CMPA) = HWREG(PWM1_BASE+PWM_O_1_LOAD) >> 1;  
+////    // enable the PWM outputs
+////    HWREG( PWM1_BASE+PWM_O_ENABLE) |= (PWM_ENABLE_PWM2EN);
+////    // now configure the Port B pin to be PWM outputs
+////    // start by selecting the alternate function for PA6
+////    HWREG(GPIO_PORTA_BASE+GPIO_O_AFSEL) |= (BIT6HI);
+////    // now choose to map PWM tothose pins, this is a mux value of 4 that we
+////    // want to use for specifying the function on bits 6
+////    HWREG(GPIO_PORTA_BASE+GPIO_O_PCTL) =
+////    (HWREG(GPIO_PORTA_BASE+GPIO_O_PCTL) &0xf0ffffff) + (5<<(6*BitsPerNibble));
+////    // Enable pins 6 on Port A for digital I/O
+////    HWREG(GPIO_PORTA_BASE+GPIO_O_DEN) |= (BIT6HI);
+////    // make pins 6 on Port A into outputs
+////    HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) |= (BIT6HI);
+////    // set the up/down countmode, enable the PWMgenerator and make
+////    // both generator updates locally synchronized to zero count
+////    HWREG(PWM1_BASE+ PWM_O_1_CTL) = (PWM_1_CTL_MODE|PWM_1_CTL_ENABLE|
+////    PWM_1_CTL_GENAUPD_LS);
+//  // start by enabling the clock to the PWM Module (PWM1)
+//              HWREG(SYSCTL_RCGCPWM) |=SYSCTL_RCGCPWM_R1;
+//              // enable the clock to Port A 
+//              HWREG(SYSCTL_RCGCGPIO) |=SYSCTL_RCGCGPIO_R0;
+//              // Select the PWM clock as System Clock/32
+//              HWREG(SYSCTL_RCC) = (HWREG(SYSCTL_RCC) & ~SYSCTL_RCC_PWMDIV_M) |
+//              (SYSCTL_RCC_USEPWMDIV |SYSCTL_RCC_PWMDIV_32);
+//              // make sure that the PWM module clock has gotten going
+//              while((HWREG(SYSCTL_PRPWM) & SYSCTL_PRPWM_R1) != SYSCTL_PRPWM_R1)
+//              ;
+//              // disable the PWM while initializing
+//              HWREG( PWM1_BASE+PWM_O_1_CTL) =0;
+//              // program generators to go to 1 at rising compare A, 0 on falling compare A 
+//              // GenA_Normal = (PWM_0_GENA_ACTCMPAU_ONE | PWM_0_GENA_ACTCMPAD_ZERO )
+//              HWREG( PWM1_BASE+PWM_O_1_GENA) = (PWM_1_GENA_ACTCMPAU_ONE | PWM_1_GENA_ACTCMPAD_ZERO );
+//              // Set the PWM period
+//              HWREG( PWM1_BASE+PWM_O_1_LOAD) = PWM_5KHZ;
+//              //Set value at which pin changes state (50% duty cycle)
+//   HWREG(PWM0_BASE + PWM_O_3_CMPA) = HWREG(PWM0_BASE+PWM_O_3_LOAD) >> 1;
+//              // enable the PWM outputs
+//              HWREG( PWM1_BASE+PWM_O_ENABLE) |= (PWM_ENABLE_PWM2EN);
+//              // now configure the Port B pin to be PWM outputs
+//              // start by selecting the alternate function for PA6
+//              HWREG(GPIO_PORTA_BASE+GPIO_O_AFSEL) |= (BIT6HI);
+//              // now choose to map PWM tothose pins, this is a mux value of 4 that we
+//              // want to use for specifying the function on bits 6
+//              HWREG(GPIO_PORTA_BASE+GPIO_O_PCTL) =
+//              (HWREG(GPIO_PORTA_BASE+GPIO_O_PCTL) &0xf0ffffff) + (5<<(6*BitsPerNibble));
+//              // Enable pins 6 on Port A for digital I/O
+//              HWREG(GPIO_PORTA_BASE+GPIO_O_DEN) |= (BIT6HI);
+//              // make pins 6 on Port A into outputs
+//              HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) |= (BIT6HI);
+//              // set the up/down countmode, enable the PWMgenerator and make
+//              // both generator updates locally synchronized to zero count
+//              HWREG(PWM1_BASE+ PWM_O_1_CTL) = (PWM_1_CTL_MODE|PWM_1_CTL_ENABLE|
+//              PWM_1_CTL_GENAUPD_LS);
+
+
+
+
+
+   
+    PWM_Init(0); //PB6 left motor
+    PWM_Init(1); //PB7 right motor
+    PWM_Init(2); //PB4 home blue
+    PWM_Init(3); //PB5 curr blue
+    PWM_Init(6); //PC4 home red 
+    PWM_Init(7); //PC5 curr red
+    PWM_Init(10); //PA6 led fuel
+        
+        
     
-  //disable the PWM0 (PB6 and PB7) while initializing
-  HWREG(PWM0_BASE+PWM_O_0_CTL) = 0; 
-  //program generators to go to 1 at rising compare A, 0 on falling compare A
-  HWREG(PWM0_BASE+PWM_O_0_GENA) = (PWM_0_GENA_ACTCMPAU_ONE | PWM_0_GENA_ACTCMPAD_ZERO);
-  //program generators to go to 1 at rising compare B, 0 on falling compare B
-  HWREG(PWM0_BASE+PWM_O_0_GENB) = (PWM_0_GENB_ACTCMPBU_ONE | PWM_0_GENB_ACTCMPBD_ZERO);
-  //Set PWM period
-  HWREG(PWM0_BASE+PWM_O_0_LOAD) = PWM_5KHZ; // 5kHz at 125
-  //Set initial Duty cycle to 50% by programming compare value to 1/2 period to count up (or down)
-  HWREG(PWM0_BASE+PWM_O_0_CMPA) = HWREG(PWM0_BASE+PWM_O_0_LOAD) >> 1;  
-  //Set initial Duty cycle to 25% by programming compare value to 75% period to count up (or down)
-  HWREG(PWM0_BASE+PWM_O_0_CMPB) = HWREG(PWM0_BASE+PWM_O_0_LOAD) - (((PeriodInMS * PWMTicksPerMS))>>3); 
-  //enable PWM outputs 
-  HWREG(PWM0_BASE+PWM_O_ENABLE) |= (PWM_ENABLE_PWM0EN | PWM_ENABLE_PWM1EN); 
-  
-  
-  //Disable PWM0 (PB4 and PB5) while initializing
-  HWREG(PWM0_BASE + PWM_O_1_CTL) = 0;
-  // program generators to go to 1 at rising compare A/B, 0 on falling compare A/B
-  HWREG(PWM0_BASE+PWM_O_1_GENA) = (PWM_0_GENA_ACTCMPAU_ONE | PWM_0_GENA_ACTCMPAD_ZERO);
-  HWREG(PWM0_BASE+PWM_O_1_GENB) = (PWM_0_GENB_ACTCMPBU_ONE | PWM_0_GENB_ACTCMPBD_ZERO);
-  //Set half the period (load = period/4/32 - adjusting for difference in clock to PWM and timers)
-  HWREG(PWM0_BASE + PWM_O_1_LOAD) = PWM_5KHZ; // 5kHz at 125
-  //Set value at which pin changes state (50% duty cycle)
-  HWREG(PWM0_BASE + PWM_O_1_CMPA) = HWREG(PWM0_BASE+PWM_O_0_LOAD) >> 1;
-  HWREG(PWM0_BASE + PWM_O_1_CMPB) = HWREG(PWM0_BASE+PWM_O_0_LOAD) >> 1;
-  //Enable PWM output 
-  HWREG(PWM0_BASE + PWM_O_ENABLE) |= (PWM_ENABLE_PWM2EN);
-  
- 
-   // disable the PWM0 (PC4 and PC5) on gen3 while initializing
-   HWREG( PWM0_BASE + PWM_O_3_CTL) =0;
-   // program generators to go to 1 at rising compare A, 0 on falling compare A 
-   // GenA_Normal = (PWM_0_GENA_ACTCMPAU_ONE | PWM_0_GENA_ACTCMPAD_ZERO )
-   HWREG( PWM0_BASE+PWM_O_3_GENA) = (PWM_3_GENA_ACTCMPAU_ONE | PWM_3_GENA_ACTCMPAD_ZERO );
-   HWREG( PWM0_BASE+PWM_O_3_GENB) = (PWM_3_GENB_ACTCMPBU_ONE | PWM_3_GENB_ACTCMPBD_ZERO );
-   // Set the PWM period
-   HWREG( PWM0_BASE+PWM_O_3_LOAD) = LED_PERIOD; 
-   //Set value at which pin changes state (50% duty cycle)
-   HWREG(PWM0_BASE + PWM_O_3_CMPA) = HWREG(PWM0_BASE+PWM_O_3_LOAD) >> 1;
-   HWREG(PWM0_BASE + PWM_O_3_CMPB) = HWREG(PWM0_BASE+PWM_O_3_LOAD) >> 1;                 
-   // enable the PWM outputs
-   HWREG( PWM0_BASE+PWM_O_ENABLE) |= (PWM_ENABLE_PWM6EN);         
-       
-
-  
-  //select alternatue function on PWM pins for PB6, PB7, PB4, PB5
-  HWREG(GPIO_PORTB_BASE + GPIO_O_AFSEL) |= (BIT7HI | BIT6HI | BIT4HI | BIT5HI); //corresponds to PB6 and PB7
-  //map PWM to PB6, PB7, PB4, PB5
-  HWREG(GPIO_PORTB_BASE + GPIO_O_PCTL) = (HWREG(GPIO_PORTB_BASE + GPIO_O_PCTL) & 0x00ffffff) + (4<<(7*BitsPerNibble)) + (4<<(6*BitsPerNibble)) + (4<<(4*BitsPerNibble)) + (4<<(5*BitsPerNibble)); 
-  //enable Pin 4, 5, 6 and 7 on Port B for digital I/O
-  HWREG(GPIO_PORTB_BASE + GPIO_O_DEN) |= (BIT7HI | BIT6HI | BIT4HI | BIT5HI); 
-  //make pin 4, 5, 6  and 7 on Port B into output
-  HWREG(GPIO_PORTB_BASE + GPIO_O_DIR) |= (BIT7HI | BIT6HI | BIT4HI | BIT5HI); 
-  //Set up/down count mode, enable PWM generator and make both generator updates locally synchronized to zero count
-  HWREG(PWM0_BASE + PWM_O_0_CTL) = (PWM_0_CTL_MODE | PWM_0_CTL_ENABLE | PWM_0_CTL_GENAUPD_LS | PWM_0_CTL_GENBUPD_LS); 
-  HWREG(PWM0_BASE + PWM_O_1_CTL) = (PWM_1_CTL_MODE | PWM_1_CTL_ENABLE | PWM_1_CTL_GENAUPD_LS | PWM_1_CTL_GENBUPD_LS); 
-  
-  //select alternate function on PWM pins for PC4, PC5
-  HWREG(GPIO_PORTC_BASE+GPIO_O_AFSEL) |= (BIT4HI | BIT5HI);
-  // now choose to map PWM to those pins, this is a mux value of 4 that we
-  HWREG(GPIO_PORTC_BASE+GPIO_O_PCTL) |= (HWREG(GPIO_PORTC_BASE+GPIO_O_PCTL) &0xfff0ffff) + (4<<(4*BitsPerNibble))+ (4<<(5*BitsPerNibble));
-  // Enable pins 4 and 5 on Port C for digital I/O
-  HWREG(GPIO_PORTC_BASE+GPIO_O_DEN) |= (BIT4HI | BIT5HI);
-  // make pins 4 and 5 on Port C into outputs
-  HWREG(GPIO_PORTC_BASE+GPIO_O_DIR) |= (BIT4HI | BIT5HI);
-  // set the up/down countmode, enable the PWMgenerator and make
-  // both generator updates locally synchronized to zero count
-  HWREG(PWM0_BASE+ PWM_O_3_CTL) |= (PWM_3_CTL_MODE|PWM_3_CTL_ENABLE| PWM_3_CTL_GENAUPD_LS);
 
 
+    PWM_SetDuty(0,10); //PA6 led fuel
+    PWM_SetDuty(0,0); //PB6 left motor
+    PWM_SetDuty(0,1); //PB7 right motor
+    PWM_SetDuty(0,2); //PB4 home blue
+    PWM_SetDuty(0,3); //PB5 curr blue
+    PWM_SetDuty(0,6); //PC4 home red 
+    PWM_SetDuty(0,7); //PC5 curr red 
+    PWM_SetFreq(1000,0); //Change frequency of PB6 and PB7 to 5KHz 
+    PWM_SetDuty(0,0); 
+    PWM_SetDuty(0,1); 
 
-    // disable the PWM (PA6) while initializing
-    HWREG( PWM1_BASE+PWM_O_1_CTL) =0;
-    // program generators to go to 1 at rising compare A, 0 on falling compare A 
-    HWREG( PWM1_BASE+PWM_O_1_GENA) = (PWM_1_GENA_ACTCMPAU_ONE | PWM_1_GENA_ACTCMPAD_ZERO );
-    // Set the PWM period
-    HWREG( PWM1_BASE+PWM_O_1_LOAD) = LED_PERIOD; 
-    // Set the PWM duty
-    HWREG(PWM1_BASE+PWM_O_1_CMPA) = HWREG(PWM1_BASE+PWM_O_1_LOAD) >> 1;  
-    // enable the PWM outputs
-    HWREG( PWM1_BASE+PWM_O_ENABLE) |= (PWM_ENABLE_PWM2EN);
-    // now configure the Port B pin to be PWM outputs
-    // start by selecting the alternate function for PA6
-    HWREG(GPIO_PORTA_BASE+GPIO_O_AFSEL) |= (BIT6HI);
-    // now choose to map PWM tothose pins, this is a mux value of 4 that we
-    // want to use for specifying the function on bits 6
-    HWREG(GPIO_PORTA_BASE+GPIO_O_PCTL) =
-    (HWREG(GPIO_PORTA_BASE+GPIO_O_PCTL) &0xf0ffffff) + (5<<(6*BitsPerNibble));
-    // Enable pins 6 on Port A for digital I/O
-    HWREG(GPIO_PORTA_BASE+GPIO_O_DEN) |= (BIT6HI);
-    // make pins 6 on Port A into outputs
-    HWREG(GPIO_PORTA_BASE+GPIO_O_DIR) |= (BIT6HI);
-    // set the up/down countmode, enable the PWMgenerator and make
-    // both generator updates locally synchronized to zero count
-    HWREG(PWM1_BASE+ PWM_O_1_CTL) = (PWM_1_CTL_MODE|PWM_1_CTL_ENABLE|
-    PWM_1_CTL_GENAUPD_LS);
-  
-  
-  StopFanMotors(); 
-  changePumpPower(false);
-  setCurrTeamLED(PURPLE); 
-  setHomeTeamLED(true); 
-  powerFuelLEDs(true);  
-  
+    StopFanMotors(); 
+    changePumpPower(false);
+    
+    
+    //setCurrTeamLED(PURPLE); 
+    //setHomeTeamLED(true); 
+    //powerFuelLEDs(false);  
+    //while(true){;}
 }
 
 void MoveForward(uint32_t ForwardSpeed){
@@ -330,24 +404,49 @@ void changeFlow(bool toTank){
 
 //FUNCTIONS FOR LIGHTS  
 void powerFuelLEDs(bool turnOn){
-    if(turnOn){
-        HWREG(PWM1_BASE+PWM_O_1_CMPA) = HWREG(PWM1_BASE+PWM_O_1_LOAD) >> 1;       
-    }
+      if(turnOn){
+        PWM_SetDuty(50,FUEL_LED);      
+      }
     else {
-        HWREG(PWM1_BASE+PWM_O_1_CMPA) = PWM_0_GENA_ACTZERO_ONE;        
+        PWM_SetDuty(0,FUEL_LED);      
     }
+      
+//    if(turnOn){
+//        HWREG(PWM1_BASE + PWM_O_1_GENA) = (PWM_1_GENA_ACTCMPAU_ONE | PWM_1_GENA_ACTCMPAD_ZERO);
+//        HWREG(PWM1_BASE + PWM_O_1_CMPA) = HWREG(PWM1_BASE+PWM_O_1_LOAD) >> 1;       
+//    }
+//    else {
+//        HWREG(PWM1_BASE + PWM_O_1_GENA) = PWM_1_GENA_ACTZERO_ONE;     
+//    }
 }
 
 void setHomeTeamLED(bool isRed){
     if(isRed){
-        HWREG(PWM0_BASE + PWM_O_3_CMPA) = HWREG(PWM0_BASE+PWM_O_3_LOAD) >> 1; //turn red on at 50% duty (PC4)
-        HWREG(PWM0_BASE + PWM_O_1_CMPA) = PWM_0_GENA_ACTZERO_ONE; //turn home blue off (PB4)
-     
+      PWM_SetDuty(50,HOME_RED); 
+      PWM_SetDuty(0,HOME_BLUE);
     }
     else {
-        HWREG(PWM0_BASE + PWM_O_3_CMPA) = PWM_0_GENA_ACTZERO_ONE; //turn red off (PC4)
-        HWREG(PWM0_BASE + PWM_O_1_CMPA) = HWREG(PWM0_BASE+PWM_O_0_LOAD) >> 1; //turn home blue on (PB4)
+      PWM_SetDuty(50,HOME_BLUE); 
+      PWM_SetDuty(0,HOME_RED);
     }
+  
+    
+  
+  
+  
+  
+  
+//    if(isRed){
+//        HWREG(PWM0_BASE + PWM_O_3_GENA) = (PWM_1_GENA_ACTCMPAU_ONE | PWM_1_GENA_ACTCMPAD_ZERO);
+//        HWREG(PWM0_BASE + PWM_O_3_CMPA) = HWREG(PWM0_BASE+PWM_O_3_LOAD) >> 1; //turn red on at 50% duty (PC4)      
+//        HWREG(PWM0_BASE + PWM_O_1_GENA) = PWM_1_GENA_ACTZERO_ONE; //turn home blue off (PB4)
+//     
+//    }
+//    else {
+//        HWREG(PWM0_BASE + PWM_O_3_GENA) = PWM_0_GENA_ACTZERO_ONE; //turn red off (PC4)
+//      HWREG(PWM0_BASE + PWM_O_2_GENA) = (PWM_2_GENA_ACTCMPAU_ONE | PWM_2_GENA_ACTCMPAD_ZERO);
+//        HWREG(PWM0_BASE + PWM_O_2_CMPA) = HWREG(PWM0_BASE+PWM_O_2_LOAD) >> 1; //turn home blue on (PB4)
+//    }
 }
 
 //purple is 0, red is 1, blue is 2 
@@ -357,24 +456,29 @@ void setCurrTeamLED(uint8_t color){
   {
     case PURPLE: 
     {
-      HWREG(PWM0_BASE + PWM_O_3_CMPB) = HWREG(PWM0_BASE+PWM_O_3_LOAD) >> 1; //turn red on at 50% duty
-      HWREG(PWM0_BASE + PWM_O_1_CMPB) = HWREG(PWM0_BASE+PWM_O_0_LOAD) >> 1; //turn blue on at 50% duty  
-      break;
+      PWM_SetDuty(50,CURR_RED); 
+      PWM_SetDuty(50,CURR_BLUE); 
+      //HWREG(PWM0_BASE + PWM_O_3_CMPB) = HWREG(PWM0_BASE+PWM_O_3_LOAD) >> 1; //turn red on at 50% duty
+      //HWREG(PWM0_BASE + PWM_O_1_CMPB) = HWREG(PWM0_BASE+PWM_O_0_LOAD) >> 1; //turn blue on at 50% duty        
     }
-    
+    break;
     case RED: 
     {
-      HWREG(PWM0_BASE + PWM_O_3_CMPB) = HWREG(PWM0_BASE+PWM_O_3_LOAD) >> 1; //turn red on at 50% duty
-      HWREG(PWM0_BASE + PWM_O_1_CMPB) = PWM_0_GENB_ACTZERO_ONE; //turn blue off
-      break;
+      PWM_SetDuty(50,CURR_RED); 
+      PWM_SetDuty(0,CURR_BLUE); 
+      //HWREG(PWM0_BASE + PWM_O_3_CMPB) = HWREG(PWM0_BASE+PWM_O_3_LOAD) >> 1; //turn red on at 50% duty
+      //HWREG(PWM0_BASE + PWM_O_1_CMPB) = PWM_0_GENB_ACTZERO_ONE; //turn blue off      
     }
+    break;
     
     case BLUE: 
     {
-      HWREG(PWM0_BASE + PWM_O_3_CMPB) = PWM_0_GENB_ACTZERO_ONE; //turn red off 
-      HWREG(PWM0_BASE + PWM_O_1_CMPB) = HWREG(PWM0_BASE+PWM_O_0_LOAD) >> 1; //turn blue on at 50% duty
-      break;
+      PWM_SetDuty(0,CURR_RED); 
+      PWM_SetDuty(50,CURR_BLUE); 
+      //HWREG(PWM0_BASE + PWM_O_3_CMPB) = PWM_0_GENB_ACTZERO_ONE; //turn red off 
+      //HWREG(PWM0_BASE + PWM_O_1_CMPB) = HWREG(PWM0_BASE+PWM_O_0_LOAD) >> 1; //turn blue on at 50% duty
     }
+    break;
   }
 }
 

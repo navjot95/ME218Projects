@@ -508,18 +508,5 @@ static void executeControlPacketCommands(void)
     changePumpPower(0);
   }
   
-  if (Control_CTRL & 0x02)  // Bit 1: Valve/Refuel
-  {
-  }
-  else
-  {
-  }
-  
-  if (Control_CTRL & 0x04)  // Bit 2: Special Function
-  {
-  }
-  else
-  {
-  }
 }
 

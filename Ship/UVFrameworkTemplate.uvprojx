@@ -553,6 +553,11 @@
                 </FileArmAds>
               </FileOption>
             </File>
+            <File>
+              <FileName>PWMLibrary.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\Source\PWMLibrary.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -697,6 +702,11 @@
               <FileName>TestHarnessService0.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\Headers\TestHarnessService0.h</FilePath>
+            </File>
+            <File>
+              <FileName>PWMLibrary.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\Headers\PWMLibrary.h</FilePath>
             </File>
           </Files>
         </Group>

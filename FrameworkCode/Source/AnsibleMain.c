@@ -58,7 +58,7 @@ first pass   Sai Koppaka 5/13/18
 #define UART5_RX_PIN        GPIO_PIN_4 //Port e4
 #define UART5_TX_PIN        GPIO_PIN_5 //Port e5
 #define ATTEMPT_TIME              200     //200ms
-#define PAIRING_TIME            1000      //1 sec time 
+#define PAIRING_TIME            3000      //1 sec time 
 
 //Defines for Class Packets 
 #define REQ_2_PAIR              0x01

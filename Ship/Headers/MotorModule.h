@@ -23,6 +23,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "PWMLibrary.h"
+
 //For LED lights
 #define PURPLE 0
 #define RED 1

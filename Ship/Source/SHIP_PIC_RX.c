@@ -56,7 +56,13 @@ Notes
 static uint8_t  MyPriority;
 static SHIP_PIC_RX_State_t CurrentState;
 
+static uint8_t  FuelStatus_Unchecked;
 static uint8_t  FuelStatus;
+static uint8_t  FuelStatus_COMP;
+static uint8_t  FuelStatus_Data;
+static uint8_t  Last_FuelStatus = 0x0F;
+static uint8_t  Empty_Counter = 0;
+static bool     FuelEmpty;
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
 Function
@@ -146,24 +152,43 @@ ES_Event_t RunSHIP_PIC_RX( ES_Event_t ThisEvent)
       {
         if (ThisEvent.EventParam == 0xAA)
         {
-          break;
+          // do nothing 
         }
         else
         {
-          FuelStatus = ThisEvent.EventParam;
+          FuelStatus_Unchecked = ThisEvent.EventParam;
           CurrentState = WaitingForData_PIC;
           
-          // Fuel LED Control
-          // Turn on if fueled
-          if (FuelStatus & FUEL_EMPTY_MASK)
+          FuelStatus_COMP = ~(FuelStatus_Unchecked >> 4) & 0x0F;
+          FuelStatus_Data = FuelStatus_Unchecked & 0x0F;
+          
+          if (FuelStatus_COMP == FuelStatus_Data)
           {
-            powerFuelLEDs(true); 
+            FuelStatus = FuelStatus_Unchecked;
+            
+            // Fuel LED Control
+            // Turn on if fueled
+            if (FuelStatus & FUEL_EMPTY_MASK)
+            {
+              powerFuelLEDs(true); 
+              Empty_Counter = 0;
+              FuelEmpty = true;
+            } // Turn off if NOT Fueled
+            else if ((Last_FuelStatus & 0x0F) == 0x09 || (Empty_Counter == 1 && !(FuelStatus & FUEL_EMPTY_MASK)))  
+            {
+              powerFuelLEDs(false); 
+              Empty_Counter = 0;
+              FuelEmpty = false;
+            }
+            else 
+            {
+              Empty_Counter++;
+              FuelEmpty = true;
+            }
+            
+            Last_FuelStatus = FuelStatus;
           }
-          // Turn off if NOT Fueled
-          else
-          {
-            powerFuelLEDs(false); 
-          }
+          
         }
       }     
       break;
@@ -178,12 +203,12 @@ bool QueryFuelEmpty(void)
   // True if Fueled (stupid, but it's consistent with the spec sheet)
   if (FuelStatus & FUEL_EMPTY_MASK)
   {
-    return true;
+    return FuelEmpty;
   }
   // False if NOT Fueled
   else
   {
-    return false;
+    return FuelEmpty;
   }
 
 }

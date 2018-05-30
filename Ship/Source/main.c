@@ -110,7 +110,7 @@ void InitGPIO(void){
   while ((HWREG(SYSCTL_PRGPIO) & SYSCTL_PRGPIO_R0) != SYSCTL_PRGPIO_R0) 
   {
   } 
-  //Initialize bit 2(team switch), 3(tank valve), 4(shoot valve), 7(Right Motor PWM In2) on Port A to be a digital bit
+  //Initialize bit 2(team switch), 3(tank valve), 4(shoot valve) on Port A to be a digital bit
   HWREG(GPIO_PORTA_BASE+GPIO_O_DEN) |= (BIT2HI | BIT3HI | BIT4HI | BIT7HI); 
   
   //Initialize bit 2 (team switch) on Port A to be an input

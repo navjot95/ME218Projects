@@ -325,6 +325,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
               //printf("\r\nREQ_2_PAIR RXed");
                 
               // Save source address
+              SourceAddress = 0x00;
               SourceAddress |= ((uint16_t) RX_FrameData[SOURCE_ADDRESS_MSB_IDX])<<8;
               SourceAddress |= (uint16_t) RX_FrameData[SOURCE_ADDRESS_LSB_IDX];
                 
