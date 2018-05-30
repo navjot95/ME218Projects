@@ -302,7 +302,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
           {
             if (RX_FrameData[DATA_HEADER_IDX] == CTRL_HEADER)
             {
-              printf("\r\nCTRL RXed");
+              //printf("\r\nCTRL RXed");
               
               static uint8_t i;
                            
@@ -322,7 +322,7 @@ ES_Event_t RunSHIP_RX( ES_Event_t ThisEvent)
             // if req_2_pair packet, save ansible colour
             else if (RX_FrameData[DATA_HEADER_IDX] == REQ_2_PAIR_HEADER)
             {
-              printf("\r\nREQ_2_PAIR RXed");
+              //printf("\r\nREQ_2_PAIR RXed");
                 
               // Save source address
               SourceAddress |= ((uint16_t) RX_FrameData[SOURCE_ADDRESS_MSB_IDX])<<8;
@@ -374,7 +374,17 @@ uint16_t QuerySourceAddress(void)
 uint8_t Query_ANSIBLEColour (void)
 {
   //return true;
-  return ANSIBLEColour;
+  if (ANSIBLEColour == 0x00)
+  {
+    // ANSIBLE BLUE
+    return false;
+  }
+  else
+  {
+    // ANSLBIE RED
+    return true;
+  }
+  //return ANSIBLEColour;
 }
 
 uint8_t Query_FB (void)

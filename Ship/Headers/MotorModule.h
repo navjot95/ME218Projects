@@ -23,6 +23,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+//For LED lights
+#define PURPLE 0
+#define RED 1
+#define BLUE 2
+
 void InitFanPumpPWM(void); 
 void MoveForward(uint32_t ForwardDuty); //give value 0-100 
 void MoveBackward(uint32_t BackwardDuty); //give value 0-100
@@ -36,7 +41,7 @@ void changeFlow(bool toTank); //set parameter to true to make flow go to tank, f
 
 //FOR LIGHTS 
 void powerFuelLEDs(bool turnOn); 
-void setCurrTeamLED(bool isRed); 
+void setCurrTeamLED(uint8_t color); //purple is 0, red is 1, blue is 2 
 void setHomeTeamLED(bool isRed); 
 
 #endif //MOTOR_MODULE

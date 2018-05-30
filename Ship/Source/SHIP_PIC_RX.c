@@ -43,7 +43,7 @@ Notes
 #include "SHIP_PIC_RX.h"
 #include "SHIP_PIC_TX.h"
 #include "Init_UART.h"
-
+#include "MotorModule.h"
 /*----------------------------- Module Defines ----------------------------*/
 #define FUEL_EMPTY_MASK 0x08
 #define FUEL_LEVEL_MASK 0x07
@@ -152,6 +152,18 @@ ES_Event_t RunSHIP_PIC_RX( ES_Event_t ThisEvent)
         {
           FuelStatus = ThisEvent.EventParam;
           CurrentState = WaitingForData_PIC;
+          
+          // Fuel LED Control
+          // Turn on if fueled
+          if (FuelStatus & FUEL_EMPTY_MASK)
+          {
+            powerFuelLEDs(true); 
+          }
+          // Turn off if NOT Fueled
+          else
+          {
+            powerFuelLEDs(false); 
+          }
         }
       }     
       break;
@@ -161,12 +173,14 @@ ES_Event_t RunSHIP_PIC_RX( ES_Event_t ThisEvent)
 }
 
 
-uint8_t QueryFuelEmpty(void)
+bool QueryFuelEmpty(void)
 {
+  // True if Fueled (stupid, but it's consistent with the spec sheet)
   if (FuelStatus & FUEL_EMPTY_MASK)
   {
     return true;
   }
+  // False if NOT Fueled
   else
   {
     return false;

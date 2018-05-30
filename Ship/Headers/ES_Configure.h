@@ -320,7 +320,7 @@ typedef enum
 #define TIMER0_RESP_FUNC PostSHIP_MASTER  //200 sec timer
 #define TIMER1_RESP_FUNC PostSHIP_MASTER  //1 sec timer
 #define TIMER2_RESP_FUNC PostSHIP_RX
-#define TIMER3_RESP_FUNC TIMER_UNUSED
+#define TIMER3_RESP_FUNC PostSHIP_MASTER  //500 ms timer 
 #define TIMER4_RESP_FUNC TIMER_UNUSED
 #define TIMER5_RESP_FUNC TIMER_UNUSED
 #define TIMER6_RESP_FUNC TIMER_UNUSED
@@ -345,9 +345,8 @@ typedef enum
 //Pairing timers 
 #define PAIR_ATTEMPT_SHIP_TIMER 0
 #define PAIR_TIMEOUT_SHIP_TIMER 1
-
-
 #define BYTE_TIMER              2
+#define CURR_TEAM_TIMER         3
 
 
 /**************************************************************************/

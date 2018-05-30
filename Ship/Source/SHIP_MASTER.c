@@ -33,14 +33,16 @@
 #include "SHIP_PIC_TX.h"
 
 /*----------------------------- Module Defines ----------------------------*/
+//#define DEBUG_PRINTF
+
 #define ONE_SEC 1000
 #define BLUE_TEAM 1
 #define RED_TEAM 0
 #define PAIR_ATTEMPT_TIME 150
-#define PAIR_TIMEOUT_TIME ONE_SEC
+#define PAIR_TIMEOUT_TIME 3*ONE_SEC
 
 // Control Commands
-#define PUMP_DC        70
+#define PUMP_DC        100
 #define MAX_MOTOR_DC   90
 #define DEADBAND_VALUE 10
 
@@ -62,7 +64,7 @@ static void executeControlPacketCommands(void);
 static shipState_t CurrentState;
 static uint8_t MyPriority;
 static uint32_t lastAnsAddr = 0; 
-static bool homeTeamColor; 
+static bool homeTeamColorisRed; 
 
 // Control Data
 static uint8_t Control_FB;
@@ -71,9 +73,8 @@ static uint8_t Control_LR;
 //static uint8_t Control_TurretP;
 static uint8_t Control_CTRL; 
 
-// SHIP_YAW PWM DC
-static uint8_t Yaw_Left_DC;
-static uint8_t Yaw_Right_DC;
+static bool    CurrentFuel;
+static bool    LastFuel;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -101,10 +102,15 @@ bool InitSHIP_MASTER(uint8_t Priority)
   MyPriority = Priority;
   // put us into the Initial PseudoState
   CurrentState = Waiting2Pair;
+  
+  #ifdef DEBUG_PRINTF
   printf("\r\nINIT STATE: Waiting2Pair");
-    
+  #endif
+  
   //initialize all hw necessairy for the SHIP 
-  homeTeamColor = getHomeTeamColor(); 
+  homeTeamColorisRed = getHomeTeamColor(); 
+  setHomeTeamLED(homeTeamColorisRed); //turn the LED on to the appropriate color 
+  //powerFuelLEDs(false);
   
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
@@ -166,9 +172,12 @@ ES_Event_t RunSHIP_MASTER(ES_Event_t ThisEvent)
   {
     case Waiting2Pair:      
     {
+      setCurrTeamLED(PURPLE); 
+      LastFuel = QueryFuelEmpty();
+      
       if(ThisEvent.EventType == ES_PAIR_REQUEST){  /*received 0x01 packet*/
         //guard: if fueled, then only the home team can connect 
-        if(QueryFuelEmpty() && (Query_ANSIBLEColour() == homeTeamColor)){
+        if(QueryFuelEmpty() && (Query_ANSIBLEColour() == homeTeamColorisRed)){ 
           //start pairing timer (1sec)
           ES_Timer_InitTimer(PAIR_TIMEOUT_SHIP_TIMER, PAIR_TIMEOUT_TIME);
           //start attempt timer (200ms)
@@ -176,7 +185,10 @@ ES_Event_t RunSHIP_MASTER(ES_Event_t ThisEvent)
           //send Pair_Ack Packet (0x02) 
           //sendPairAck(); 
           CurrentState = Trying2Pair; 
+          
+          #ifdef DEBUG_PRINTF
           printf("\r\nSTATE TRANSITION: Waiting2Pair - Trying2Pair"); 
+          #endif
         }
         else if(!QueryFuelEmpty() && (lastAnsAddr != QuerySourceAddress())){
           //start pairing timer (1sec)
@@ -185,8 +197,11 @@ ES_Event_t RunSHIP_MASTER(ES_Event_t ThisEvent)
           ES_Timer_InitTimer(PAIR_ATTEMPT_SHIP_TIMER, PAIR_ATTEMPT_TIME);
           //send Pair_Ack Packet (0x02)
           //sendPairAck(); 
-          CurrentState = Trying2Pair; 
+          CurrentState = Trying2Pair;
+          
+          #ifdef DEBUG_PRINTF
           printf("\r\nSTATE TRANSITION: Waiting2Pair - Trying2Pair"); 
+          #endif
         }
       }
     }
@@ -202,7 +217,10 @@ ES_Event_t RunSHIP_MASTER(ES_Event_t ThisEvent)
         }
         else if(ThisEvent.EventParam == PAIR_TIMEOUT_SHIP_TIMER){
           CurrentState = Waiting2Pair; 
+          
+          #ifdef DEBUG_PRINTF
           printf("\r\nSTATE TRANSITION: Trying2Pair - Waiting2Pair");
+          #endif
         }
         
       }
@@ -213,39 +231,90 @@ ES_Event_t RunSHIP_MASTER(ES_Event_t ThisEvent)
         executeControlPacketCommands(); 
         
         CurrentState = Communicating;
+        
+        #ifdef DEBUG_PRINTF
         printf("\r\nSTATE TRANSITION: Trying2Pair - Communicating");
+        #endif
+        
+        // Turn on LED ANSIBLE Color
+        if(Query_ANSIBLEColour()){
+          setCurrTeamLED(RED); 
+        }
+        else 
+          setCurrTeamLED(BLUE); 
+        
       }
     }
     break;
     
     case Communicating:  //regular paired state
     {
+      CurrentFuel = QueryFuelEmpty();
+      lastAnsAddr = QuerySourceAddress(); 
+      
       if(ThisEvent.EventType == ES_CONTROL_PACKET){  /*Control packet 0x03 received*/
-        sendStatusPacket(); //0x04
-        //restart 1 sec pairing timeout timer
-        ES_Timer_InitTimer(PAIR_TIMEOUT_SHIP_TIMER, PAIR_TIMEOUT_TIME);
-        executeControlPacketCommands();         
+        if(!CurrentFuel && (LastFuel != CurrentFuel))
+        {
+          StopFanMotors();
+          CurrentState = Waiting2Pair; 
+          
+          #ifdef DEBUG_PRINTF
+          printf("\r\nOut of Fuel");
+          printf("\r\nSTATE TRANSITION: Communicating - Waiting2Pair");
+          #endif
+        }
+        else if ((CurrentFuel && (LastFuel != CurrentFuel)) && (Query_ANSIBLEColour() != homeTeamColorisRed))
+        {
+          StopFanMotors(); 
+          CurrentState = Waiting2Pair; 
+          
+          #ifdef DEBUG_PRINTF
+          printf("\r\nOpposite team kicked out"); 
+          printf("\r\nIn Waiting2Pair now");
+          #endif
+        }
+        else
+        {
+          sendStatusPacket(); //0x04
+          //restart 1 sec pairing timeout timer
+          ES_Timer_InitTimer(PAIR_TIMEOUT_SHIP_TIMER, PAIR_TIMEOUT_TIME);
+          executeControlPacketCommands(); 
+        }          
       }
       else if(ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == PAIR_TIMEOUT_SHIP_TIMER){
         //one sec pairing timer has timed out 
         StopFanMotors(); 
         CurrentState = Waiting2Pair;
+        //powerFuelLEDs(false);
+        setCurrTeamLED(PURPLE); 
+        
+        #ifdef DEBUG_PRINTF
         printf("\r\nONE_SEC Timer Timeout");
         printf("\r\nSTATE TRANSITION: Communicating - Waiting2Pair");
+        #endif
       } 
-      else if(ThisEvent.EventType == ES_OUT_OF_FUEL){  /*Out of fuel event*/
-        StopFanMotors();
-        lastAnsAddr = Query_ANSIBLEColour(); 
-        CurrentState = Waiting2Pair; 
-        printf("\r\nOut of Fuel");
-        printf("\r\nSTATE TRANSITION: Communicating - Waiting2Pair");
-      }
-      else if(ThisEvent.EventType == ES_REFUELED && (Query_ANSIBLEColour() != homeTeamColor)){  /*Refueled Event*/
-        StopFanMotors(); 
-        CurrentState = Waiting2Pair; 
-        printf("\r\nOpposite team kicked out"); 
-        printf("\r\nIn Waiting2Pair now");
-      }      
+//      else if(!CurrentFuel && (LastFuel != CurrentFuel)){  /*Out of fuel event*/
+//        powerFuelLEDs(false);
+//        StopFanMotors();
+//        lastAnsAddr = Query_ANSIBLEColour(); 
+//        CurrentState = Waiting2Pair; 
+//        
+//        #ifdef DEBUG_PRINTF
+//        printf("\r\nOut of Fuel");
+//        printf("\r\nSTATE TRANSITION: Communicating - Waiting2Pair");
+//        #endif
+//      }
+//      else if((CurrentFuel && (LastFuel != CurrentFuel)) && (Query_ANSIBLEColour() != homeTeamColorisRed)){  /*Refueled Event*/
+//        StopFanMotors(); 
+//        CurrentState = Waiting2Pair; 
+//        
+//        #ifdef DEBUG_PRINTF
+//        printf("\r\nOpposite team kicked out"); 
+//        printf("\r\nIn Waiting2Pair now");
+//        #endif
+//      }
+                  
+      LastFuel = CurrentFuel;      
     }
     break;
         
@@ -303,7 +372,7 @@ static void sendPairAck(void)
 {
   ES_Event_t ThisEvent;
   
-  printf("\r\nACK packet sent"); 
+  //printf("\r\nACK packet sent"); 
   ThisEvent.EventType = BEGIN_TX;
   ThisEvent.EventParam = PAIR_ACK_EVENT;
   PostSHIP_TX(ThisEvent);
@@ -313,7 +382,7 @@ static void sendStatusPacket(void)
 {
   ES_Event_t ThisEvent;
   
-  printf("\r\nStatus packet sent"); 
+  //printf("\r\nStatus packet sent"); 
   ThisEvent.EventType = BEGIN_TX;
   ThisEvent.EventParam = STATUS_EVENT;
   PostSHIP_TX(ThisEvent);
@@ -325,14 +394,25 @@ static void executeControlPacketCommands(void)
   static uint8_t Right_Motor_DC;
   static uint8_t Left_Motor_DC;
   static bool    Direction;
-  printf("\r\nControl commands executed");
+  static uint8_t DC_Scaler;
+  //printf("\r\nControl commands executed");
   Control_FB = Query_FB();
   Control_LR = Query_LR();
 //  Control_TurretR = Query_TurretR();
 //  Control_TurretP = Query_TurretP();
   Control_CTRL = Query_CTRL();
   
-  printf("\r\nFB: %u, LR: %u", Control_FB, Control_LR);
+  if (QueryFuelEmpty())
+  {
+    // If Fueled
+    DC_Scaler = 1;
+  }
+  else
+  {
+    DC_Scaler = 2;
+  }                  
+  
+  //printf("\r\nFB: %u, LR: %u", Control_FB, Control_LR);
   
   // TODO: USE VARIABLES ABOVE TO MOVE BOAT
   
@@ -344,6 +424,8 @@ static void executeControlPacketCommands(void)
       // Turning Right and Moving Forward
       Right_Motor_DC = (100 * (Control_FB - 127))/127;
       Left_Motor_DC = (Right_Motor_DC * (255 - Control_LR))/127;
+      Right_Motor_DC /= DC_Scaler;
+      Left_Motor_DC /= DC_Scaler;
       Direction = true;
       //MoveFanMotors(Left_Motor_DC, Right_Motor_DC, Direction);
       MoveFanMotors(Right_Motor_DC, Left_Motor_DC, Direction);
@@ -353,6 +435,8 @@ static void executeControlPacketCommands(void)
       // Turning Right and Moving Backward
       Right_Motor_DC = (100 * (Control_FB - 127))/127;
       Left_Motor_DC = (Right_Motor_DC * (255 - Control_LR))/127;
+      Right_Motor_DC /= DC_Scaler;
+      Left_Motor_DC /= DC_Scaler;
       Direction = false;
       //MoveFanMotors(Left_Motor_DC, Right_Motor_DC, Direction);
       MoveFanMotors(Right_Motor_DC, Left_Motor_DC, Direction);
@@ -368,7 +452,9 @@ static void executeControlPacketCommands(void)
     {
       // Turning Left and Moving Forward
       Left_Motor_DC = (100 * (Control_FB - 127))/127;
-      Right_Motor_DC = (Left_Motor_DC * Control_LR)/127;      
+      Right_Motor_DC = (Left_Motor_DC * Control_LR)/127; 
+      Right_Motor_DC /= DC_Scaler;
+      Left_Motor_DC /= DC_Scaler;      
       Direction = true;
       //MoveFanMotors(Left_Motor_DC, Right_Motor_DC, Direction);
       MoveFanMotors(Right_Motor_DC, Left_Motor_DC, Direction);
@@ -377,7 +463,9 @@ static void executeControlPacketCommands(void)
     {
       // Turning Left and Moving Backward
       Left_Motor_DC = (100 * (Control_FB - 127))/127;
-      Right_Motor_DC = (Left_Motor_DC * Control_LR)/127;     
+      Right_Motor_DC = (Left_Motor_DC * Control_LR)/127;    
+      Right_Motor_DC /= DC_Scaler;
+      Left_Motor_DC /= DC_Scaler;      
       Direction = false;
       //MoveFanMotors(Left_Motor_DC, Right_Motor_DC, Direction);
       MoveFanMotors(Right_Motor_DC, Left_Motor_DC, Direction);
@@ -392,11 +480,13 @@ static void executeControlPacketCommands(void)
     if (Control_FB > 127)
     {
       Motor_DC = (100 * (Control_FB - 127))/127;
+      Motor_DC /= DC_Scaler;
       MoveForward(Motor_DC);
     }
     else if (Control_FB < 127)
     {
       Motor_DC = (100 * (Control_FB - 127))/127;
+      Motor_DC /= DC_Scaler;
       MoveBackward(Motor_DC);
     }
     else
@@ -413,7 +503,7 @@ static void executeControlPacketCommands(void)
   {
     changePumpPower(PUMP_DC);
   }
-  else if (!(Control_CTRL & 0x01))
+  else
   {
     changePumpPower(0);
   }
@@ -421,14 +511,14 @@ static void executeControlPacketCommands(void)
   if (Control_CTRL & 0x02)  // Bit 1: Valve/Refuel
   {
   }
-  else if (!(Control_CTRL & 0x02))
+  else
   {
   }
   
   if (Control_CTRL & 0x04)  // Bit 2: Special Function
   {
   }
-  else if (!(Control_CTRL & 0x04))
+  else
   {
   }
 }
