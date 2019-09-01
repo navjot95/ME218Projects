@@ -1,0 +1,28 @@
+[0215/205030:ERROR:tcp_socket_win.cc(335)] bind() returned an error: Only one usage of each socket address (protocol/network address/port) is normally permitted. (0x2740)
+[0215/205030:ERROR:devtools_http_handler.cc(229)] Cannot start http server for devtools. Stop devtools.
+[0217/201626:ERROR:tcp_socket_win.cc(335)] bind() returned an error: Only one usage of each socket address (protocol/network address/port) is normally permitted. (0x2740)
+[0217/201626:ERROR:devtools_http_handler.cc(229)] Cannot start http server for devtools. Stop devtools.
+[0217/225827:ERROR:tcp_socket_win.cc(335)] bind() returned an error: Only one usage of each socket address (protocol/network address/port) is normally permitted. (0x2740)
+[0217/225827:ERROR:devtools_http_handler.cc(229)] Cannot start http server for devtools. Stop devtools.
+[0220/143911:ERROR:tcp_socket_win.cc(335)] bind() returned an error: Only one usage of each socket address (protocol/network address/port) is normally permitted. (0x2740)
+[0220/143911:ERROR:devtools_http_handler.cc(229)] Cannot start http server for devtools. Stop devtools.
+[0220/194529:ERROR:tcp_socket_win.cc(335)] bind() returned an error: Only one usage of each socket address (protocol/network address/port) is normally permitted. (0x2740)
+[0220/194529:ERROR:devtools_http_handler.cc(229)] Cannot start http server for devtools. Stop devtools.
+[0224/004708:ERROR:tcp_socket_win.cc(335)] bind() returned an error: Only one usage of each socket address (protocol/network address/port) is normally permitted. (0x2740)
+[0224/004708:ERROR:devtools_http_handler.cc(229)] Cannot start http server for devtools. Stop devtools.
+[0224/160655:ERROR:tcp_socket_win.cc(335)] bind() returned an error: Only one usage of each socket address (protocol/network address/port) is normally permitted. (0x2740)
+[0224/160655:ERROR:devtools_http_handler.cc(229)] Cannot start http server for devtools. Stop devtools.
+[0224/190421:ERROR:tcp_socket_win.cc(335)] bind() returned an error: Only one usage of each socket address (protocol/network address/port) is normally permitted. (0x2740)
+[0224/190421:ERROR:devtools_http_handler.cc(229)] Cannot start http server for devtools. Stop devtools.
+[0225/211858:ERROR:tcp_socket_win.cc(335)] bind() returned an error: Only one usage of each socket address (protocol/network address/port) is normally permitted. (0x2740)
+[0225/211858:ERROR:devtools_http_handler.cc(229)] Cannot start http server for devtools. Stop devtools.
+[0226/225424:ERROR:tcp_socket_win.cc(335)] bind() returned an error: Only one usage of each socket address (protocol/network address/port) is normally permitted. (0x2740)
+[0226/225424:ERROR:devtools_http_handler.cc(229)] Cannot start http server for devtools. Stop devtools.
+[0226/225433:ERROR:cache_util_win.cc(20)] Unable to move the cache: 5
+[0226/225433:ERROR:cache_util.cc(134)] Unable to move cache folder C:\ProgramData\Altium\Altium Designer {5A455989-5BAE-4426-B0D9-9DB1ED1433CD}\BrowserCache\GPUCache to C:\ProgramData\Altium\Altium Designer {5A455989-5BAE-4426-B0D9-9DB1ED1433CD}\BrowserCache\old_GPUCache_000
+[0226/225433:ERROR:cache_creator.cc(129)] Unable to create cache
+[0226/225433:ERROR:shader_disk_cache.cc(589)] Shader Cache Creation failed: -2
+[0226/225433:ERROR:cache_util_win.cc(20)] Unable to move the cache: 5
+[0226/225433:ERROR:cache_util.cc(134)] Unable to move cache folder C:\ProgramData\Altium\Altium Designer {5A455989-5BAE-4426-B0D9-9DB1ED1433CD}\BrowserCache to C:\ProgramData\Altium\Altium Designer {5A455989-5BAE-4426-B0D9-9DB1ED1433CD}\old_BrowserCache_000
+[0226/225433:ERROR:cache_creator.cc(129)] Unable to create cache
+[0227/031316:ERROR:browser_gpu_channel_host_factory.cc(119)] Failed to launch GPU process.
